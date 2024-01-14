@@ -15,7 +15,7 @@
    * @param {number} xsize
    * @param {number} ysize
    */
-  function Control (type, x, y, xsize, ysize) {
+  function Control(type, x, y, xsize, ysize) {
     /**
      * @private
      * @type {number}
@@ -119,36 +119,6 @@
     Control.UnableToConnectOk = new Control(sdk.controls.Button, 335, 450, 128, 35);
   }
 
-  // Account Settings Menu Controls
-  {
-    Control.AccountSettingsLabel = new Control(sdk.controls.LabelBox, 0, 310, 800, 50);
-    Control.ChangePassword = new Control(sdk.controls.Button, 264, 335, 272, 35);
-    Control.GetNewPassword = new Control(sdk.controls.Button, 264, 420, 272, 35);
-    Control.ChangeEmail = new Control(sdk.controls.Button, 264, 505, 272, 35);
-  }
-
-  // Change Password
-  {
-    Control.ChangePasswordAccount = new Control(sdk.controls.TextBox, 322, 342, 162, 19);
-    Control.ChangePasswordCurrent = new Control(sdk.controls.TextBox, 322, 396, 162, 19);
-    Control.ChangePasswordNew = new Control(sdk.controls.TextBox, 322, 450, 162, 19);
-    Control.ChangePasswordConfirm = new Control(sdk.controls.TextBox, 322, 504, 162, 19);
-  }
-
-  // Get New Password
-  {
-    Control.GetNewPasswordAccount = new Control(sdk.controls.TextBox, 251, 422, 293, 19);
-    Control.GetNewPasswordEmail = new Control(sdk.controls.TextBox, 251, 472, 293, 19);
-  }
-
-  // Change Email
-  {
-    Control.ChangeEmailAccount = new Control(sdk.controls.TextBox, 251, 397, 293, 19);
-    Control.ChangeEmailCurrent = new Control(sdk.controls.TextBox, 251, 447, 293, 19);
-    Control.ChangeEmailNew = new Control(sdk.controls.TextBox, 251, 497, 293, 19);
-    Control.ChangeEmailConfirm = new Control(sdk.controls.TextBox, 251, 547, 293, 19);
-  }
-
   // Other Multiplayer Menu Controls
   {
     Control.OpenBattleNet = new Control(-1, 264, 310, 272, 35);
@@ -228,30 +198,6 @@
     Control.LobbyLadder = new Control(sdk.controls.Button, 614, 490, 80, 20);
     Control.LobbyHelp = new Control(sdk.controls.Button, 146, 480, 120, 20);
     Control.LobbyQuit = new Control(sdk.controls.Button, 693, 490, 80, 20);
-  }
-
-  // Ladder menu controls
-  {
-    Control.StandardLadder = new Control(sdk.controls.Button, 463, 188, 272, 32);
-    Control.HardcoreLadder = new Control(sdk.controls.Button, 463, 238, 272, 32);
-    Control.ExpansionLadder = new Control(sdk.controls.Button, 463, 288, 272, 32);
-    Control.ExpansionHardcoreLadder = new Control(sdk.controls.Button, 463, 338, 272, 32);
-    Control.LadderTab = new Control(sdk.controls.LabelBox, 421, 136, 350, 50);
-    Control.LadderOverall = new Control(sdk.controls.LabelBox, 427, 157, 85, 29);
-    Control.LadderAmazon = new Control(sdk.controls.LabelBox, 513, 157, 36, 29);
-    Control.LadderSorceress = new Control(sdk.controls.LabelBox, 550, 157, 36, 29);
-    Control.LadderNecromancer = new Control(sdk.controls.LabelBox, 587, 157, 36, 29);
-    Control.LadderPaladin = new Control(sdk.controls.LabelBox, 624, 157, 36, 29);
-    Control.LadderBarbarian = new Control(sdk.controls.LabelBox, 661, 157, 36, 29);
-    Control.LadderDruid = new Control(sdk.controls.LabelBox, 698, 157, 36, 29);
-    Control.LadderAssassin = new Control(sdk.controls.LabelBox, 735, 157, 36, 29);
-    Control.LadderRank = new Control(sdk.controls.LabelBox, 434, 162, 217, 12);
-    Control.LadderName = new Control(sdk.controls.LabelBox, 468, 162, 217, 12);
-    Control.LadderClass = new Control(sdk.controls.LabelBox, 596, 162, 217, 12);
-    Control.LadderLevel = new Control(sdk.controls.LabelBox, 640, 162, 217, 12);
-    Control.LadderExperience = new Control(sdk.controls.LabelBox, 703, 162, 217, 12);
-    Control.LadderList = new Control(sdk.controls.LabelBox, 434, 391, 313, 218);
-    Control.LadderScrollDown = new Control(sdk.controls.ScrollBar, 756, 391, 10, 238);
   }
 
   // Join Game Menu Controls

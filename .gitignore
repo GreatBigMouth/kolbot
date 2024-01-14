@@ -1,4 +1,5 @@
 data/
+data/*.*
 images/
 logs/
 d2bs/kolbot/data/secure/*.txt
@@ -12,3 +13,8 @@ d2bs/kolbot/libs/manualplay/config/*.*.js
 d2bs/kolbot/libs/soloplay/**
 d2bs/kolbot/libs/config/*.*.js
 d2bs/kolbot/D2BotSoloPlay.dbj
+d2bs/kolbot/D2BotRS*.dbj
+d2bs/kolbot/libs/systems/rushservice
+d2bs/kolbot/libs/systems/rushservice/**
+d2bs/kolbot/libs/systems/rushservice*
+d2bs/kolbot/libs/systems/rushservice*/**

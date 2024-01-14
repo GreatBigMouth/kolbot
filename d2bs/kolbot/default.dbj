@@ -66,6 +66,13 @@ function main () {
     return true;
   }
 
+  if (getScript("d2botrsmanager.dbj") ||
+      getScript("d2botrsrusher.dbj") ||
+      getScript("d2botrsrestock.dbj")) {
+        getScript(true).stop(); // kill this thread
+        return true;
+  }
+
   // MuleLogger handler
   if (MuleLogger.inGameCheck()) return true;
 

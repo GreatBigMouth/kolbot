@@ -8,7 +8,6 @@
   const myEvents = new (require("Events"));
   const Worker = require("Worker");
 
-
   Worker.runInBackground.messaging = (new function () {
     const workBench = [];
     addEventListener("scriptmsg", data => workBench.push(data));
@@ -28,11 +27,16 @@
     };
   }).update;
 
-  module.exports = {
-    on: myEvents.on,
-    off: myEvents.off,
-    once: myEvents.once,
-    send: what => scriptBroadcast(what)
-  };
+	module.exports = {
+		on: myEvents.on,
+		off: myEvents.off,
+		once: myEvents.once,
+		send: (scriptName, what) => {
+			let script = getScript(scriptName);
+			return script && script.running && script.send(what);
+		},
+		broadcast: what => scriptBroadcast(what)
+		//send: what => scriptBroadcast(what)
+	};
 
 })(module, require);
