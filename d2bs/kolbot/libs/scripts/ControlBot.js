@@ -87,12 +87,47 @@ function ControlBot () {
   AutoRush.playersOut = "out";
   AutoRush.allIn = "all in";
 
+  const ngVote = new function () {
+    /** @type {Set<string>} */
+    this.votes = new Set();
+    this.watch = false;
+    this.tick = 0;
+    this.nextGame = false;
+
+    this.votesNeeded = function () {
+      return Math.max(1, (Misc.getPlayerCount() - 2) / 2);
+    };
+    this.reset = function () {
+      this.votes.clear();
+      this.tick = 0;
+      this.watch = false;
+    };
+    this.begin = function () {
+      this.watch = true;
+      this.votes.clear();
+      this.tick = getTickCount();
+    };
+    this.checkCount = function () {
+      return this.votes.size >= this.votesNeeded;
+    };
+    this.vote = function (nick) {
+      if (this.watch) {
+        this.votes.add(nick);
+      }
+    };
+    this.elapsed = function () {
+      return getTickCount() - this.tick;
+    };
+  };
   const MAX_CHAT_LENGTH = 180;
+  const MIN_GOLD = 500000;
   const startTime = getTickCount();
   const maxTime = Time.minutes(Config.ControlBot.GameLength);
   const chantDuration = Skill.getDuration(sdk.skills.Enchant);
   /** @type {Map<string, string>} */
   const players = new Map();
+  /** @type {Set<string>} */
+  const givenGold = new Set();
 
   const Chat = {
     /** @type {string[]} */
@@ -104,6 +139,18 @@ function ControlBot () {
      */
     say: function (msg) {
       Chat.queue.push(msg);
+    },
+
+    /**
+     * Display a message overhead
+     * @param {string} msg 
+     * @param {boolean} [force]
+     */
+    overhead: function (msg, force = false) {
+      if (!force && getTickCount() - Chat.overheadTick < 0) return;
+      // allow overhead messages every ~3-4 seconds
+      Chat.overheadTick = getTickCount() + Time.seconds(3) + rand(250, 1500);
+      say("!" + msg);
     },
 
     /**
@@ -731,6 +778,101 @@ function ControlBot () {
     return false;
   };
 
+  const pickGoldPiles = function () {
+    /** @type {PathNode} */
+    const startPos = { x: me.x, y: me.y };
+    let gold = Game.getItem(sdk.items.Gold);
+
+    if (gold) {
+      do {
+        if (gold.onGroundOrDropping && gold.distance <= 20 && Pickit.canPick(gold)) {
+          Pickit.pickItem(gold) && Chat.overhead("Thank you!", true);
+          if (startPos.distance > 5) {
+            Pather.move(startPos);
+          }
+        }
+      } while (gold.getNext());
+    }
+  };
+
+  const dropGold = function (nick) {
+    try {
+      if (me.gold < MIN_GOLD) {
+        throw new ScriptError("Not enough gold to drop.");
+      }
+      if (givenGold.has(nick)) {
+        throw new ScriptError("Already dropped gold this game for you. Don't be greedy.");
+      }
+
+      let unit = Game.getPlayer(nick);
+
+      if (unit && unit.distance > 15) {
+        throw new ScriptError("Get closer.");
+      }
+
+      if (!unit) {
+        let partyUnit = getParty(nick);
+
+        if (!Misc.poll(() => partyUnit.inTown, 500, 50)) {
+          throw new ScriptError("You need to be in one of the towns.");
+        }
+        // wait until party area is readable?
+        Chat.say("Wait for me at waypoint.");
+        Town.goToTown(sdk.areas.actOf(partyUnit.area));
+
+        unit = Game.getPlayer(nick);
+      }
+
+      if (unit) {
+        if (me.getStat(sdk.stats.Gold) < 5000) {
+          Town.openStash() && gold(5000, 4);
+          me.cancelUIFlags();
+        }
+
+        // drop the gold
+        gold(5000);
+        /** @type {ItemUnit} */
+        let droppedGold = Misc.poll(function () {
+          let _gold = Game.getItem(sdk.items.Gold);
+          if (_gold && _gold.onGroundOrDropping && _gold.getStat(sdk.stats.Gold) === 5000) {
+            return _gold;
+          }
+          return false;
+        }, Time.seconds(30), 1000);
+
+        if (!droppedGold) {
+          throw new ScriptError("Failed to drop gold.");
+        }
+
+        // watch for the gold dissapearing
+        let picked = false;
+        Misc.poll(function () {
+          let _gold = Game.getItem(sdk.items.Gold, sdk.items.mode.onGround, droppedGold.gid);
+          if (_gold) return false;
+          picked = true;
+          return !_gold;
+        }, Time.seconds(30), 1000);
+
+        if (!picked) {
+          Pickit.pickItem(droppedGold);
+          throw new ScriptError("Failed to pick gold.");
+        } else {
+          givenGold.add(nick);
+          Chat.say("yw " + nick);
+        }
+      } else {
+        throw new ScriptError("I don't see you");
+      }
+    } catch (e) {
+      if (e instanceof ScriptError) {
+        Chat.say((typeof e === "object" && e.message ? e.message : typeof e === "string" && e));
+      } else {
+        console.error(e);
+        Chat.say("Internal Error");
+      }
+    }
+  };
+
   /**
    * @param {string} nick 
    * @param {string} msg
@@ -752,6 +894,10 @@ function ControlBot () {
     } else {
       if (running.nick === nick && running.command === msg) {
         console.debug("Command already running.");
+        return;
+      }
+      if (!floodCheck([msg, nick]) && (msg === "help" || msg === "timeleft" || msg === "ngyes")) {
+        actions.get(msg).run(nick);
         return;
       }
       let index = queue.findIndex(function (cmd) {
@@ -777,6 +923,8 @@ function ControlBot () {
       me.inTown && me.mode === sdk.player.mode.StandingInTown && greet.push(name1);
       if (name2) {
         players.set(name1, "*" + name2);
+      } else {
+        players.set(name1, "");
       }
 
       break;
@@ -784,6 +932,9 @@ function ControlBot () {
     case 0x01: // "%Name1(%Name2) dropped due to errors."
     case 0x03: // "%Name1(%Name2) left our world. Diablo's minions weaken."
       players.delete(name1);
+      if (ngVote.watch) {
+        ngVote.votes.delete(name1);
+      }
 
       break;
     }
@@ -868,6 +1019,41 @@ function ControlBot () {
         );
       }
     });
+    _actions.set("ngvote", {
+      desc: "Vote for next game",
+      hostileCheck: false,
+      run: function (nick) {
+        if (getTickCount() - startTime < Time.minutes(3)) {
+          Chat.say(
+            "Can't vote for next game yet. Must be in game for at least 3 minutes. Remaining: "
+            + Math.round((Time.minutes(3) - (getTickCount() - startTime)) / 1000) + " seconds."
+          );
+          return;
+        }
+        ngVote.begin();
+        Chat.say(nick + " voted for next game. Votes Needed: " + ngVote.votesNeeded + ". Type ngyes to vote.");
+      }
+    });
+    _actions.set("ngyes", {
+      desc: "",
+      hostileCheck: false,
+      run: function (nick) {
+        if (!ngVote.watch) return;
+        ngVote.vote(nick);
+        if (ngVote.checkCount()) {
+          Chat.say("Enough votes to start next game.");
+          ngVote.nextGame = true;
+        }
+      }
+    });
+
+    if (Config.ControlBot.DropGold) {
+      _actions.set("dropgold", {
+        desc: "Drop 5k gold",
+        hostileCheck: false,
+        run: dropGold
+      });
+    }
 
     if (Config.ControlBot.Chant.Enchant
       && Skill.canUse(sdk.skills.Enchant)) {
@@ -1033,6 +1219,16 @@ function ControlBot () {
     Town.goToTown(1);
     Town.move("portalspot");
 
+    // check who is in game in cased we missed the gameevent or this was a restart
+    let party = getParty();
+    if (party) {
+      do {
+        if (party.name !== me.name && !players.has(party.name)) {
+          players.set(party.name, "");
+        }
+      } while (party.getNext());
+    }
+
     while (true) {
       while (greet.length > 0) {
         let nick = greet.shift();
@@ -1066,7 +1262,20 @@ function ControlBot () {
       me.act > 1 && Town.goToTown(1);
       Config.ControlBot.Chant.AutoEnchant && autoChant();
 
-      if (getTickCount() - startTime >= maxTime) {
+      if (me.gold < MIN_GOLD && players.size > 1) {
+        Chat.overhead(
+          "I am low on gold, to keep this service up please donate by dropping gold near me."
+          + " I need at least " + (MIN_GOLD - me.gold) + " gold."
+        );
+      }
+      pickGoldPiles();
+
+      if (ngVote.watch && ngVote.elapsed() > Time.minutes(2) && !ngVote.nextGame) {
+        Chat.say("Not enough votes to start next game.");
+        ngVote.reset();
+      }
+
+      if (getTickCount() - startTime >= maxTime || ngVote.nextGame) {
         if (Config.ControlBot.EndMessage) {
           Chat.say(Config.ControlBot.EndMessage);
         }
