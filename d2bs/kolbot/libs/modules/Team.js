@@ -122,7 +122,7 @@
     }).update;
 
     let quiting = false;
-    addEventListener("scriptmsg", data => data === "quit" && (quiting = true));
+    addEventListener("scriptmsg", data => data === "quit" && (quiting = true)); 
 
     // eslint-disable-next-line dot-notation
     globalThis["main"] = function () {
