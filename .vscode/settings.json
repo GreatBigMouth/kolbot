@@ -3,5 +3,19 @@
     120
   ],
   "editor.tabSize": 2,
-  "editor.detectIndentation": false
+  "editor.detectIndentation": false,
+  "javascript.validate.enable": false,
+  "eslint.format.enable": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  /* "[javascript]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  }, */
+  "editor.formatOnType": false, // required
+  "editor.formatOnPaste": false, // optional
+  "editor.formatOnSave": false, // optional
+  "editor.formatOnSaveMode": "file",
+  "eslint.debug": false, // required to format on save
+  /* "files.autoSave": "onFocusChange", */ // optional but recommended
 }
