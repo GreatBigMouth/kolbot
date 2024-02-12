@@ -66,7 +66,6 @@
      */
     this.runInBackground = new Proxy({ processes: {} }, {
       set: function (target, name, callback) {
-        print("setting " + name + ", target: " + JSON.stringify(target));
         /* if (target.processes.hasOwnProperty(name)) {
           throw new Error("Process " + name + " already exists.");
         } */
@@ -83,9 +82,6 @@
           running: true,
           name: name
         };
-        print("instances: " + JSON.stringify(instances));
-        print("processes: " + JSON.stringify(target.processes));
-
 
         let proxyCallback = function () {
           if (!target.processes[name]) return;
