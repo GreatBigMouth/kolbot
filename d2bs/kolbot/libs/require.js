@@ -59,6 +59,9 @@ global.require = (function (include, isIncluded, print, notify) {
     if (fullpath.startsWith("lib")) {
       fullpath = fullpath.substr(4);
     }
+
+    //console.debug("filename: " + filename + " | | | fullpath: " + fullpath + " | | | directory: " + directory );
+
     const packageName = fullpath;
 
     const asNew = this.__proto__.constructor === require && ((...args) => new (Function.prototype.bind.apply(modules[packageName].exports, args)));

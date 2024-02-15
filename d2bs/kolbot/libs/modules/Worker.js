@@ -24,6 +24,7 @@
     const work = [];
     const workLowPrio = [];
     const instances = {};
+
     /** @private */
     this.workDisabled = false;
 

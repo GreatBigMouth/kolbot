@@ -19,7 +19,7 @@
     once: myEvents.once,
     send: function (who, what, mode = defaultCopyDataMode) {
       what.profile = me.windowtitle;
-      //print("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
+      //console.debug("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
       return sendCopyData(null, who, mode || defaultCopyDataMode, JSON.stringify(what));
     },
     broadcast: (what, mode) => {

@@ -16,6 +16,8 @@
   "editor.formatOnPaste": false, // optional
   "editor.formatOnSave": false, // optional
   "editor.formatOnSaveMode": "file",
-  "eslint.debug": false, // required to format on save
+  "eslint.debug": false,
+  "javascript.suggest.paths": false,
+  "typescript.suggest.paths": false, // required to format on save
   /* "files.autoSave": "onFocusChange", */ // optional but recommended
 }
