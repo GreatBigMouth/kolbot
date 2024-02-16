@@ -67,7 +67,6 @@
      */
     this.runInBackground = new Proxy({ processes: {} }, {
       set: function (target, name, callback) {
-        // print("setting " + name);
         /* if (target.processes.hasOwnProperty(name)) {
           throw new Error("Process " + name + " already exists.");
         } */
