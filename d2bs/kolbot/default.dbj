@@ -69,8 +69,8 @@ function main () {
   if (getScript("d2botrsmanager.dbj") ||
       getScript("d2botrsrusher.dbj") ||
       getScript("d2botrsrestock.dbj")) {
-        getScript(true).stop(); // kill this thread
-        return true;
+    getScript(true).stop(); // kill this thread
+    return true;
   }
 
   // MuleLogger handler
