@@ -133,35 +133,24 @@ global.require = (function (include, isIncluded, print, notify) {
 
 getScript.startAsThread = function () {
   let stack = new Error().stack.match(/[^\r\n]+/g),
-    filename = stack[1].match(/.*?@.*?d2bs\\kolbot\\(.*):/)[1],
-    mainScript = stack[stack.length - 1].match(/.*?d2bs\\kolbot\\(.*):/)[0].slice(1, -1);
-
-  /* print("stack: " + stack);
-    print("vamosaver: " + stack[stack.length - 1]);
-    print("mainScript: " + mainScript); */
+    filename = stack[1].match(/.*?@.*?d2bs\\kolbot\\(.*):/)[1];
+    //mainScript = stack[stack.length - 1].match(/.*?d2bs\\kolbot\\(.*):/)[0].slice(1, -1);
 
   if (getScript(true).name.toLowerCase() === filename.toLowerCase()) {
     //return "thread";
-    /* print("thread threadid: " + getScript(filename).threadid);
-    print("thread mainScript:  " + mainScript); */
     return {
       type: "thread"
     };
   }
 
   if (!getScript(filename)) {
-    /* print("stackk: " + stack);
-    print("filename: " + stack[stack.length - 1]); */
+
     load(filename);
     while (!getScript(filename).running) {
       print("waiting for team thread to load");
       delay(5);
     }
     delay(200);
-    getScript(filename).send(JSON.stringify({ parentScriptId: getScript(true).threadid }));
-    //return "started";
-    /* print("started threadid: " + getScript(filename).threadid);
-    print("started mainScript:  " + mainScript); */
     return {
       type: "started",
       threadid: getScript(filename).threadid  // Pass newly created thread id
