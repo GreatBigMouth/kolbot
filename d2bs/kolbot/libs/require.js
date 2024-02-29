@@ -144,10 +144,7 @@ getScript.startAsThread = function () {
 
   if (!getScript(filename)) {
     load(filename);
-    while (!getScript(filename).running) {
-      print("waiting for team thread to load");
-      delay(5);
-    }
+    while (!getScript(filename).running) delay(5);
     delay(200);
     getScript(filename).send(JSON.stringify({ parentScriptId: getScript(true).threadid }));
 
