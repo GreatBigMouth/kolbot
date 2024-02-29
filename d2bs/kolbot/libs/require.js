@@ -137,20 +137,20 @@ getScript.startAsThread = function () {
     //mainScript = stack[stack.length - 1].match(/.*?d2bs\\kolbot\\(.*):/)[0].slice(1, -1);
 
   if (getScript(true).name.toLowerCase() === filename.toLowerCase()) {
-    //return "thread";
     return {
       type: "thread"
     };
   }
 
   if (!getScript(filename)) {
-
     load(filename);
     while (!getScript(filename).running) {
       print("waiting for team thread to load");
       delay(5);
     }
     delay(200);
+    getScript(filename).send(JSON.stringify({ parentScriptId: getScript(true).threadid }));
+
     return {
       type: "started",
       threadid: getScript(filename).threadid  // Pass newly created thread id
