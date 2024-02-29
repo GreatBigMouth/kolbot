@@ -5,7 +5,7 @@
  */
 !isIncluded("require.js") && include("require.js"); // load the require.js
 
-(function (threadType, globalThis) {
+(function (threadInfo, globalThis) {
   const others = [];
 
   const myEvents = new (require("Events"));
@@ -19,7 +19,9 @@
     once: myEvents.once,
     send: function (who, what, mode = defaultCopyDataMode) {
       what.profile = me.windowtitle;
-      //console.debug("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
+
+      print("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
+
       return sendCopyData(null, who, mode || defaultCopyDataMode, JSON.stringify(what));
     },
     broadcast: (what, mode) => {
@@ -36,8 +38,30 @@
     }
   };
 
-  if (threadType === "thread") {
+  
+  if (threadInfo.type === "thread") {
     print("ÿc2Kolbotÿc0 :: Team thread started");
+
+    let parentScriptId,
+      parentScriptName;
+
+    const getParentScriptId = (data) => {
+      try {
+        typeof data === "string" &&
+        JSON.parse(data).hasOwnProperty("parentScriptId")
+        && (parentScriptId = JSON.parse(data).parentScriptId)
+        && removeEventListener("scriptmsg", getParentScriptId);
+      } catch (e) {
+        print(e.message);
+      }
+    };
+    
+    addEventListener("scriptmsg", getParentScriptId);
+    
+    while (!parentScriptId) {
+      delay(10);
+    }
+    parentScriptName = getScript(parentScriptId).name;
 
     Messaging.on("Team", data => (
       typeof data === "object" && data
@@ -87,7 +111,10 @@
           Object.keys(obj).map(key => other[key] = obj[key]);
         });
       };
-      addEventListener("copydata", (mode, data) => workBench.push({ mode: mode, data: data }));
+      addEventListener("copydata", (mode, data) => {
+        //print("Pushing to workbench: " + JSON.stringify({ mode: mode, data: data }));
+        workBench.push({ mode: mode, data: data });
+      });
 
       let timer = getTickCount() - Math.round((Math.random() * 2500) + 1000); // start with 3 seconds off
       this.update = function () {
@@ -98,8 +125,9 @@
 
         // nothing to do? next
         if (!workBench.length) return true;
-        const emit = workBench.splice(0, workBench.length).map(
-          function (obj) { // Convert to object, if we can
+
+        const emit = workBench.splice(0, workBench.length)
+          .map(function (obj) { // Convert to object, if we can
             let data = obj.data;
             try {
               data = JSON.parse(data);
@@ -112,11 +140,20 @@
           .filter(obj => typeof obj === "object" && obj)
           .filter(obj => typeof obj.data === "object" && obj.data)
           .filter(obj => typeof obj.mode === "number" && obj.mode);
-        emit.length && Messaging.broadcast({
+        //print("emit: " + JSON.stringify(emit));
+        /* emit.length && Messaging.broadcast({
           Team: {
             emit: emit
           }
-        });
+        }); */
+        //print("emitting to " + parentScriptName + " with thread id: " + parentScriptId);
+        emit.length && Messaging.send(
+          parentScriptName,
+          {
+            Team: {
+              emit: emit
+            }
+          });
         return true; // always, to keep looping;
       };
     }).update;
@@ -130,19 +167,32 @@
       //@ts-ignore
       getScript(true).stop();
     };
+
   } else {
+
     (function (module) {
       const localTeam = module.exports = Team; // <-- some get overridden, but this still works for auto completion in your IDE
 
       // Filter out all Team functions that are linked to myEvent
-      Object.keys(Team)
+      /* Object.keys(Team)
         .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
         .forEach(key => module.exports[key] = (...args) => Messaging.broadcast({
           Team: {
             call: key,
             args: args
           }
-        }));
+        })); */
+
+      Object.keys(Team)
+        .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
+        .forEach(key => module.exports[key] = (...args) => Messaging.send(
+          getScript(threadInfo.threadid).name,
+          {
+            Team: {
+              call: key,
+              args: args
+            }
+          }));
 
       Messaging.on("Team", msg =>
         typeof msg === "object"

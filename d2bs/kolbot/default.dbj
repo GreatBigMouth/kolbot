@@ -37,7 +37,7 @@ function main () {
     delay(50);
   }
 
-  clearAllEvents(); // remove any event listeners from game crash
+  //clearAllEvents(); // remove any event listeners from game crash
 
   // load heartbeat if it isn't already running
   let _heartbeat = getScript("threads/heartbeat.js");
