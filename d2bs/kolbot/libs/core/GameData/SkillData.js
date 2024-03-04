@@ -245,7 +245,7 @@
     });
     skillMap.set(sdk.skills.Telekinesis, {
       hand: sdk.skills.hand.Right,
-      range: 40,
+      range: 25,
       condition: () => Config.UseTelekinesis,
     });
     skillMap.set(sdk.skills.FrostNova, {

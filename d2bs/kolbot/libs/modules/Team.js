@@ -19,9 +19,7 @@
     once: myEvents.once,
     send: function (who, what, mode = defaultCopyDataMode) {
       what.profile = me.windowtitle;
-
-      print("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
-
+      //print("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
       return sendCopyData(null, who, mode || defaultCopyDataMode, JSON.stringify(what));
     },
     broadcast: (what, mode) => {
@@ -30,6 +28,7 @@
     },
     broadcastInGame: (what, mode) => {
       what.profile = me.windowtitle;
+      //print("broadcasting " + JSON.stringify(what));
       others.forEach(function (other) {
         for (const party = getParty(); party && party.getNext();) {
           typeof party === "object" && party && party.hasOwnProperty("name") && party.name === other.name && sendCopyData(null, other.profile, mode || defaultCopyDataMode, JSON.stringify(what));

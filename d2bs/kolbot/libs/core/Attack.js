@@ -802,6 +802,12 @@ const Attack = {
             }
 
             break;
+          case sdk.skills.Telekinesis:
+            if (gidAttack[i].attacks > 0 && gidAttack[i].attacks % (me.normal ? 3 : 5) === 0) {
+              console.log("ÿc1Skipping " + target.name + " " + target.gid + " " + gidAttack[i].attacks);
+              monsterList.shift();
+            }
+            break;
           default:
             // Flash with melee skills
             if (gidAttack[i].attacks > 0 && gidAttack[i].attacks % (isSpecial ? 5 : 15) === 0
@@ -810,6 +816,11 @@ const Attack = {
             }
 
             break;
+          }
+
+          if (me.inArea(sdk.areas.ThroneofDestruction) && !isSpecial && gidAttack[i].attacks > 10) {
+            let coord = CollMap.getRandCoordinate(me.x, -1, 1, me.y, -1, 1, 4);
+            Pather.moveTo(coord.x, coord.y);
           }
 
           // Skip non-unique monsters after 15 attacks, except in Throne of Destruction
