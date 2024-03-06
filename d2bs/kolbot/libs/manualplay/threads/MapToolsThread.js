@@ -73,10 +73,10 @@ function main () {
       Common.Toolsthread.togglePause();
 
       break;
-    case sdk.keys.Delete: // quit current game
+    /* case sdk.keys.Delete: // quit current game
       Common.Toolsthread.exit();
 
-      break;
+      break; */
     case sdk.keys.End: // stop profile and log character
       MuleLogger.logChar();
       delay(rand(Time.seconds(Config.QuitListDelay[0]), Time.seconds(Config.QuitListDelay[1])));
@@ -112,6 +112,14 @@ function main () {
         Skill.setSkill(preSkill, sdk.skills.hand.Right);
       }
       
+      break;
+    
+    case sdk.keys.Numpad9:
+      {
+        if (me.inTown) {
+          Town.move("portalspot");
+        }
+      }
       break;
     }
   };
