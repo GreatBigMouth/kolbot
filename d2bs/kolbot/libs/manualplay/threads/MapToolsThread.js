@@ -114,7 +114,7 @@ function main () {
       
       break;
     
-    case sdk.keys.Numpad9:
+    case sdk.keys.Nine:
       {
         if (me.inTown) {
           Town.move("portalspot");
