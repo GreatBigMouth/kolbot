@@ -534,21 +534,43 @@
   Config.LowManaSkill[0] = -1; // Timed low mana skill.
   Config.LowManaSkill[1] = -1; // Untimed low mana skill.
   
-  Config.ChargeCast = {
-    skill: sdk.skills.LowerResist,
-    spectype: 0x7,
-  };
+  /**
+   * ChargeCast config.
+   * Allows use of charged skills (experimental)
+   * Summons are unsupported.
+   * Switchcasting is supported.
+   */
+  Config.ChargeCast.skill = -1; // Skill to use
+  Config.ChargeCast.spectype = 0x7; // Monster spectype to use skill on. 0xF = skip normal, 0x7 = champions/bosses, 0 = all
+  
+  // Config.ChargeCast = {
+  //   skill: sdk.skills.LowerResist,
+  //   spectype: 0x7,
+  // };
   
   Config.PacketCasting = 0; // 0 = disable, 1 = packet teleport, 2 = full packet casting. (disables casting animation for increased d2bs stability)
   
-  /* Advanced Attack config. Allows custom skills to be used on custom monsters.
-   *	Format: "Monster Name": [timed skill id, untimed skill id]
-   *	Example: "Baal": [38, -1] to use charged bolt on Baal
-   *	Multiple entries are separated by commas
+  /**
+   * Advanced Attack config. Allows custom skills to be used on custom monsters.
+   * Format: "Monster Name": [timed skill id, untimed skill id]
+   * Example: "Baal": [38, -1] to use charged bolt on Baal
+   * Multiple entries are separated by commas
    */
   Config.CustomAttack = {
-    //"Monster Name": [-1, -1]
+    // "Monster Name": [-1, -1]
   };
+
+  /**
+   * Advanced PreAttack config. Allows custom skills to be used on custom monsters.
+   * Format: "Monster Name": [skill id, weapon slot]
+   * Example: "Baal": [146, 1] to use battle cry on Baal with weapon slot 1 (switches if necessary)
+   * Multiple entries are separated by commas
+   */
+  Config.CustomPreAttack = {
+    // "Monster Name": [-1, -1]
+  };
+  // Alternatively, you can use the sdk.monsters.MonsterName and sdk.skills.SkillName enums to avoid typos
+  // Config.CustomPreAttack[sdk.monsters.Baal] = [sdk.skills.BattleCry, sdk.player.slot.Secondary];
 
   // Weapon slot settings
   Config.PrimarySlot = -1; //  primary weapon slot: -1 = disabled (will try to determine primary slot by using non-cta slot that's not empty), 0 = slot I, 1 = slot II

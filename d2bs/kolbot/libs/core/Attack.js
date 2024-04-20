@@ -118,7 +118,6 @@ const Attack = {
   },
 
   /**
-   * 
    * @param {Monster} unit 
    * @returns {[number, number] | boolean}
    * @todo add checking for other options than just name/classid
@@ -147,6 +146,43 @@ const Attack = {
         case "number":
           if (unit.classid === i) {
             return Config.CustomAttack[i];
+          }
+        }
+      }
+    }
+
+    return false;
+  },
+
+  /**
+   * @param {Monster} unit 
+   * @returns {[number, number] | boolean}
+   * @todo add checking for other options than just name/classid
+   *  - option for based on spectype
+   *  - option for based on enchant/aura
+   */
+  getCustomPreAttack: function (unit) {
+    // Check if unit got invalidated
+    if (!unit || !unit.name || !copyUnit(unit).x) return false;
+    
+    for (let i in Config.CustomPreAttack) {
+      if (Config.CustomPreAttack.hasOwnProperty(i)) {
+        // if it contains numbers but is a string, convert to an int
+        if (typeof i === "string" && i.match(/\d+/g)) {
+          // @ts-ignore
+          i = parseInt(i, 10);
+        }
+
+        switch (typeof i) {
+        case "string":
+          if (unit.name.toLowerCase() === i.toLowerCase()) {
+            return Config.CustomPreAttack[i];
+          }
+
+          break;
+        case "number":
+          if (unit.classid === i) {
+            return Config.CustomPreAttack[i];
           }
         }
       }
@@ -232,6 +268,11 @@ const Attack = {
       return Attack.clear(10);
     }
 
+    /**
+     * @param {number} gid 
+     * @param {PathNode} loc 
+     * @returns {Unit | boolean}
+     */
     const findTarget = function (gid, loc) {
       let path = getPath(me.area, me.x, me.y, loc.x, loc.y, 1, 5);
       if (!path) return false;
@@ -248,6 +289,8 @@ const Attack = {
 
     const who = (!!target.name ? target.name : classId);
     const gid = target.gid;
+    const primarySlot = Attack.getPrimarySlot(); // for mfswitch
+    const currentScript = Loader.scriptName(0).toLowerCase();
 
     let retry = 0;
     let errorInfo = "";
@@ -256,70 +299,80 @@ const Attack = {
     let lastLoc = { x: me.x, y: me.y };
     let tick = getTickCount();
     console.log("ÿc7Kill ÿc0:: " + who);
+
     if (Config.MFLeader
       // mfhelper is disabled for these scripts so announcing is pointless
-      && !Loader.scriptName(0).toLowerCase().includes("diablo")
-      && !Loader.scriptName(0).toLowerCase().includes("baal")
+      && !currentScript.includes("diablo")
+      && !currentScript.includes("baal")
       && Pather.makePortal()) {
       say("kill " + classId);
     }
 
-    while (attackCount < Config.MaxAttackCount && target.attackable && !this.skipCheck(target)) {
-      // Check if unit got invalidated, happens if necro raises a skeleton from the boss's corpse.
-      if (!target || !copyUnit(target).x) {
-        target = Game.getMonster(-1, -1, gid);
-        !target && (target = findTarget(gid, lastLoc));
+    try {
+      while (attackCount < Config.MaxAttackCount && target.attackable && !this.skipCheck(target)) {
+        // Check if unit got invalidated, happens if necro raises a skeleton from the boss's corpse.
+        if (!target || !copyUnit(target).x) {
+          target = Game.getMonster(-1, -1, gid);
+          !target && (target = findTarget(gid, lastLoc));
 
-        if (!target) {
-          console.warn("ÿc1Failed to kill " + who + " (couldn't relocate unit)");
-          break;
-        }
-      }
-
-      // todo - dodge boss missiles
-      Config.Dodge && me.hpPercent <= Config.DodgeHP && this.deploy(target, Config.DodgeRange, 5, 9);
-      Config.MFSwitchPercent && target.hpPercent < Config.MFSwitchPercent && me.switchToPrimary();
-
-      if (attackCount > 0 && attackCount % 15 === 0 && Skill.getRange(Config.AttackSkill[1]) < 4) {
-        Packet.flash(me.gid);
-      }
-
-      let result = ClassAttack.doAttack(target, attackCount % 15 === 0);
-
-      if (result === this.Result.FAILED) {
-        if (retry++ > 3) {
-          errorInfo = " (doAttack failed)";
-
-          break;
+          if (!target) {
+            console.warn("ÿc1Failed to kill " + who + " (couldn't relocate unit)");
+            break;
+          }
         }
 
-        Packet.flash(me.gid);
-      } else if (result === this.Result.CANTATTACK) {
-        errorInfo = " (No valid attack skills)";
+        // todo - dodge boss missiles
+        Config.Dodge && me.hpPercent <= Config.DodgeHP && this.deploy(target, Config.DodgeRange, 5, 9);
+        if (Config.MFSwitchPercent && target.hpPercent < Config.MFSwitchPercent) {
+          me.switchWeapons(primarySlot ^ 1);
+        }
 
-        break;
-      } else if (result === this.Result.NEEDMANA) {
-        continue;
+        if (attackCount > 0 && attackCount % 15 === 0 && Skill.getRange(Config.AttackSkill[1]) < 4) {
+          Packet.flash(me.gid);
+        }
+
+        let result = ClassAttack.doAttack(target, attackCount % 15 === 0);
+
+        if (result === this.Result.FAILED) {
+          if (retry++ > 3) {
+            errorInfo = " (doAttack failed)";
+
+            break;
+          }
+
+          Packet.flash(me.gid);
+        } else if (result === this.Result.CANTATTACK) {
+          errorInfo = " (No valid attack skills)";
+
+          break;
+        } else if (result === this.Result.NEEDMANA) {
+          continue;
+        } else {
+          retry = 0;
+        }
+
+        lastLoc = { x: me.x, y: me.y };
+        attackCount++;
+      }
+
+      attackCount === Config.MaxAttackCount && (errorInfo = " (attackCount exceeded: " + attackCount + ")");
+      Config.MFSwitchPercent && me.switchWeapons(primarySlot);
+      ClassAttack.afterAttack();
+      Pickit.pickItems();
+
+      if (!!target && target.attackable) {
+        console.warn("ÿc1Failed to kill ÿc0" + who + errorInfo);
       } else {
-        retry = 0;
+        console.log("ÿc7Killed ÿc0:: " + who + "ÿc0 - ÿc7Duration: ÿc0" + Time.format(getTickCount() - tick));
       }
 
-      lastLoc = { x: me.x, y: me.y };
-      attackCount++;
+      return (!target || !copyUnit(target).x || target.dead || !target.attackable);
+    } finally {
+      // make sure we switch back to primary weapon
+      if (Config.MFSwitchPercent) {
+        me.switchWeapons(primarySlot);
+      }
     }
-
-    attackCount === Config.MaxAttackCount && (errorInfo = " (attackCount exceeded: " + attackCount + ")");
-    Config.MFSwitchPercent && me.switchWeapons(this.getPrimarySlot());
-    ClassAttack.afterAttack();
-    Pickit.pickItems();
-
-    if (!!target && target.attackable) {
-      console.warn("ÿc1Failed to kill ÿc0" + who + errorInfo);
-    } else {
-      console.log("ÿc7Killed ÿc0:: " + who + "ÿc0 - ÿc7Duration: ÿc0" + Time.format(getTickCount() - tick));
-    }
-
-    return (!target || !copyUnit(target).x || target.dead || !target.attackable);
   },
 
   /**
@@ -498,7 +551,6 @@ const Attack = {
       
       boss && (({ orgx, orgy } = { orgx: boss.x, orgy: boss.y }));
       monsterList.sort(sortfunc);
-      // target = copyUnit(monsterList[0]);
       target = Game.getMonster(-1, -1, monsterList[0].gid);
 
       if (target && target.x !== undefined && (getDistance(target, orgx, orgy) <= range
@@ -555,8 +607,7 @@ const Attack = {
           case sdk.skills.BlessedHammer:
             // Tele in random direction with Blessed Hammer
             if (gidAttack[i].attacks > 0 && gidAttack[i].attacks % (isSpecial ? 4 : 2) === 0) {
-              let coord = CollMap.getRandCoordinate(me.x, -1, 1, me.y, -1, 1, 5);
-              Pather.moveTo(coord.x, coord.y);
+              Pather.randMove(-1, 1, -1, 1, 5);
             }
 
             break;
@@ -1865,5 +1916,32 @@ const Attack = {
 
     return (Attack.validSpot(unit.x, unit.y)
       && Skill.cast(sdk.skills.Whirlwind, Skill.getHand(sdk.skills.Whirlwind), me.x, me.y));
-  }
+  },
+
+  /**
+   * @param {Monster} unit 
+   * @returns {AttackResult}
+   */
+  doPreAttack: function (unit) {
+    const preAttackInfo = Attack.getCustomPreAttack(unit)
+      ? Attack.getCustomPreAttack(unit)
+      : [Config.AttackSkill[0], Attack.getPrimarySlot()];
+    preAttackInfo.length < 2 && preAttackInfo.push(Attack.getPrimarySlot());
+    const [skill, slot] = preAttackInfo;
+
+    if (skill > 0
+      && Attack.checkResist(unit, skill)
+      && (!me.skillDelay || !Skill.isTimed(skill))) {
+      if (unit.distance > Skill.getRange(skill) || checkCollision(me, unit, sdk.collision.Ranged)) {
+        if (!Attack.getIntoPosition(unit, Skill.getRange(skill), sdk.collision.Ranged)) {
+          return Attack.Result.FAILED;
+        }
+      }
+
+      Skill.cast(skill, Skill.getHand(skill), unit, null, null, slot);
+
+      return Attack.Result.SUCCESS;
+    }
+    return Attack.Result.NOOP;
+  },
 };
