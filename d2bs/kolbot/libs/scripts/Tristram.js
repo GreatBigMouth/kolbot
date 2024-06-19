@@ -37,7 +37,9 @@ const Tristram = new Runnable(
           throw new Error("Failed to move to Rakanishu");
         }
 
-        Attack.clear(15, 0, getLocaleString(sdk.locale.monsters.Rakanishu));
+        if (!Attack.haveKilled(getLocaleString(sdk.locale.monsters.Rakanishu))) {
+          Attack.clear(15, 0, getLocaleString(sdk.locale.monsters.Rakanishu));
+        }
 
         while (!Pather.usePortal(sdk.areas.Tristram)) {
           Attack.securePosition(me.x, me.y, 10, 1000);
@@ -67,5 +69,7 @@ const Tristram = new Runnable(
 
     return true;
   },
-  sdk.areas.StonyField
+  {
+    startArea: sdk.areas.StonyField
+  }
 );

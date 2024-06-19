@@ -8,13 +8,33 @@
 /** @typedef {function(): boolean} GlobalScript */
 // TODO: preaction/postaction
 /**
- * @constructor
- * @param {function(): boolean} action 
- * @param {number} [startArea] 
+ * @typedef {Object} RunnableOptions
+ * @property {function(): any} preAction
+ * @property {function(): boolean} postAction
+ * @property {boolean} forceTown
+ * @property {number} bossid
+ * @property {number} startArea
  */
-function Runnable (action, startArea) {
+
+/**
+ * @constructor
+ * @param {function(): boolean} action
+ * @param {RunnableOptions} [options]
+ */
+function Runnable (action, options = {}) {
   this.action = action;
-  this.startArea = startArea;
+  this.startArea = options.hasOwnProperty("startArea") ? options.startArea : null;
+  this.preAction = options.hasOwnProperty("preAction")
+    ? options.preAction
+    : function chores () {
+      // TODO: We need to do a dry-run of chores to actually determine if we need it or not
+      if (getTickCount() - Town.lastChores > Time.minutes(1)) {
+        Town.doChores();
+      }
+    };
+  this.postAction = options.hasOwnProperty("postAction") ? options.postAction : null;
+  this.forceTown = options.hasOwnProperty("forceTown") ? options.forceTown : false;
+  this.bossid = options.hasOwnProperty("bossid") ? options.bossid : null;
 }
 
 const Loader = {
@@ -169,16 +189,32 @@ const Loader = {
       if (isIncluded("scripts/" + script + ".js")) {
         try {
           if (Loader.currentScript instanceof Runnable) {
-            if (Loader.currentScript.startArea && Loader.scriptIndex === 0) {
-              Loader.firstScriptAct = sdk.areas.actOf(Loader.currentScript.startArea);
+            const { startArea, bossid, preAction } = Loader.currentScript;
+            
+            if (startArea && Loader.scriptIndex === 0) {
+              Loader.firstScriptAct = sdk.areas.actOf(startArea);
             }
 
-            if (Loader.currentScript.startArea && me.inArea(Loader.currentScript.startArea)) {
+            if (bossid && Attack.haveKilled(bossid)) {
+              console.log("ÿc2Skipping script: ÿc9" + script + " ÿc2- Boss already killed.");
+              continue;
+            }
+
+            if (preAction && typeof preAction === "function") {
+              preAction();
+            }
+
+            if (startArea && me.inArea(startArea)) {
               this.skipTown.push(script);
             }
           } else if (typeof (Loader.currentScript) !== "function") {
-            throw new Error("Invalid script function name");
+            throw new Error(
+              "Invalid script function name. "
+              + "Typeof: " + typeof (Loader.currentScript)
+              + " Name: " + script
+            );
           }
+
 
           if (this.skipTown.includes(script) || Town.goToTown()) {
             console.log("ÿc2Starting script: ÿc9" + script);
@@ -226,6 +262,8 @@ const Loader = {
         } catch (error) {
           if (!(error instanceof ScriptError)) {
             Misc.errorReport(error, script);
+          } else {
+            console.error(error);
           }
         } finally {
           // Dont run for last script as that will clear everything anyway
@@ -246,7 +284,8 @@ const Loader = {
 
     // return to first script town
     if (Loader.firstScriptAct > -1) {
-      Town.goToTown(Loader.firstScriptAct);
+      let _act = [2, 3].includes(Loader.firstScriptAct) ? 1 : Loader.firstScriptAct;
+      Town.goToTown(_act);
     }
   },
 
@@ -286,8 +325,15 @@ const Loader = {
     if (isIncluded("scripts/" + script + ".js")) {
       try {
         if (Loader.currentScript instanceof Runnable) {
-          if (Loader.currentScript.startArea && me.inArea(Loader.currentScript.startArea)) {
-            this.skipTown.push(script);
+          const { startArea, bossid } = Loader.currentScript;
+
+          if (startArea && me.inArea(startArea)) {
+            Loader.skipTown.push(script);
+          }
+          
+          if (bossid && Attack.haveKilled(bossid)) {
+            console.log("ÿc2Skipping script: ÿc9" + script + " ÿc2- Boss already killed.");
+            return true;
           }
         } else if (typeof (Loader.currentScript) !== "function") {
           throw new Error("Invalid script function name");

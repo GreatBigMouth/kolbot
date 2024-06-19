@@ -200,9 +200,10 @@ const Wakka = new Runnable(
       if (!leaderUnit || !copyUnit(leaderUnit).x) {
         leaderUnit = Game.getPlayer(leader);
       }
-      return !!leaderUnit
-        ? leaderUnit.area
-        : getParty(leader).area;
+      if (leaderUnit && leaderUnit.area !== 0) return leaderUnit.area;
+      let pLeader = getParty(leader);
+      if (pLeader && pLeader.area !== 0) return pLeader.area;
+      return 0;
     };
 
     const log = function (msg = "") {
@@ -228,7 +229,7 @@ const Wakka = new Runnable(
       timeout: timeout * 60e3
     }));
     Town.doChores();
-    if (!leader) throw new Error("Wakka: Leader not found");
+    if (!leader) throw new ScriptError("Wakka: Leader not found");
 
     addEventListener("gamepacket", Common.Diablo.diabloLightsEvent);
     const Worker = require("../modules/Worker");
@@ -252,6 +253,7 @@ const Wakka = new Runnable(
           if ([sdk.areas.ThroneofDestruction, sdk.areas.WorldstoneChamber].includes(getLeaderUnitArea())) {
             if (Loader.scriptName() === "Wakka") {
               killLeaderTracker = true;
+              Common.Diablo.done = true;
               throw new Error("Party leader is running baal");
             } else {
               // kill process
@@ -312,6 +314,11 @@ const Wakka = new Runnable(
 
       while (Misc.inMyParty(leader)) {
         try {
+          if (Common.Diablo.done) {
+            console.log("Diablo is done");
+            break;
+          }
+          
           if (me.inArea(sdk.areas.PandemoniumFortress)) {
             let portal = Pather.getPortal(sdk.areas.ChaosSanctuary, null);
 
@@ -325,9 +332,17 @@ const Wakka = new Runnable(
               if (!internals.safeTP) {
                 if (checkMonsters(25, false)) {
                   log("hot tp");
-                  Pather.usePortal(sdk.areas.PandemoniumFortress, null);
-
-                  continue;
+                  // go back through portal if it's still there
+                  if (Pather.usePortal(sdk.areas.PandemoniumFortress, null)) {
+                    continue;
+                  }
+                  // if the portal isn't there try to make our own
+                  if (me.canTpToTown() && Town.goToTown()) {
+                    continue;
+                  }
+                  // dodge monsters otherwise - find closest monster
+                  let _closeMon = Attack.getNearestMonster(25);
+                  Attack.deploy(_closeMon, 25, 5, 15);
                 } else {
                   getCoords();
                   internals.safeTP = true;
@@ -441,5 +456,8 @@ const Wakka = new Runnable(
 
     return true;
   },
-  sdk.areas.PandemoniumFortress
+  {
+    startArea: sdk.areas.PandemoniumFortress,
+    preAction: null
+  }
 );

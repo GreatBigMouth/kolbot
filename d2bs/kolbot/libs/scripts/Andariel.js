@@ -21,7 +21,6 @@ const Andariel = new Runnable(
       return target.dead;
     };
 
-    Town.doChores();
     Pather.useWaypoint(sdk.areas.CatacombsLvl2);
     Precast.doPrecast(true);
 
@@ -29,13 +28,20 @@ const Andariel = new Runnable(
       throw new Error("Failed to move to Catacombs Level 4");
     }
 
-    Pather.moveTo(22549, 9520);
-    me.sorceress && me.classic ? killAndariel() : Attack.kill(sdk.monsters.Andariel);
+    Pather.move(new PathNode(22549, 9520), { callback: function () {
+      return Attack._killed.has(sdk.monsters.Andariel);
+    } });
+    me.sorceress && me.classic
+      ? killAndariel()
+      : Attack.kill(sdk.monsters.Andariel);
 
     delay(2000); // Wait for minions to die.
     Pickit.pickItems();
 
     return true;
   },
-  sdk.areas.CatacombsLvl2
+  {
+    startArea: sdk.areas.CatacombsLvl2,
+    bossid: sdk.monsters.Andariel,
+  }
 );

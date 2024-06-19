@@ -1,3 +1,4 @@
+/// <reference path="../../sdk/globals.d.ts" />
 /**
  *  @filename    Attack.js
  *  @author      kolton, theBGuy
@@ -27,6 +28,19 @@ const Attack = {
     CANTATTACK: 2, // need to fix the ambiguity between this result and Failed
     NEEDMANA: 3,
     NOOP: 4, // used for clearing, if we didn't find any monsters to clear it's not exactly a success or fail
+  },
+  /**
+   * Track bosses killed
+   * @type {Set<number | string>}
+   */
+  _killed: new Set(),
+
+  /**
+   * @param {number | string} id 
+   * @returns {boolean}
+   */
+  haveKilled: function (id) {
+    return this._killed.has(id);
   },
 
   // Initialize attacks
@@ -264,6 +278,10 @@ const Attack = {
       : Misc.poll(() => Game.getMonster(classId), 2000, 100));
 
     if (!target) {
+      if (Attack._killed.has(classId)) {
+        console.log("ÿc7Killed ÿc0:: " + classId);
+        return true;
+      }
       console.warn("Attack.kill: Target not found");
       return Attack.clear(10);
     }
@@ -363,6 +381,11 @@ const Attack = {
       if (!!target && target.attackable) {
         console.warn("ÿc1Failed to kill ÿc0" + who + errorInfo);
       } else {
+        if (target.dead && (target.isBoss || target.uniqueid > -1)) {
+          // a little obnoxious, but we need to track bosses killed and this handles if we are attempting to check by id or name
+          target.isBoss && Attack._killed.add(target.classid);
+          target.uniqueid > -1 && Attack._killed.add(target.name);
+        }
         console.log("ÿc7Killed ÿc0:: " + who + "ÿc0 - ÿc7Duration: ÿc0" + Time.format(getTickCount() - tick));
       }
 
@@ -466,6 +489,242 @@ const Attack = {
     ids.includes(unit.classid) && (scariness += 8);
 
     return scariness;
+  },
+
+  /**
+   * @typedef {Object} ClearOptions
+   * @property {number} spectype
+   * @property {number | Unit} bossId
+   * @property {(a: T, b: T) => number} sortfunc
+   * @property {boolean} pickit
+   * @property {(unit: Monster) => boolean} filter
+   * @property {() => any} callback
+   */
+
+  /**
+   * @description Clear monsters in a section based on range and spectype or clear monsters around a boss monster
+   * @param {number} range
+   * @param {Partial<ClearOptions>} opts
+   * @returns {boolean}
+   */
+  clearEx: function (range, opts = {}) {
+    while (!me.gameReady) {
+      delay(40);
+    }
+    if (Config.AttackSkill[1] < 0 || Config.AttackSkill[3] < 0) return false;
+
+    range === undefined && (range = 25);
+    if (typeof (range) !== "number") throw new Error("Attack.clear: range must be a number.");
+    
+    const settings = Object.assign({
+      spectype: 0,
+      bossId: false,
+      sortfunc: Attack.sortMonsters,
+      pickit: true,
+      filter: false,
+      callback: false,
+    }, opts);
+    const { spectype, bossId, sortfunc, pickit, filter, callback } = settings;
+
+    /** @type {Map<number, { attacks: number, name: string }} */
+    const attacks = new Map();
+    let boss, orgx, orgy, start, skillCheck;
+    let tick = getTickCount();
+    let [killedBoss, logged] = [false, false];
+    let [retry, attackCount] = [0, 0];
+
+    if (bossId) {
+      boss = Misc.poll(function () {
+        switch (true) {
+        case typeof bossId === "object":
+          return bossId;
+        case ((typeof bossId === "number" && bossId > 999)):
+          return Game.getMonster(-1, -1, bossId);
+        default:
+          return Game.getMonster(bossId);
+        }
+      }, 2000, 100);
+
+      if (!boss) {
+        console.warn("Attack.clear: " + bossId + " not found");
+        return Attack.clear(10);
+      }
+
+      ({ orgx, orgy } = { orgx: boss.x, orgy: boss.y });
+      if (Config.MFLeader
+        && !!bossId
+        // mfhelper is disabled for these scripts so announcing is pointless
+        && !Loader.scriptName(0).toLowerCase().includes("diablo")
+        && !Loader.scriptName(0).toLowerCase().includes("baal")
+        && Pather.makePortal()) {
+        say("clear " + (["number", "string"].includes(typeof bossId) ? bossId : bossId.name));
+      }
+    } else {
+      ({ orgx, orgy } = { orgx: me.x, orgy: me.y });
+    }
+
+    let monsterList = [];
+    let target = Game.getMonster();
+
+    if (target) {
+      do {
+        if (typeof filter === "function" && !filter(target)) continue;
+        if ((!spectype || (target.spectype & spectype)) && target.attackable && !this.skipCheck(target)) {
+          // Speed optimization - don't go through monster list until there's at least one within clear range
+          if (!start && getDistance(target, orgx, orgy) <= range
+            && (Pather.canTeleport() || !checkCollision(me, target, sdk.collision.WallOrRanged))) {
+            start = true;
+          }
+
+          monsterList.push(copyUnit(target));
+        }
+      } while (target.getNext());
+    }
+
+    while (start && monsterList.length > 0 && attackCount < Config.MaxAttackCount) {
+      if (me.dead) return false;
+      if (typeof callback === "function") callback();
+      
+      boss && (({ orgx, orgy } = { orgx: boss.x, orgy: boss.y }));
+      monsterList.sort(sortfunc);
+      target = Game.getMonster(-1, -1, monsterList[0].gid);
+
+      if (target && target.x !== undefined && (getDistance(target, orgx, orgy) <= range
+        || (this.getScarinessLevel(target) > 7 && target.distance <= range))
+        && target.attackable) {
+        Config.Dodge && me.hpPercent <= Config.DodgeHP && this.deploy(target, Config.DodgeRange, 5, 9);
+        tick = getTickCount();
+
+        if (!logged && boss && boss.gid === target.gid) {
+          logged = true;
+          console.log("ÿc7Clear ÿc0:: " + (!!target.name ? target.name : bossId));
+        }
+        // me.overhead("attacking " + target.name + " spectype " + target.spectype + " id " + target.classid);
+
+        let _currMon = attacks.get(target.gid);
+        const checkAttackSkill = (!!_currMon && _currMon.attacks % 15 === 0);
+        const result = ClassAttack.doAttack(target, checkAttackSkill);
+        // let result = ClassAttack.doAttack(target, attackCount % 15 === 0);
+
+        if (result) {
+          retry = 0;
+
+          if (result === this.Result.CANTATTACK) {
+            monsterList.shift();
+
+            continue;
+          } else if (result === this.Result.NEEDMANA) {
+            continue;
+          }
+
+          if (!_currMon) {
+            _currMon = { attacks: 0, name: target.name };
+            attacks.set(target.gid, _currMon);
+          }
+
+          _currMon.attacks += 1;
+          attackCount += 1;
+          const isSpecial = target.isSpecial;
+          const secAttack = me.barbarian ? (isSpecial ? 2 : 4) : 5;
+          const checkSkill = Config.AttackSkill[isSpecial ? 1 : 3];
+          const hammerCheck = me.paladin && checkSkill === sdk.skills.BlessedHammer;
+
+          if (Config.AttackSkill[secAttack] > -1
+            && (!Attack.checkResist(target, checkSkill) || (hammerCheck && !ClassAttack.getHammerPosition(target)))) {
+            skillCheck = Config.AttackSkill[secAttack];
+          } else {
+            skillCheck = checkSkill;
+          }
+
+          // Desync/bad position handler
+          switch (skillCheck) {
+          case sdk.skills.BlessedHammer:
+            // Tele in random direction with Blessed Hammer
+            if (_currMon.attacks > 0 && _currMon.attacks % (isSpecial ? 4 : 2) === 0) {
+              Pather.randMove(-1, 1, -1, 1, 5);
+            }
+
+            break;
+          default:
+            // Flash with melee skills
+            if (_currMon.attacks > 0
+              && _currMon.attacks % (isSpecial ? 15 : 5) === 0
+              && Skill.getRange(skillCheck) < 4) {
+              Packet.flash(me.gid);
+              // It'd be helpful to get a position in the opposite direction of the monster move there and then move back
+              // Pather.moveTo(me.x + (me.x - target.x), me.y + (me.y - target.y));
+              console.debug("ÿc1Flashing " + target.name + " " + target.gid + " " + _currMon.attacks);
+              // Pather.randMove(-1, 1, -1, 1, 3);
+              
+            }
+
+            break;
+          }
+
+          // Skip non-unique monsters after 15 attacks, except in Throne of Destruction
+          if (!me.inArea(sdk.areas.ThroneofDestruction) && !isSpecial && _currMon.attacks > 15) {
+            console.log("ÿc1Skipping " + target.name + " " + target.gid + " " + _currMon.attacks);
+            monsterList.shift();
+          }
+
+          /**
+           * @todo allow for more aggressive horking here
+           */
+          if (target.dead || Config.FastPick || Config.FastFindItem) {
+            if ((target.isBoss || target.uniqueid > 0) && target.dead) {
+              // TODO: add uniqueids to sdk
+              target.isBoss && Attack._killed.add(target.classid);
+              target.uniqueid > -1 && Attack._killed.add(target.name);
+            }
+            if (boss && boss.gid === target.gid && target.dead) {
+              killedBoss = true;
+              console.log(
+                "ÿc7Cleared ÿc0:: " + (!!target.name ? target.name : bossId)
+                + "ÿc0 - ÿc7Duration: ÿc0" + Time.format(getTickCount() - tick)
+              );
+            }
+            Config.FastFindItem && pickit && ClassAttack.findItem();
+            Pickit.fastPick();
+          }
+        } else {
+          if (me.inArea(sdk.areas.ChaosSanctuary) && target.classid === sdk.monsters.StormCaster1) {
+            // probably behind the wall - skip them
+            monsterList.shift();
+            retry = 0;
+          }
+          if (retry++ > 3) {
+            monsterList.shift();
+            retry = 0;
+          }
+
+          Packet.flash(me.gid);
+        }
+      } else {
+        monsterList.shift();
+      }
+    }
+
+    if (attackCount > 0) {
+      ClassAttack.afterAttack(pickit);
+      this.openChests(range, orgx, orgy);
+      pickit && Pickit.pickItems();
+    } else {
+      Precast.doPrecast(false); // we didn't attack anything but check if we need to precast. TODO: better method of keeping track of precast skills
+    }
+
+    if (boss && !killedBoss) {
+      // check if boss corpse is around
+      if (boss.dead) {
+        console.log(
+          "ÿc7Cleared ÿc0:: " + (!!boss.name ? boss.name : bossId)
+          + "ÿc0 - ÿc7Duration: ÿc0" + Time.format(getTickCount() - tick)
+        );
+      } else {
+        console.log("ÿc7Clear ÿc0:: ÿc1Failed to clear ÿc0:: " + (!!boss.name ? boss.name : bossId));
+      }
+    }
+
+    return true;
   },
 
   /**
@@ -631,6 +890,11 @@ const Attack = {
            * @todo allow for more aggressive horking here
            */
           if (target.dead || Config.FastPick || Config.FastFindItem) {
+            if ((target.isBoss || target.uniqueid > 0) && target.dead) {
+              // TODO: add uniqueids to sdk
+              target.isBoss && Attack._killed.add(target.classid);
+              target.uniqueid > -1 && Attack._killed.add(target.name);
+            }
             if (boss && boss.gid === target.gid && target.dead) {
               killedBoss = true;
               console.log(
@@ -1028,11 +1292,47 @@ const Attack = {
   },
 
   /**
-   * @description Clear an entire area based on monster spectype
+   * @description Clear an entire area based on monster spectype using nearestNeighbourSearch
    * @param {number} spectype 
+   * @param {() => boolean} [cb] callback to end clearing early
    * @returns {boolean}
    */
-  clearLevel: function (spectype = 0) {
+  clearLevelWalk: function (spectype, cb = null) {
+    const Graph = require("../modules/Graph");
+    
+    try {
+      console.info(true, getAreaName(me.area), "clearLevelWalk-nearestNeighbourSearch");
+      let graph = new Graph();
+      Graph.nearestNeighbourSearch(graph, function (room) {
+        if (typeof cb === "function" && cb()) {
+          throw new ScriptError("Clearing stopped by callback");
+        }
+        const roomNode = new PathNode(room.walkableX, room.walkableY);
+        Pather.move(roomNode, { callback: cb, clearSettings: { clearPath: true } });
+        Attack.clearEx(room.xsize, {
+          spectype: spectype || 0,
+          filter: function (unit) {
+            return unit && room.coordsInRoom(unit.x, unit.y);
+          }
+        });
+      }, "walk");
+    } catch (e) {
+      if (!(e instanceof ScriptError)) {
+        console.error(e);
+      }
+    } finally {
+      CollMap.removeHooks();
+      console.info(false, getAreaName(me.area), "clearLevelWalk-nearestNeighbourSearch");
+    }
+  },
+
+  /**
+   * @description Clear an entire area based on monster spectype
+   * @param {number} spectype 
+   * @param {() => boolean} [cb] callback to end clearing early
+   * @returns {boolean}
+   */
+  clearLevel: function (spectype = 0, cb = null) {
     function RoomSort (a, b) {
       return getDistance(myRoom[0], myRoom[1], a[0], a[1]) - getDistance(myRoom[0], myRoom[1], b[0], b[1]);
     }
@@ -1046,8 +1346,6 @@ const Attack = {
     let myRoom, previousArea;
     let rooms = [];
     const currentArea = getArea().id;
-    const breakClearLevelCheck = !!(Loader.scriptName() === "MFHelper"
-      && Config.MFHelper.BreakClearLevel && Config.Leader !== "");
 
     do {
       rooms.push([room.x * 5 + room.xsize / 2, room.y * 5 + room.ysize / 2]);
@@ -1063,14 +1361,8 @@ const Attack = {
       // get the first room + initialize myRoom var
       !myRoom && (room = getRoom(me.x, me.y));
 
-      if (breakClearLevelCheck) {
-        let leader = Misc.findPlayer(Config.Leader);
-
-        if (leader && leader.area !== me.area && !leader.inTown) {
-          me.overhead("break the clearing in " + getArea().name);
-
-          return true;
-        }
+      if (typeof cb === "function" && cb()) {
+        break;
       }
 
       if (room) {
@@ -1793,6 +2085,16 @@ const Attack = {
       for (let i = 0; i < coords.length; i += 1) {
         // Valid position found
         if (!CollMap.checkColl({ x: coords[i].x, y: coords[i].y }, unit, coll, 1)) {
+          if (!Pather.canTeleport() && Pather.getWalkDistance(coords[i].x, coords[i].y) > unit.distance) {
+            if (Config.DebugMode.Path) {
+              console.debug(
+                "Skipping position due to walk distance being too far."
+                + "\n - DistanceToMonster: " + unit.distance
+                + "\n - DistanceToPosition: " + Pather.getWalkDistance(coords[i].x, coords[i].y)
+              );
+            }
+            continue;
+          }
           if ((() => {
             switch (walk) {
             case 1:

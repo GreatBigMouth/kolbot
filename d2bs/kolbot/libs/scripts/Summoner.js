@@ -7,11 +7,10 @@
 
 const Summoner = new Runnable(
   function Summoner () {
-    Town.doChores();
     Pather.useWaypoint(sdk.areas.ArcaneSanctuary);
     Precast.doPrecast(true);
 
-    if (Config.Summoner.FireEye) {
+    if (Config.Summoner.FireEye && !Attack.haveKilled(getLocaleString(sdk.locale.monsters.FireEye))) {
       try {
         if (!Pather.usePortal(null)) throw new Error("Failed to move to Fire Eye");
         Attack.clear(15, 0, getLocaleString(sdk.locale.monsters.FireEye));
@@ -23,6 +22,12 @@ const Summoner = new Runnable(
     if (me.inArea(sdk.areas.PalaceCellarLvl3) && !Pather.usePortal(null)) {
       throw new Error("Failed to move back to arcane");
     }
+    
+    if (Attack.haveKilled(sdk.monsters.TheSummoner)) {
+      console.log("Summoner already dead");
+      return true;
+    }
+
     if (!Pather.moveToPresetObject(me.area, sdk.quest.chest.Journal, { offX: -3, offY: -3 })) {
       throw new Error("Failed to move to Summoner");
     }
@@ -64,5 +69,7 @@ const Summoner = new Runnable(
 
     return true;
   },
-  sdk.areas.ArcaneSanctuary
+  {
+    startArea: sdk.areas.ArcaneSanctuary
+  }
 );

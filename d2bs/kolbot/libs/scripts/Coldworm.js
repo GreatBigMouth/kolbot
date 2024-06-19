@@ -7,12 +7,11 @@
 
 const Coldworm = new Runnable(
   function Coldworm () {
-    Town.doChores();
     Pather.useWaypoint(sdk.areas.FarOasis);
     Precast.doPrecast(true);
 
     // Beetleburst, added by 13ack.Stab
-    if (Config.Coldworm.KillBeetleburst) {
+    if (Config.Coldworm.KillBeetleburst && !Attack.haveKilled(getLocaleString(sdk.locale.monsters.Beetleburst))) {
       try {
         if (!Pather.moveToPresetMonster(me.area, sdk.monsters.preset.Beetleburst)) {
           throw new Error("Failed to move to Beetleburst");
@@ -38,5 +37,8 @@ const Coldworm = new Runnable(
 
     return true;
   },
-  sdk.areas.FarOasis
+  {
+    startArea: sdk.areas.FarOasis,
+    bossid: sdk.monsters.ColdwormtheBurrower,
+  }
 );

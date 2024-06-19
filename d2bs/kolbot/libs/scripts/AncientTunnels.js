@@ -7,7 +7,6 @@
 
 const AncientTunnels = new Runnable(
   function AncientTunnels () {
-    Town.doChores();
     Pather.useWaypoint(sdk.areas.LostCity);
     Precast.doPrecast(true);
 
@@ -21,6 +20,7 @@ const AncientTunnels = new Runnable(
 
     try {
       if (Config.AncientTunnels.KillDarkElder
+        && !Attack.haveKilled(getLocaleString(sdk.locale.monsters.DarkElder))
         && Pather.moveToPresetMonster(me.area, sdk.monsters.preset.DarkElder)) {
         Attack.clear(15, 0, getLocaleString(sdk.locale.monsters.DarkElder));
       }
@@ -33,5 +33,7 @@ const AncientTunnels = new Runnable(
 
     return true;
   },
-  sdk.areas.LostCity
+  {
+    startArea: sdk.areas.LostCity
+  }
 );

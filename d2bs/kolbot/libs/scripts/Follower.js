@@ -180,7 +180,7 @@ const Follower = new Runnable(
       ["wp", (me.name + " wp")]
         .forEach(key => _actions.set(key, () => {
           if (me.inTown) return;
-          if (getWaypoint(Pather.wpAreas.indexOf(me.area))) return;
+          if (me.haveWaypoint(me.area)) return;
           if (!Pather.wpAreas.includes(me.area)) return;
           if (Pather.getWP(me.area)) {
             announce("Got Wp in " + getAreaName(me.area));
@@ -960,7 +960,7 @@ const Follower = new Runnable(
       } else if (!actions.length && getTickCount() - Town.lastChores > Time.minutes(3)) {
         // no actions currently, lets do some town chores
         if (me.gold > 1000
-          && (me.needPotions() || Town.checkScrolls(sdk.items.TomeofTownPortal) < 5)) {
+          && (me.needPotions() || me.checkScrolls(sdk.items.TomeofTownPortal) < 5)) {
           Town.doChores();
         }
         Town.getDistance("portalspot") > 5 && Town.move("portalspot");
