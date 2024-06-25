@@ -6,6 +6,9 @@
 !isIncluded("require.js") && include("require.js"); // load the require.js
 
 (function (threadInfo, globalThis) {
+  console.log("type: " + threadInfo.type);
+  console.log("thread id: " + threadInfo.threadid);
+
   const others = [];
 
   const myEvents = new (require("Events"));
@@ -19,7 +22,7 @@
     once: myEvents.once,
     send: function (who, what, mode = defaultCopyDataMode) {
       what.profile = me.windowtitle;
-      //print("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
+      print("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
       return sendCopyData(null, who, mode || defaultCopyDataMode, JSON.stringify(what));
     },
     broadcast: (what, mode) => {
@@ -28,7 +31,7 @@
     },
     broadcastInGame: (what, mode) => {
       what.profile = me.windowtitle;
-      //print("broadcasting " + JSON.stringify(what));
+      print("broadcasting " + JSON.stringify(what));
       others.forEach(function (other) {
         for (const party = getParty(); party && party.getNext();) {
           typeof party === "object" && party && party.hasOwnProperty("name") && party.name === other.name && sendCopyData(null, other.profile, mode || defaultCopyDataMode, JSON.stringify(what));
@@ -41,15 +44,19 @@
   if (threadInfo.type === "thread") {
     print("ÿc2Kolbotÿc0 :: Team thread started");
 
+    //console.log("thread id as " + threadInfo.type + ": " + threadInfo.threadid + ", name: " + getScript(threadInfo.threadid).name);
+
     let parentScriptId,
       parentScriptName;
 
     const getParentScriptId = (data) => {
       try {
-        typeof data === "string" &&
-        JSON.parse(data).hasOwnProperty("parentScriptId")
-        && (parentScriptId = JSON.parse(data).parentScriptId)
-        && removeEventListener("scriptmsg", getParentScriptId);
+        if (typeof data === "string"
+          && JSON.parse(data).hasOwnProperty("parentScriptId")) {
+          parentScriptId = JSON.parse(data).parentScriptId;
+          //removeEventListener("scriptmsg", getParentScriptId);
+          print("parent script id received: " + parentScriptId);
+        }
       } catch (e) {
         print(e.message);
       }
@@ -57,10 +64,12 @@
     
     addEventListener("scriptmsg", getParentScriptId);
     
+    //console.log("waiting for parent script id...");
     while (!parentScriptId) {
       delay(10);
     }
     parentScriptName = getScript(parentScriptId).name;
+    //console.log("parent script name: " + parentScriptName);
 
     Messaging.on("Team", data => (
       typeof data === "object" && data
@@ -169,6 +178,7 @@
 
   } else {
 
+    //console.log("thread id as " + threadInfo.type + ": " + threadInfo.threadid + ", name: " + getScript(threadInfo.threadid).name);
     (function (module) {
       const localTeam = module.exports = Team; // <-- some get overridden, but this still works for auto completion in your IDE
 

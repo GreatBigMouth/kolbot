@@ -137,8 +137,11 @@ getScript.startAsThread = function () {
     //mainScript = stack[stack.length - 1].match(/.*?d2bs\\kolbot\\(.*):/)[0].slice(1, -1);
 
   if (getScript(true).name.toLowerCase() === filename.toLowerCase()) {
+    
+    console.log("THREAD: current script name: " + getScript(true).name + ", filename: " + filename + ", filename id: " + getScript(filename).threadid + ", current script id: " + getScript(true).threadid);
     return {
-      type: "thread"
+      type: "thread",
+      threadid: getScript(true).threadid
     };
   }
 
@@ -148,6 +151,7 @@ getScript.startAsThread = function () {
     delay(200);
     getScript(filename).send(JSON.stringify({ parentScriptId: getScript(true).threadid }));
 
+    console.log("STARTED: current script name: " + getScript(true).name + ", filename: " + filename + ", filename id: " + getScript(filename).threadid + ", current script id: " + getScript(true).threadid);
     return {
       type: "started",
       threadid: getScript(filename).threadid  // Pass newly created thread id
@@ -155,8 +159,10 @@ getScript.startAsThread = function () {
   }
 
   //return "loaded";
+  console.log("LOADED: current script name: " + getScript(true).name + ", filename: " + filename + ", filename id: " + getScript(filename).threadid + ", current script id: " + getScript(true).threadid);
   return {
     type: "loaded",
-    threadid: 0
+    //threadid: 0
+    threadid: getScript(true).threadid
   };
 };
