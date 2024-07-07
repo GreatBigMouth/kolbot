@@ -54,7 +54,7 @@
         if (typeof data === "string"
           && JSON.parse(data).hasOwnProperty("parentScriptId")) {
           parentScriptId = JSON.parse(data).parentScriptId;
-          //removeEventListener("scriptmsg", getParentScriptId);
+          removeEventListener("scriptmsg", getParentScriptId);
           print("parent script id received: " + parentScriptId);
         }
       } catch (e) {
@@ -192,6 +192,7 @@
           }
         })); */
 
+      console.log("thread name: " + getScript(threadInfo.threadid).name);
       Object.keys(Team)
         .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
         .forEach(key => module.exports[key] = (...args) => Messaging.send(
