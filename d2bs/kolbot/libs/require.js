@@ -163,6 +163,6 @@ getScript.startAsThread = function () {
   return {
     type: "loaded",
     //threadid: 0
-    threadid: getScript(true).threadid
+    threadid: getScript(filename).threadid
   };
 };

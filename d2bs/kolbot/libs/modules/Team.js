@@ -6,8 +6,7 @@
 !isIncluded("require.js") && include("require.js"); // load the require.js
 
 (function (threadInfo, globalThis) {
-  console.log("type: " + threadInfo.type);
-  console.log("thread id: " + threadInfo.threadid);
+  console.log("type: " + threadInfo.type + ", id: " + threadInfo.threadid + ", name: " + getScript(threadInfo.threadid).name);
 
   const others = [];
 
@@ -43,8 +42,6 @@
   
   if (threadInfo.type === "thread") {
     print("ÿc2Kolbotÿc0 :: Team thread started");
-
-    //console.log("thread id as " + threadInfo.type + ": " + threadInfo.threadid + ", name: " + getScript(threadInfo.threadid).name);
 
     let parentScriptId,
       parentScriptName;
@@ -120,7 +117,7 @@
         });
       };
       addEventListener("copydata", (mode, data) => {
-        //print("Pushing to workbench: " + JSON.stringify({ mode: mode, data: data }));
+        print("Received: " + JSON.stringify({ mode: mode, data: data }) + ", pushing to workbench");
         workBench.push({ mode: mode, data: data });
       });
 
@@ -192,7 +189,7 @@
           }
         })); */
 
-      console.log("thread name: " + getScript(threadInfo.threadid).name);
+      /* console.log("thread name: " + getScript(threadInfo.threadid).name);
       Object.keys(Team)
         .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
         .forEach(key => module.exports[key] = (...args) => Messaging.send(
@@ -202,7 +199,22 @@
               call: key,
               args: args
             }
-          }));
+          })); */
+
+      
+      Object.keys(Team)
+        .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
+        .forEach(key => module.exports[key] = (...args) => {
+          console.log("sending to threadid: " + threadInfo.threadid + ", thread name: " + getScript(threadInfo.threadid).name);
+          Messaging.send(
+            getScript(threadInfo.threadid).name,
+            {
+              Team: {
+                call: key,
+                args: args
+              }
+            });
+        });
 
       Messaging.on("Team", msg =>
         typeof msg === "object"
