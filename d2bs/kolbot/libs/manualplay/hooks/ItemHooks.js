@@ -14,19 +14,19 @@ const ItemHooks = (function () {
   const ignoreItemTypes = [
     sdk.items.type.Gold, sdk.items.type.BowQuiver,
     sdk.items.type.CrossbowQuiver, sdk.items.type.Book,
-    sdk.items.type.Gem, sdk.items.type.Scroll,
+    /* sdk.items.type.Gem, */ sdk.items.type.Scroll,
     sdk.items.type.MissilePotion, sdk.items.type.Key,
     sdk.items.type.Boots, sdk.items.type.Gloves,
     sdk.items.type.ThrowingKnife, sdk.items.type.ThrowingAxe,
     sdk.items.type.HealingPotion, sdk.items.type.ManaPotion,
     sdk.items.type.RejuvPotion, sdk.items.type.StaminaPotion,
     sdk.items.type.AntidotePotion, sdk.items.type.ThawingPotion,
-    sdk.items.type.ChippedGem, sdk.items.type.FlawedGem,
+    /* sdk.items.type.ChippedGem, sdk.items.type.FlawedGem,
     sdk.items.type.StandardGem, sdk.items.type.FlawlessGem,
     sdk.items.type.PerfectgGem, sdk.items.type.Amethyst,
     sdk.items.type.Diamond, sdk.items.type.Emerald,
     sdk.items.type.Ruby, sdk.items.type.Sapphire,
-    sdk.items.type.Topaz, sdk.items.type.Skull
+    sdk.items.type.Topaz, sdk.items.type.Skull */
   ];
   /**
    * Unique Items

@@ -77,7 +77,7 @@ const Follower = new Runnable(
     /** @type {Set<string>} */
     const commanders = new Set();
     Config.Leader && commanders.add(Config.Leader);
-    let [allowSay, attack, openContainers, stop] = [true, true, true, false];
+    let [allowSay, attack, openContainers, stop] = [false, false, false, false];
 
     /** @type {Map<string, function(): void} */
     const toggleActions = (function () {
