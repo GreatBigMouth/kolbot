@@ -824,7 +824,27 @@ const Attack = {
         }
         // me.overhead("attacking " + target.name + " spectype " + target.spectype + " id " + target.classid);
 
-        let result = ClassAttack.doAttack(target, attackCount % 15 === 0);
+        // custom handling here, we want to find a valid monster to use our skill on
+        // if we wait until they are the current target, it may too late to be useful
+        if (Config.ChargeCast.skill > -1
+          && Config.ChargeCast.spectype
+          && !(target.spectype & Config.ChargeCast.spectype)) {
+          let cRange = Skill.getRange(Config.ChargeCast.skill);
+          let cState = Skill.getState(Config.ChargeCast.skill);
+          let chargeTarget = monsterList.find(function (mon) {
+            return (
+              (mon.spectype & Config.ChargeCast.spectype)
+              && (mon.distance <= cRange)
+              && (!cState || !mon.getState(cState))
+              && !checkCollision(me, mon, sdk.collision.LineOfSight)
+            );
+          });
+          if (chargeTarget && chargeTarget.gid !== target.gid) {
+            Attack.doChargeCast(chargeTarget);
+          }
+        }
+
+        const result = ClassAttack.doAttack(target, attackCount % 15 === 0);
 
         if (result) {
           retry = 0;
@@ -2248,10 +2268,47 @@ const Attack = {
         }
       }
 
-      Skill.cast(skill, Skill.getHand(skill), unit, null, null, slot);
+      // Check if we need to charge cast - TODO: better check for charge vs not
+      if (Skill.charges.find(c => c.skill === skill)) {
+        Skill.castCharges(skill, unit);
+      } else {
+        Skill.cast(skill, Skill.getHand(skill), unit, null, null, slot);
+      }
 
       return Attack.Result.SUCCESS;
     }
     return Attack.Result.NOOP;
+  },
+
+  /**
+   * @param {Monster} unit 
+   * @returns {boolean}
+   */
+  doChargeCast: function (unit) {
+    const { skill, spectype, classids } = Config.ChargeCast;
+    const cRange = Skill.getRange(skill);
+    const cState = Skill.getState(skill);
+
+    if (classids.length) {
+      /**
+       * @param {string | number} id 
+       * @returns {boolean}
+       */
+      const validId = function (id) {
+        return typeof id === "number"
+          ? unit.classid === id
+          : unit.name.toLowerCase().includes(id);
+      };
+      if (!classids.some(validId)) {
+        return false;
+      }
+    }
+
+    if ((!spectype || (unit.spectype & spectype))
+      && (!cState || !unit.getState(cState))
+      && (unit.distance < cRange || !checkCollision(me, unit, sdk.collision.LineOfSight))) {
+      return Skill.castCharges(skill, unit);
+    }
+    return false;
   },
 };
