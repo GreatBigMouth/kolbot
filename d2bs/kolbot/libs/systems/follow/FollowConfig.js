@@ -19,7 +19,25 @@
    *  };
    */
   const JoinSettings = {
-    "Leader": ["Leecher"],
+    "LS.CH.Leader": [
+      "LS.CH.Follow1",
+      "LS.CH.Follow2",
+      "LS.CH.Follow3",
+      "LS.CH.Follow4",
+      "LS.CH.Follow5",
+      "LS.CH.Follow6",
+      "LS.CH.Follow7",
+      "LS.CH.Follow8",
+    ],
+    "LS.CH.MFLeader": [
+      "LS.CH.MFHelp1",
+      "LS.CH.MFHelp2",
+      "LS.CH.MFHelp3",
+      "LS.CH.MFHelp4",
+      "LS.CH.MFHelp5",
+      "LS.CH.MFHelp6",
+      "LS.CH.MFHelp7"
+    ]
   };
 
   module.exports = {

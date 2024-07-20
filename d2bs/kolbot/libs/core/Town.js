@@ -183,7 +183,7 @@ const Town = {
       Cubing.doCubing();
       Runewords.makeRunewords();
       Town.stash(true);
-      Town.checkQuestItems();
+      //Town.checkQuestItems();
       !!me.getItem(sdk.items.TomeofTownPortal) && Town.clearScrolls();
 
       me.act !== preAct && Town.goToTown(preAct);

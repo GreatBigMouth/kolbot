@@ -11,6 +11,10 @@ const Tombs = new Runnable(
     Precast.doPrecast(true);
     const correctTomb = getRoom().correcttomb;
 
+    if (Config.Tombs.ClearCanyon && me.area === sdk.areas.CanyonofMagic) {
+      Attack.clearLevel(Config.ClearType);
+    }
+
     for (let i = sdk.areas.TalRashasTomb1; i <= sdk.areas.TalRashasTomb7; i++) {
       try {
         if (!Pather.journeyTo(i, true)) throw new Error("Failed to move to tomb");

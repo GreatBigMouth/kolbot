@@ -1,14 +1,30 @@
-[name] == grandcharm && [quality] == magic
-[name] == amulet && [quality] == magic
-[name] == ring && [quality] == magic
+[name] == grandcharm && [quality] == magic && [level] == 19
+[name] == grandcharm && [quality] == magic && [level] >= 19 # [frw] == 7 && [itemlevelreq] <= 15
+[name] == amulet && [quality] == magic # [itemlevelreq] <= 1 && [strength] == 2
+[name] == ring && [quality] == magic # [itemlevelreq] <= 1 && [strength] == 1
 
 [name] == chippedamethyst
+//[name] == flawlessamethyst
+//[name] == flawlessdiamond
+//[name] == flawlessemerald
+//[name] == flawlessruby
+//[name] == flawlesssapphire
+//[name] == flawlessskull
+//[name] == flawlesstopaz
 
-[name] == ethrune
-[name] == ithrune
-[name] == talrune
-[name] == ralrune
-[name] == ortrune
-[name] == thulrune
-[name] == amnrune
-[name] == solrune
+[name] == perfectamethyst
+[name] == perfectdiamond
+[name] == perfectemerald
+[name] == perfectruby
+[name] == perfectsapphire
+[name] == perfecttopaz
+[name] == perfectskull
+
+// [name] == ethrune
+// [name] == ithrune
+// [name] == talrune
+// [name] == ralrune
+// [name] == ortrune
+// [name] == thulrune
+// [name] == amnrune
+// [name] == solrune

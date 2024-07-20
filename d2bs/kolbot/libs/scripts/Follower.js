@@ -931,7 +931,7 @@ const Follower = new Runnable(
                   return Leader.unit && Leader.unit.distance < 10;
                 } }
               );
-            } else if (Leader.partyUnit.inTown) {
+            } else /* if (Leader.partyUnit.inTown) */ {
               // go back to town if there are there for awhile
               if (!Misc.poll(
                 () => (Leader.unit = Misc.getPlayerUnit(Config.Leader)),
@@ -1020,7 +1020,7 @@ const Follower = new Runnable(
         }
       }
 
-      delay(100);
+      delay(60);
     }
 
     removeEventListener("chatmsg", chatEvent);

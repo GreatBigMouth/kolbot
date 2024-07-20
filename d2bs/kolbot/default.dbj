@@ -237,6 +237,13 @@ function main () {
   // offline
   !me.realm && D2Bot.updateRuns();
 
+  if (Config.FollowerLeader) {
+    console.log("Waiting for all the followers");
+    while (Misc.getPartyCount() < Config.FollowerMinCharacters) {
+      delay(500);
+    }
+  }
+
   // Go
   Loader.init();
 

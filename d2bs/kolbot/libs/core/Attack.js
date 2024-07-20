@@ -1357,6 +1357,14 @@ const Attack = {
       say("clearlevel " + me.area);
     }
 
+    if (Config.FollowerLeader && rooms.length > 0) {
+      Pather.makePortal();
+      say("1");
+      while (Misc.getNearbyPlayerCount() < Config.FollowerMinCharacters) {
+        delay(500);
+      }
+    }
+
     while (rooms.length > 0) {
       // get the first room + initialize myRoom var
       !myRoom && (room = getRoom(me.x, me.y));

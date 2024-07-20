@@ -21,6 +21,31 @@ const GhostBusters = new Runnable(
         rooms.push([room.x * 5 + room.xsize / 2, room.y * 5 + room.ysize / 2]);
       } while (room.getNext());
 
+      if (Config.MFLeader && rooms.length > 0) {
+        const towerAreas = [
+          sdk.areas.ForgottenTower,
+          sdk.areas.TowerCellarLvl1,
+          sdk.areas.TowerCellarLvl2,
+          sdk.areas.TowerCellarLvl3,
+          sdk.areas.TowerCellarLvl4,
+          sdk.areas.TowerCellarLvl5
+        ];
+        const tombs = [
+          sdk.areas.TalRashasTomb1,
+          sdk.areas.TalRashasTomb2,
+          sdk.areas.TalRashasTomb3,
+          sdk.areas.TalRashasTomb4,
+          sdk.areas.TalRashasTomb5,
+          sdk.areas.TalRashasTomb6,
+          sdk.areas.TalRashasTomb7
+        ];
+        if (!towerAreas.includes(me.area) && !tombs.includes(me.area)) {
+          Pather.makePortal();
+          console.log("clearghosts " + getAreaName(me.area));
+          say("clearghosts " + me.area);
+        }
+      }
+
       while (rooms.length > 0) {
         rooms.sort(Sort.points);
         room = rooms.shift();
@@ -75,14 +100,14 @@ const GhostBusters = new Runnable(
           Pather.moveToExit(sdk.areas.CanyonofMagic, true);
         }
       }],
-      ["flayerDungeon", () => {
+      /* ["flayerDungeon", () => {
         Pather.useWaypoint(sdk.areas.FlayerJungle);
         Precast.doPrecast(true);
 
         [sdk.areas.FlayerDungeonLvl1, sdk.areas.FlayerDungeonLvl2, sdk.areas.FlayerDungeonLvl3].forEach(area => {
           Pather.moveToExit(area, true) && clearGhosts();
         });
-      }],
+      }], */
       ["crystalinePassage", () => {
         Pather.useWaypoint(sdk.areas.CrystalizedPassage);
         Precast.doPrecast(true);

@@ -22,18 +22,22 @@ const Summoner = new Runnable(
     if (me.inArea(sdk.areas.PalaceCellarLvl3) && !Pather.usePortal(null)) {
       throw new Error("Failed to move back to arcane");
     }
+
+    if (Config.Summoner.ClearSanctuary) {
+      Attack.clearLevel(Config.ClearType);
+    } else {
+      if (Attack.haveKilled(sdk.monsters.TheSummoner)) {
+        console.log("Summoner already dead");
+        return true;
+      }
     
-    if (Attack.haveKilled(sdk.monsters.TheSummoner)) {
-      console.log("Summoner already dead");
-      return true;
+      if (!Pather.moveToPresetObject(me.area, sdk.quest.chest.Journal, { offX: -3, offY: -3 })) {
+        throw new Error("Failed to move to Summoner");
+      }
+    
+      Attack.clear(15, 0, sdk.monsters.TheSummoner);
     }
-
-    if (!Pather.moveToPresetObject(me.area, sdk.quest.chest.Journal, { offX: -3, offY: -3 })) {
-      throw new Error("Failed to move to Summoner");
-    }
-
-    Attack.clear(15, 0, sdk.monsters.TheSummoner);
-
+    
     // always take portal, faster access to wp
     // first check if portal is already up
     let portal = Game.getObject(sdk.objects.RedPortal);

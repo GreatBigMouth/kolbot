@@ -453,12 +453,12 @@ const Pickit = {
         if (stats.classid === sdk.items.Gold) {
           let _gold = item.gold;
           if (!_gold || _gold < stats.gold) {
-            console.log(
+            /* console.log(
               "ÿc7Picked up " + stats.color
               + (_gold ? (_gold - stats.gold) : stats.gold)
               + " " + stats.name
               + (keptLine ? " ÿc0(" + keptLine + ")" : "")
-            );
+            ); */
             return true;
           }
         }

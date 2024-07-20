@@ -201,7 +201,7 @@ const Misc = (function () {
           if (party.partyid !== sdk.party.NoParty
             && party.partyid === myPartyId
             && party.name !== me.name) {
-            console.log(party.name);
+            //console.log(party.name);
             count += 1;
           }
         } while (party.getNext());
