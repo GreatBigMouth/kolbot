@@ -1193,7 +1193,7 @@ includeIfNotIncluded("core/Me.js");
 
         if (Starter.gameInfo.hasOwnProperty("gameName")) {
           obj = JSON.parse(msg);
-          console.debug("Recieved Game Request :: ", obj.profile);
+          //console.debug("Recieved Game Request :: ", obj.profile);
 
           if ([sdk.game.profiletype.TcpIpHost, sdk.game.profiletype.TcpIpJoin].includes(Profile().type)) {
             me.gameReady && D2Bot.joinMe(obj.profile, me.gameserverip.toString(), "", "", Starter.isUp);
