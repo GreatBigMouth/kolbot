@@ -197,8 +197,21 @@ const Follower = new Runnable(
           openContainers && Misc.openChests(20);
           announce("!Done picking.");
         }));
+      ["town", (me.name + " town")]
+        .forEach(key => _actions.set(key, () => {
+          if (!me.inTown) {
+            delay(150);
+            announce("Going to town");
+            Town.goToTown();
+          }
+        }));
       ["1", (me.name + " 1")]
         .forEach(key => _actions.set(key, () => {
+          if (!me.inTown) {
+            Town.goToTown();
+            delay(150);
+          }
+
           if (me.inTown && Leader.partyUnit.inTown && Misc.getPlayerAct(Config.Leader) !== me.act) {
             announce("Going to leader's town.");
             Town.goToTown(Misc.getPlayerAct(Config.Leader));
