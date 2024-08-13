@@ -29,9 +29,20 @@ const CustomConfig = {
     "runs_follower6",
     "runs_follower7",
   ],
+  
+  "Wakka.Leader.Paladin": ["Wakka.Leader"],
+  "Wakka.Helper.Paladin": ["Wakka.Helper"],
+  "Wakka.Follower": [
+    "Wakka.Follow1",
+    "Wakka.Follow2",
+    "Wakka.Follow3",
+    "Wakka.Follow4",
+    "Wakka.Follow5",
+    "Wakka.Follow6",
+  ],
 
-  "LS.CharmHunter.Leader": ["LS.CH.Leader"],
-  "LS.CharmHunter.Follower": [
+  "LS.CharmHunter.Normal.Leader": ["LS.CH.Leader"],
+  "LS.CharmHunter.Normal.Follower": [
     "LS.CH.Follow1",
     "LS.CH.Follow2",
     "LS.CH.Follow3",
@@ -42,18 +53,20 @@ const CustomConfig = {
   ],
 
   "LS.CharmHunter.MFLeader": ["LS.CH.MFLeader"],
-  "LS.CharmHunter.Pala": [
+  "LS.CharmHunter.MFPala": [
     "LS.CH.MFHelp1",
     "LS.CH.MFHelp2"
   ],
-  "LS.CharmHunter.Sorc": [
+  "LS.CharmHunter.MFSorc": [
     "LS.CH.MFHelp3",
     "LS.CH.MFHelp4",
     "LS.CH.MFHelp5",
     "LS.CH.MFHelp6"
   ],
-  "LS.CharmHunter.Barb": [
+  "LS.CharmHunter.MFBarb": [
     "LS.CH.MFHelp7"
-  ]
+  ],
+
+  
 };
   
