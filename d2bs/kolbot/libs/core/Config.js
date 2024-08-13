@@ -243,7 +243,7 @@ let Config = {
   ClearInvOnStart: false,
   FastPick: false,
   FastPickRange: 0,
-  ManualPlayPick: false,
+  ManualPlayPick: true,
   OpenChests: {
     Enabled: false,
     Range: 15,
