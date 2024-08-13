@@ -5,8 +5,8 @@
  */
 !isIncluded("require.js") && include("require.js"); // load the require.js
 
-(function (threadInfo, globalThis) {
-  console.log("type: " + threadInfo.type + ", id: " + threadInfo.threadid + ", name: " + getScript(threadInfo.threadid).name);
+(function (threadType, globalThis) {
+  //console.debug("type: " + threadInfo.type + ", id: " + threadInfo.threadid + ", name: " + getScript(threadInfo.threadid).name);
 
   const others = [];
 
@@ -21,7 +21,7 @@
     once: myEvents.once,
     send: function (who, what, mode = defaultCopyDataMode) {
       what.profile = me.windowtitle;
-      print("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
+      //console.debug("sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
       return sendCopyData(null, who, mode || defaultCopyDataMode, JSON.stringify(what));
     },
     broadcast: (what, mode) => {
@@ -30,7 +30,7 @@
     },
     broadcastInGame: (what, mode) => {
       what.profile = me.windowtitle;
-      print("broadcasting " + JSON.stringify(what));
+      //console.debug("broadcasting " + JSON.stringify(what));
       others.forEach(function (other) {
         for (const party = getParty(); party && party.getNext();) {
           typeof party === "object" && party && party.hasOwnProperty("name") && party.name === other.name && sendCopyData(null, other.profile, mode || defaultCopyDataMode, JSON.stringify(what));
@@ -40,10 +40,10 @@
   };
 
   
-  if (threadInfo.type === "thread") {
+  if (threadType === "thread") {
     print("ÿc2Kolbotÿc0 :: Team thread started");
 
-    let parentScriptId,
+    /* let parentScriptId,
       parentScriptName;
 
     const getParentScriptId = (data) => {
@@ -52,10 +52,10 @@
           && JSON.parse(data).hasOwnProperty("parentScriptId")) {
           parentScriptId = JSON.parse(data).parentScriptId;
           removeEventListener("scriptmsg", getParentScriptId);
-          print("parent script id received: " + parentScriptId);
+          console.debug("parent script id received: " + parentScriptId);
         }
       } catch (e) {
-        print(e.message);
+        console.error(e.message);
       }
     };
     
@@ -66,13 +66,12 @@
       delay(10);
     }
     parentScriptName = getScript(parentScriptId).name;
-    //console.log("parent script name: " + parentScriptName);
+    console.debug("parent script name: " + parentScriptName); */
 
     Messaging.on("Team", data => (
       typeof data === "object" && data
       && data.hasOwnProperty("call")
-      && Team[data.call].apply(Team, data.hasOwnProperty("args")
-        && data.args || [])
+      && Team[data.call].apply(Team, data.hasOwnProperty("args") && data.args || [])
     ));
 
     Worker.runInBackground.copydata = (new function () {
@@ -117,7 +116,7 @@
         });
       };
       addEventListener("copydata", (mode, data) => {
-        print("Received: " + JSON.stringify({ mode: mode, data: data }) + ", pushing to workbench");
+        //console.debug("Received: " + JSON.stringify({ mode: mode, data: data }) + ", pushing to workbench");
         workBench.push({ mode: mode, data: data });
       });
 
@@ -145,20 +144,21 @@
           .filter(obj => typeof obj === "object" && obj)
           .filter(obj => typeof obj.data === "object" && obj.data)
           .filter(obj => typeof obj.mode === "number" && obj.mode);
-        //print("emit: " + JSON.stringify(emit));
-        /* emit.length && Messaging.broadcast({
+        
+        //console.debug("Emitting to " + parentScriptName + " with thread id: " + parentScriptId);
+        emit.length && Messaging.broadcast({
           Team: {
             emit: emit
           }
-        }); */
-        //print("emitting to " + parentScriptName + " with thread id: " + parentScriptId);
-        emit.length && Messaging.send(
+        });
+        
+        /* emit.length && Messaging.send(
           parentScriptName,
           {
             Team: {
               emit: emit
             }
-          });
+          }); */
         return true; // always, to keep looping;
       };
     }).update;
@@ -175,37 +175,15 @@
 
   } else {
 
-    //console.log("thread id as " + threadInfo.type + ": " + threadInfo.threadid + ", name: " + getScript(threadInfo.threadid).name);
+    //console.debug("thread id as " + threadInfo.type + ": " + threadInfo.threadid + ", name: " + getScript(threadInfo.threadid).name);
     (function (module) {
       const localTeam = module.exports = Team; // <-- some get overridden, but this still works for auto completion in your IDE
 
       // Filter out all Team functions that are linked to myEvent
       /* Object.keys(Team)
         .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
-        .forEach(key => module.exports[key] = (...args) => Messaging.broadcast({
-          Team: {
-            call: key,
-            args: args
-          }
-        })); */
-
-      /* console.log("thread name: " + getScript(threadInfo.threadid).name);
-      Object.keys(Team)
-        .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
-        .forEach(key => module.exports[key] = (...args) => Messaging.send(
-          getScript(threadInfo.threadid).name,
-          {
-            Team: {
-              call: key,
-              args: args
-            }
-          })); */
-
-      
-      Object.keys(Team)
-        .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
         .forEach(key => module.exports[key] = (...args) => {
-          console.log("sending to threadid: " + threadInfo.threadid + ", thread name: " + getScript(threadInfo.threadid).name);
+          console.debug("sending to threadid: " + threadInfo.threadid + ", thread name: " + getScript(threadInfo.threadid).name);
           Messaging.send(
             getScript(threadInfo.threadid).name,
             {
@@ -214,28 +192,40 @@
                 args: args
               }
             });
+        }); */
+
+      Object.keys(Team)
+        .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
+        .forEach(key => module.exports[key] = (...args) => {
+          Messaging.broadcast({
+            Team: {
+              call: key,
+              args: args
+            }
+          });
         });
 
       Messaging.on("Team", msg =>
         typeof msg === "object"
-        && msg
-        && msg.hasOwnProperty("emit")
-        && Array.isArray(msg.emit)
-        && msg.emit.forEach(function (obj) {
+          && msg
+          && msg.hasOwnProperty("emit")
+          && Array.isArray(msg.emit)
+          && msg.emit.forEach(function (obj) {
+            
+            //console.debug("Emitting " + JSON.stringify(obj.data));
+            // Registered events on the mode
+            myEvents.emit(obj.mode, obj.data);
 
-          // Registered events on the mode
-          myEvents.emit(obj.mode, obj.data);
+            // Only if data is set
+            typeof obj.data === "object" && obj.data && Object.keys(obj.data).forEach(function (item) {
 
-          // Only if data is set
-          typeof obj.data === "object" && obj.data && Object.keys(obj.data).forEach(function (item) {
+              // For each item in the object, trigger an event
+              obj.data[item].reply = (what, mode) => localTeam.send(obj.data.profile, what, mode);
 
-            // For each item in the object, trigger an event
-            obj.data[item].reply = (what, mode) => localTeam.send(obj.data.profile, what, mode);
-
-            // Registered events on a data item
-            myEvents.emit(item, obj.data[item]);
-          });
-        })
+              // Registered events on a data item
+              myEvents.emit(item, obj.data[item]);
+            });
+          })
       );
     })(module);
   }
