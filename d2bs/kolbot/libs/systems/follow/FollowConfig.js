@@ -19,6 +19,15 @@
    *  };
    */
   const JoinSettings = {
+    "Wakka.Leader": [
+      "Wakka.Helper",
+      "Wakka.Follow1",
+      "Wakka.Follow2",
+      "Wakka.Follow3",
+      "Wakka.Follow4",
+      "Wakka.Follow5",
+      "Wakka.Follow6",
+    ],
     "LS.CH.Leader": [
       "LS.CH.Follow1",
       "LS.CH.Follow2",
