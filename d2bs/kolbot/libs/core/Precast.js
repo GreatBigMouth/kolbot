@@ -134,9 +134,9 @@ const Precast = (function () {
         this.cast(sdk.skills.BattleOrders, x, y, false);
 
         // does this need to be re-calculated everytime? if no autobuild should really just be done when we initialize
-        if (!Precast.skills.get(sdk.skills.BattleOrders).duration) {
-          this.skills.get(sdk.skills.BattleOrders).duration = Skill.getDuration(sdk.skills.BattleOrders);
-        }
+        //if (!Precast.skills.get(sdk.skills.BattleOrders).duration) {
+        this.skills.get(sdk.skills.BattleOrders).duration = Skill.getDuration(sdk.skills.BattleOrders);
+        //}
 
         me.switchWeapons(slot);
 
