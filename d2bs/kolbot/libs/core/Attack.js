@@ -349,6 +349,11 @@ const Attack = {
           Packet.flash(me.gid);
         }
 
+        // Random move
+        if (attackCount > 0 && (attackCount % 10 === 0 || checkCollision(me, target, sdk.collision.WallOrRanged)) && Skill.getRange(Config.AttackSkill[1]) >= 4) {
+          Pather.randMove(-1, 1, -1, 1, 5);
+        }
+
         let result = ClassAttack.doAttack(target, attackCount % 15 === 0);
 
         if (result === this.Result.FAILED) {
@@ -661,10 +666,13 @@ const Attack = {
             break;
           }
 
-          // Skip non-unique monsters after 15 attacks, except in Throne of Destruction
+          /* // Skip non-unique monsters after 15 attacks, except in Throne of Destruction
           if (!me.inArea(sdk.areas.ThroneofDestruction) && !isSpecial && _currMon.attacks > 15) {
             console.log("ÿc1Skipping " + target.name + " " + target.gid + " " + _currMon.attacks);
             monsterList.shift();
+          } */
+          if (!isSpecial && _currMon.attacks > 15) {
+            Pather.randMove(-1, 1, -1, 1, 5);
           }
 
           /**
@@ -900,10 +908,14 @@ const Attack = {
             break;
           }
 
-          // Skip non-unique monsters after 15 attacks, except in Throne of Destruction
+          /* // Skip non-unique monsters after 15 attacks, except in Throne of Destruction
           if (!me.inArea(sdk.areas.ThroneofDestruction) && !isSpecial && gidAttack[i].attacks > 15) {
             console.log("ÿc1Skipping " + target.name + " " + target.gid + " " + gidAttack[i].attacks);
             monsterList.shift();
+          } */
+
+          if (!isSpecial && gidAttack[i].attacks > 15) {
+            Pather.randMove(-1, 1, -1, 1, 5);
           }
 
           /**
@@ -1158,10 +1170,13 @@ const Attack = {
             Pather.moveTo(coord.x, coord.y);
           }
 
-          // Skip non-unique monsters after 15 attacks, except in Throne of Destruction
+          /* // Skip non-unique monsters after 15 attacks, except in Throne of Destruction
           if (!me.inArea(sdk.areas.ThroneofDestruction) && !isSpecial && gidAttack[i].attacks > 15) {
             console.log("ÿc1Skipping " + target.name + " " + target.gid + " " + gidAttack[i].attacks);
             monsterList.shift();
+          } */
+          if (!isSpecial && gidAttack[i].attacks > 15) {
+            Pather.randMove(-1, 1, -1, 1, 5);
           }
 
           attackCount += 1;
