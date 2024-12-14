@@ -736,6 +736,7 @@ let Config = {
   GetEssences: {
     MoatMeph: false,
     FastDiablo: false,
+    RunDuriel: false,
   },
   GemHunter: {
     AreaList: [],

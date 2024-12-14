@@ -24,6 +24,14 @@ const GetEssences = new Runnable(
       }
     }
 
+    if (Config.GetEssences.RunDuriel && count(sdk.quest.item.TwistedEssenceofSuffering) < 1) {
+      try {
+        Loader.runScript("Duriel");
+      } catch (e) {
+        console.error("ÿc1Duriel failed :: ", e);
+      }
+    }
+
     if (count(sdk.quest.item.ChargedEssenceofHatred) < 1) {
       try {
         Config.Mephisto.MoatTrick = Config.GetEssences.MoatMeph;

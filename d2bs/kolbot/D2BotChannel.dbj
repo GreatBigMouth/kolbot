@@ -257,7 +257,9 @@ const locationAction = (function () {
                 // check if the game is private
                 if (_private && gInfo.password) {
                   // we can't join if the game is private and we don't have a password
-                  if (!gInfo.password) continue;
+                  // ugh why would bnet not actually use (private) correctly
+                  /** @todo Figure out how we can check if game is private or not */
+                  // if (!gInfo.password) continue;
                   joinInfo.gamePass = gInfo.password;
                 }
                 joinInfo.gameName = gameName;

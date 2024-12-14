@@ -22,12 +22,19 @@ includeIfNotIncluded("oog/DataFile.js");
 
   const D2Bot = {
     handle: 0,
+    _entry: "",
 
     init: function () {
       let handle = DataFile.getStats().handle;
 
       if (handle) {
         D2Bot.handle = handle;
+
+        let tmp = getThreads().find((thread) => thread.name.endsWith(".dbj"));
+        if (tmp) {
+          // Remove .dbj
+          D2Bot._entry = tmp.name.split(".")[0];
+        }
       }
 
       return D2Bot.handle;
@@ -38,8 +45,8 @@ includeIfNotIncluded("oog/DataFile.js");
     },
 
     printToConsole: function (msg, color, tooltip, trigger) {
-      let printObj = {
-        msg: ((new Date().dateStamp() + " ") + msg),
+      const printObj = {
+        msg: (("(" + D2Bot._entry + ") ") + (new Date().dateStamp() + " ") + msg),
         color: color || 0,
         tooltip: tooltip || "",
         trigger: trigger || ""

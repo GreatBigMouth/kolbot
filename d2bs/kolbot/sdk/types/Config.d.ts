@@ -521,6 +521,7 @@ declare global {
     GetEssences: {
       MoatMeph: boolean;
       FastDiablo: boolean;
+      RunDuriel: boolean;
     };
     AutoSkill: {
       Enabled: boolean;

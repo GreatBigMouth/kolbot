@@ -68,7 +68,7 @@ String.prototype.diffCount = function (stringB) {
 
     return (Math.max(graph.a.length, graph.b.length) - graph.graph[graph.a.length - 1][graph.b.length - 1]);
   } catch (err) {
-    print(err.stack);
+    console.log(err.stack);
   }
 
   return Infinity;
@@ -184,10 +184,14 @@ if (!String.isEqual) {
    * @static
    * @param {string} str1 
    * @param {string} str2 
+   * @param {boolean} caseSensitive
    * @returns {boolean}
    */
-  String.isEqual = function (str1, str2) {
-    if (typeof str1 !== "string" || typeof str2 !== "string") return false;
+  String.isEqual = function (str1, str2, caseSensitive = false) {
+    if (!isType(str1, "string") || !isType(str2, "string")) return false;
+    if (caseSensitive) {
+      return str1 === str2;
+    }
     return str1.toLowerCase() === str2.toLowerCase();
   };
 }
@@ -1186,203 +1190,3 @@ if (!Date.prototype.hasOwnProperty("dateStamp")) {
     }
   });
 }
-
-/**
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * ~~~~~~~~~~~~~~~~~~~~~~ global d2bs Polyfills ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- * - sdk - sdk object @see libs/modules/sdk.js
- * - includeIfNotIncluded - include file if not already included
- * - includeCoreLibs - include all core libs
- * - includeSystemLibs - include all system driver files
- * - clone - clone object
- * - copyObj
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
- */
-
-
-if (!global.hasOwnProperty("sdk") && typeof require !== "undefined") {
-  Object.defineProperty(global, "sdk", {
-    value: require("../modules/sdk"),
-    enumerable: true,
-  });
-}
-
-if (!global.hasOwnProperty("includeIfNotIncluded")) {
-  Object.defineProperty(global, "includeIfNotIncluded", {
-    /**
-     * @param {string} file
-     */
-    value: function (file = "") {
-      if (!isIncluded(file)) {
-        if (!include(file)) {
-          console.error("Failed to include " + file);
-          console.trace();
-          return false;
-        }
-      }
-      return true;
-    },
-  });
-}
-
-if (!global.hasOwnProperty("includeCoreLibs")) {
-  Object.defineProperty(global, "includeCoreLibs", {
-    /**
-     * @description includes all files from libs/core/ folder
-     * @param {string[]} ignoreFiles
-     */
-    value: function (obj = { exclude: [] }) {
-      /** @type {string[]} */
-      let files = dopen("libs/core/").getFiles();
-      if (!files.length) throw new Error("Failed to find my files");
-      if (!files.includes("Pather.js")) {
-        console.warn("Incorrect Files?", files);
-        // something went wrong?
-        while (!files.includes("Pather.js")) {
-          files = dopen("libs/core/").getFiles();
-          delay(50);
-        }
-      }
-      // always include util first
-      includeIfNotIncluded("core/Util.js");
-      files
-        .filter(function (file) {
-          return file.endsWith(".js")
-            && !obj.exclude.includes(file)
-            && !file.match("util.js", "gi");
-        })
-        .forEach(function (x) {
-          if (!includeIfNotIncluded("core/" + x)) {
-            throw new Error("Failed to include core/" + x);
-          }
-        });
-      return true;
-    },
-  });
-}
-
-if (!global.hasOwnProperty("includeSystemLibs")) {
-  Object.defineProperty(global, "includeSystemLibs", {
-    /**
-     * @description includes system driver files from libs/systems/ folder
-     */
-    value: function () {
-      include("systems/automule/automule.js");
-      include("systems/crafting/CraftingSystem.js");
-      include("systems/gambling/Gambling.js");
-      include("systems/torch/TorchSystem.js");
-      return true;
-    },
-  });
-}
-
-if (!global.hasOwnProperty("clone")) {
-  Object.defineProperty(global, "clone", {
-    /**
-     * @param {Date | any[] | object} obj 
-     * @returns {ThisParameterType} deep copy of parameter
-     */
-    value: function (obj) {
-      let copy;
-
-      // Handle the 3 simple types, and null or undefined
-      if (null === obj || "object" !== typeof obj) {
-        return obj;
-      }
-
-      // Handle Date
-      if (obj instanceof Date) {
-        copy = new Date();
-        copy.setTime(obj.getTime());
-
-        return copy;
-      }
-
-      // Handle Array
-      if (obj instanceof Array) {
-        copy = [];
-
-        for (let i = 0; i < obj.length; i += 1) {
-          copy[i] = clone(obj[i]);
-        }
-
-        return copy;
-      }
-
-      // Handle Object
-      if (obj instanceof Object) {
-        copy = {};
-
-        for (let attr in obj) {
-          if (obj.hasOwnProperty(attr)) {
-            copy[attr] = clone(obj[attr]);
-          }
-        }
-
-        return copy;
-      }
-
-      throw new Error("Unable to copy obj! Its type isn't supported.");
-    },
-  });
-}
-
-if (!global.hasOwnProperty("copyObj")) {
-  Object.defineProperty(global, "copyObj", {
-    /**
-     * @param {object} from 
-     * @returns {object} deep copy
-     */
-    value: function (from) {
-      let obj = {};
-
-      for (let i in from) {
-        if (from.hasOwnProperty(i)) {
-          obj[i] = clone(from[i]);
-        }
-      }
-
-      return obj;
-    },
-  });
-}
-
-const Time = {
-  seconds: function (seconds = 0) {
-    if (typeof seconds !== "number") return 0;
-    return (seconds * 1000);
-  },
-  minutes: function (minutes = 0) {
-    if (typeof minutes !== "number") return 0;
-    return (minutes * 60000);
-  },
-  format: function (ms = 0) {
-    const hours = Math.floor(ms / 3600000);
-    const minutes = Math.floor((ms % 3600000) / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-
-    /** @param {number} num */
-    const pad = function (num) {
-      return (num < 10 ? "0" + num : num);
-    };
-
-    return pad(hours) + ":" + pad(minutes) + ":" + pad(seconds);
-    // return (new Date(ms).toISOString().slice(11, -5));
-  },
-  toSeconds: function (ms = 0) {
-    return (ms / 1000);
-  },
-  toMinutes: function (ms = 0) {
-    return (ms / 60000);
-  },
-  toHours: function (ms = 0) {
-    return (ms / 3600000);
-  },
-  toDays: function (ms = 0) {
-    return (ms / 86400000);
-  },
-  elapsed: function (ms = 0) {
-    return (getTickCount() - ms);
-  }
-};

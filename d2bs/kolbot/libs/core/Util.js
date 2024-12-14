@@ -32,23 +32,6 @@
   ScriptError.prototype.constructor = ScriptError;
 
   /**
-   * get all running threads and return them as an array
-   * @returns {Script[]}
-   */
-  const getThreads = function () {
-    let threads = [];
-    let script = getScript();
-
-    if (script) {
-      do {
-        threads.push(copyObj(script));
-      } while (script.getNext());
-    }
-
-    return threads;
-  };
-
-  /**
    * @param {...args}
    * @returns {Unit[]}
    */
@@ -638,7 +621,6 @@
   };
 
   return {
-    getThreads: getThreads,
     getUnits: getUnits,
     clickItemAndWait: clickItemAndWait,
     clickUnitAndWait: clickUnitAndWait,

@@ -12,11 +12,20 @@
     RushConfig,
   } = require("./RushConfig");
   
+  /**
+   * @param {string} msg 
+   * @param {boolean} sayMsg 
+   */
   const log = function (msg = "", sayMsg = true) {
     console.log(msg);
     sayMsg && say(msg);
   };
 
+  /**
+   * @param {number} area 
+   * @param {string} [nick] 
+   * @returns {boolean}
+   */
   const playerIn = function (area, nick) {
     !area && (area = me.area);
 
@@ -38,12 +47,18 @@
   const bumperLvlReq = function () {
     return [20, 40, 60][me.diff];
   };
+  
+  /**
+   * @param {string} nick 
+   * @returns {boolean}
+   */
   const bumperCheck = function (nick) {
     return nick
       ? Misc.findPlayer(nick).level >= bumperLvlReq()
       : Misc.checkPartyLevel(bumperLvlReq());
   };
 
+  /** @param {Act} act */
   const playersInAct = function (act) {
     !act && (act = me.act);
 
@@ -51,7 +66,9 @@
     let party = getParty();
 
     if (party) {
+      const myPartyId = party.partyid;
       do {
+        if (party.partyid !== myPartyId) continue;
         if (party.name !== me.name && party.area !== area) {
           return false;
         }
@@ -60,6 +77,7 @@
 
     return true;
   };
+
   const cain = function () {
     log("starting cain");
     Town.doChores();
@@ -81,7 +99,7 @@
       if (tree.mode) {
         break;
       }
-      Attack.securePosition(me.x, me.y, 20, 1000);
+      Attack.securePosition(me.x, me.y, 25, 1000);
     }
 
     Pather.usePortal(1) || Town.goToTown();
@@ -90,7 +108,8 @@
     Pather.moveToPresetMonster(sdk.areas.StonyField, sdk.monsters.preset.Rakanishu, {
       offX: 10, offY: 10, pop: true
     });
-    const StoneAlpha = Game.getObject(sdk.quest.chest.StoneAlpha);
+    const alphaPreset = Game.getPresetObject(sdk.areas.StonyField, sdk.quest.chest.StoneAlpha);
+    const StoneAlpha = alphaPreset.realCoords();
     Attack.securePosition(StoneAlpha.x, StoneAlpha.y, 40, 3000, true);
     StoneAlpha.distance > 5 && Pather.moveToUnit(StoneAlpha);
     Pather.makePortal();
@@ -99,7 +118,7 @@
     tick = getTickCount();
 
     while (getTickCount() - tick < Time.minutes(2)) {
-      if (Pather.usePortal(sdk.areas.Tristram)) {
+      if (Pather.getPortal(sdk.areas.Tristram) && Pather.usePortal(sdk.areas.Tristram)) {
         break;
       }
       Attack.securePosition(StoneAlpha.x, StoneAlpha.y, 35, 1000);
@@ -131,18 +150,20 @@
 
     return true;
   };
+
   /** @param {string} [nick] */
   const andariel = function (nick) {
     log("starting andariel");
     Town.doChores();
     Pather.useWaypoint(sdk.areas.CatacombsLvl2, true) && Precast.doPrecast(true);
+    const safeNode = new PathNode(22582, 9612);
 
     if (!Pather.moveToExit([sdk.areas.CatacombsLvl3, sdk.areas.CatacombsLvl4], true)
-      || !Pather.moveTo(22582, 9612)) {
+      || !Pather.move(safeNode)) {
       throw new Error("andy failed");
     }
 
-    Attack.securePosition(22582, 9612, 40, 3000, true);
+    Attack.securePosition(safeNode.x, safeNode.y, 40, 3000, true);
     Pather.makePortal();
     log(AutoRush.playersIn);
 
@@ -150,7 +171,7 @@
       if (playerIn(me.area, nick)) {
         return true;
       }
-      Pather.moveTo(22582, 9612);
+      Pather.move(safeNode);
       return false;
     }, AutoRush.playerWaitTimeout, 1000)) {
       log("timed out");
@@ -159,7 +180,7 @@
 
     Attack.kill(sdk.monsters.Andariel);
     log(AutoRush.playersOut);
-    Pather.moveTo(22582, 9612);
+    Pather.move(safeNode);
 
     if (AutoRush.rushMode !== RushModes.chanter) {
       while (playerIn(me.area, nick)) {
@@ -167,11 +188,17 @@
       }
 
       Pather.usePortal(null, me.name);
-      log("a2");
       Town.goToTown(2);
+      for (let i = 0; i < 3; i++) {
+        log("a2");
+        
+        let playersMoved = Misc.poll(function () {
+          return !playersInAct(2);
+        }, Time.seconds(30), Time.seconds(1));
 
-      while (!playersInAct(2)) {
-        delay(250);
+        if (playersMoved) {
+          break;
+        }
       }
     }
 
@@ -226,7 +253,7 @@
       log(nick + " you are not eligible for smith. You need to be at least level 8");
         
       return false;
-    }  
+    }
 
     Town.doChores();
     Pather.useWaypoint(sdk.areas.OuterCloister, true) && Precast.doPrecast(true);
@@ -250,6 +277,7 @@
     Pather.usePortal(null, me.name);
     return true;
   };
+  
   /** @param {string} [nick] */
   const radament = function (nick) {
     log("starting radament");
@@ -620,13 +648,19 @@
     Pather.moveTo(10022, 5047);
 
     if (AutoRush.rushMode !== RushModes.chanter) {
-      log("a3");
+      for (let i = 0; i < 3; i++) {
+        log("a3");
+        
+        let playersMoved = Misc.poll(function () {
+          return !playersInAct(3);
+        }, Time.seconds(30), Time.seconds(1));
+
+        if (playersMoved) {
+          break;
+        }
+      }
       Town.goToTown(3);
       Town.doChores();
-
-      while (!playersInAct(3)) {
-        delay(250);
-      }
     }
 
     return true;
@@ -781,17 +815,21 @@
     Town.doChores();
     Pather.useWaypoint(sdk.areas.Travincal, true) && Precast.doPrecast(true);
 
-    /** @type {PathNode} */
-    const wpCoords = {
-      x: me.x,
-      y: me.y
-    };
-    const portalSpot = {
-      x: wpCoords.x + 23,
-      y: wpCoords.y - 102
-    };
+    const wpCoords = new PathNode(me.x, me.y);
+    const portalSpot = new PathNode(wpCoords.x + 23, wpCoords.y - 102);
+
+    [
+      new PathNode(4742, 2179),
+      new PathNode(4738, 2133),
+      new PathNode(4768, 2150),
+      new PathNode(4762, 2106),
+    ].forEach((node) => {
+      Pather.move(node);
+      Attack.securePosition(node.x, node.y, 25, 2500);
+    });
 
     Pather.move(portalSpot);
+    console.debug("Mob Count? " + me.mobCount({ range: 40 }));
     Attack.securePosition(portalSpot.x, portalSpot.y, 40, 4000);
     Pather.makePortal();
     log(AutoRush.playersIn);
@@ -865,10 +903,19 @@
       delay(250);
     }
 
-    log("a4");
+    if (AutoRush.rushMode !== RushModes.chanter) {
+      // allow 3 attempts
+      for (let i = 0; i < 3; i++) {
+        log("a4");
+        
+        let playersMoved = Misc.poll(function () {
+          return !playersInAct(4);
+        }, Time.seconds(30), Time.seconds(1));
 
-    while (!playersInAct(4)) {
-      delay(250);
+        if (playersMoved) {
+          break;
+        }
+      }
     }
 
     delay(2000);
@@ -1003,10 +1050,17 @@
     log(AutoRush.playersOut);
 
     if (me.expansion && AutoRush.rushMode !== RushModes.chanter) {
-      log("a5");
+      // allow 3 attempts
+      for (let i = 0; i < 3; i++) {
+        log("a5");
+        
+        let playersMoved = Misc.poll(function () {
+          return !playersInAct(5);
+        }, Time.seconds(30), Time.seconds(1));
 
-      while (!playersInAct(5)) {
-        delay(250);
+        if (playersMoved) {
+          break;
+        }
       }
     }
 
@@ -1180,7 +1234,6 @@
         delay(500);
         quit();
       }
-      wpsToGive.remove(sdk.areas.WorldstoneLvl2);
 
       return false;
     }
@@ -1191,7 +1244,6 @@
         delay(500);
         quit();
       }
-      wpsToGive.remove(sdk.areas.WorldstoneLvl2);
 
       return false;
     }
@@ -1252,6 +1304,10 @@
       Pather.moveTo(15134, 5923);
       Attack.kill(sdk.monsters.Baal);
       Pickit.pickItems();
+      // Move back to rushee
+      Pather.moveTo(15213, 5908);
+      Pather.makePortal();
+      log(AutoRush.playersOut);
     }
 
     return true;

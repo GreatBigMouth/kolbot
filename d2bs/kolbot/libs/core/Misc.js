@@ -151,7 +151,7 @@ const Misc = (function () {
     },
 
     /**
-     * Get number of players within getUnit distance
+     * Get number of players within getUnit distance - excludes self
      * @returns {number}
      */
     getNearbyPlayerCount: function () {
@@ -201,7 +201,6 @@ const Misc = (function () {
           if (party.partyid !== sdk.party.NoParty
             && party.partyid === myPartyId
             && party.name !== me.name) {
-            //console.log(party.name);
             count += 1;
           }
         } while (party.getNext());
@@ -1046,7 +1045,7 @@ const Misc = (function () {
      * @returns {boolean}
      */
     useMenu: function (id) {
-      //print("useMenu " + getLocaleString(id));
+      //console.log("useMenu " + getLocaleString(id));
 
       let npc;
 
