@@ -3,7 +3,8 @@
 [name] == amulet && [quality] == magic # [itemlevelreq] <= 1 && [strength] == 2
 [name] == ring && [quality] == magic # [itemlevelreq] <= 1 && [strength] == 1
 
-[name] == chippedamethyst
+//[name] == chippedamethyst
+
 //[name] == flawlessamethyst
 //[name] == flawlessdiamond
 //[name] == flawlessemerald
