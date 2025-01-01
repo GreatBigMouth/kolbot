@@ -102,14 +102,14 @@ const BattleOrders = new Runnable(
       if (!BattleOrders.gaveBo) {
         nearPlayers = Misc.getNearbyPlayerCount();
         while (nearPlayers !== boGetters.size) {
-          if (getTickCount() - tick >= Time.seconds(30)) {
+          if (getTickCount() - tick >= Time.seconds(40)) {
             log("Begin");
 
             break;
           }
 
           me.overhead(
-            "Waiting " + Math.round(((tick + Time.seconds(30)) - getTickCount()) / 1000)
+            "Waiting " + Math.round(((tick + Time.seconds(40)) - getTickCount()) / 1000)
             + " for all players to show up"
           );
           nearPlayers = Misc.getNearbyPlayerCount();
@@ -189,6 +189,17 @@ const BattleOrders = new Runnable(
       }
     }
 
+    function copyDataEvent (mode, dataStr) {
+      if (mode === 0x666) {
+        const data = JSON.parse(dataStr);
+        if (!boGetters.has(data.name.toLowerCase())) return;
+        if (data.msg === "got-bo") {
+          console.log(data.name + " got bo");
+          totalBoed.add(data.name.toLowerCase());
+        }
+      }
+    }
+
     /** @returns {string[]} */
     function getFailedToBO () {
       return Config.BattleOrders.Getters.filter(name => !totalBoed.has(name.toLowerCase()));
@@ -196,7 +207,8 @@ const BattleOrders = new Runnable(
 
     try {
       if (Config.BattleOrders.Mode === boMode.Give) {
-        addEventListener("chatmsg", chatEvent);
+        //addEventListener("chatmsg", chatEvent);
+        addEventListener("copydata", copyDataEvent);
       }
 
       MainLoop:
@@ -265,7 +277,8 @@ const BattleOrders = new Runnable(
         case boMode.Receive:
           if (me.getState(sdk.states.BattleOrders)) {
             log("Got bo-ed");
-            say("got-bo");
+            //say("got-bo");
+            sendCopyData(null, Config.BattleOrders.BoGiverProfile, 0x666, JSON.stringify({ msg: "got-bo", name: me.charname }));
             delay(1000);
 
             break MainLoop;
@@ -301,7 +314,8 @@ const BattleOrders = new Runnable(
 
       return true;
     } finally {
-      removeEventListener("chatmsg", chatEvent);
+      //removeEventListener("chatmsg", chatEvent);
+      removeEventListener("copydata", copyDataEvent);
     }
   },
   {
