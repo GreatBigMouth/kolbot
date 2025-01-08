@@ -2128,7 +2128,7 @@ const Town = {
           || !Pather.makePortal(true)) {
           console.warn("Town.goToTown: Failed to make TP");
         }
-        if (!me.inTown && !Pather.usePortal(null, me.name)) {
+        if (!me.inTown && !Pather.usePortal(null, me.name) && !Pather.makePortal(true)) {
           console.warn("Town.goToTown: Failed to take TP");
           if (!me.inTown && !Pather.usePortal(sdk.areas.townOf(me.area))) {
             throw new Error("Town.goToTown: Failed to take TP");

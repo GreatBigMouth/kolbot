@@ -1393,10 +1393,17 @@ const Attack = {
     }
 
     if (Config.FollowerLeader && rooms.length > 0) {
+      // Make sure the followers are left behind and do not follow to the area
+      delay(6000);
       Pather.makePortal();
-      say("1");
+      let count = 1;
+      
       while (Misc.getNearbyPlayerCount() < Config.FollowerMinCharacters) {
+        if (count % 40 === 0) {
+          say("1");
+        }
         delay(500);
+        count += 1;
       }
     }
 

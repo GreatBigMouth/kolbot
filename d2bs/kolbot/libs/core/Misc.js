@@ -339,7 +339,7 @@ const Misc = (function () {
 
       let specialChest = sdk.quest.chests.includes(unit.classid);
 
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 5; i++) {
         // don't use tk if we are right next to it
         let useTK = (unit.distance > 5 && Skill.useTK(unit) && i < 3);
         if (useTK) {
@@ -349,7 +349,7 @@ const Misc = (function () {
             continue;
           }
         } else {
-          [(unit.x + 1), (unit.y + 2)].distance > 5 && Pather.moveTo(unit.x + 1, unit.y + 2, 3);
+          [(unit.x + 1), (unit.y + 2)].distance > 2 && Pather.moveTo(unit.x + 1, unit.y + 2, 3);
           (specialChest || i > 2) ? Misc.click(0, 0, unit) : Packet.entityInteract(unit);
         }
 
