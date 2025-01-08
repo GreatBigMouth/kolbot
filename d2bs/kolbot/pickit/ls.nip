@@ -1,5 +1,7 @@
 [name] == grandcharm && [quality] == magic && [level] == 19
 [name] == grandcharm && [quality] == magic && [level] >= 19 # [frw] == 7 && [itemlevelreq] <= 15
+[name] == grandcharm && [quality] == magic # [fhr] == 12 && [itemlevelreq] <= 1
+
 [name] == amulet && [quality] == magic # [itemlevelreq] <= 1 && [strength] == 2
 [name] == ring && [quality] == magic # [itemlevelreq] <= 1 && [strength] == 1
 
