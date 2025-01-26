@@ -29,8 +29,8 @@
       return others.forEach(other => sendCopyData(null, other.profile, mode || defaultCopyDataMode, JSON.stringify(what)));
     },
     broadcastInGame: (what, mode) => {
-      what.profile = me.windowtitle;
       //console.debug("broadcasting " + JSON.stringify(what));
+      what.profile = me.windowtitle;
       others.forEach(function (other) {
         for (const party = getParty(); party && party.getNext();) {
           typeof party === "object" && party && party.hasOwnProperty("name") && party.name === other.name && sendCopyData(null, other.profile, mode || defaultCopyDataMode, JSON.stringify(what));
@@ -68,11 +68,16 @@
     parentScriptName = getScript(parentScriptId).name;
     console.debug("parent script name: " + parentScriptName); */
 
-    Messaging.on("Team", data => (
+    /* Messaging.on("Team", data => (
       typeof data === "object" && data
       && data.hasOwnProperty("call")
       && Team[data.call].apply(Team, data.hasOwnProperty("args") && data.args || [])
-    ));
+    )); */
+    Messaging.on("Team", data => {
+      //console.debug("Received: " + JSON.stringify(data));
+      if (typeof data === "string") data = JSON.parse(data);
+      data.hasOwnProperty("call") && Team[data.call].apply(Team, data.hasOwnProperty("args") && data.args || []);
+    });
 
     Worker.runInBackground.copydata = (new function () {
       const workBench = [];
@@ -206,13 +211,14 @@
         });
 
       Messaging.on("Team", msg =>
+        //console.debug("msg : " + JSON.stringify(msg));
         typeof msg === "object"
           && msg
           && msg.hasOwnProperty("emit")
           && Array.isArray(msg.emit)
           && msg.emit.forEach(function (obj) {
             
-            //console.debug("Emitting " + JSON.stringify(obj.data));
+            //console.debug("Emitting " + JSON.stringify(obj));
             // Registered events on the mode
             myEvents.emit(obj.mode, obj.data);
 
@@ -227,6 +233,28 @@
             });
           })
       );
+      /* Messaging.on("Team", msg =>
+        typeof msg === "object"
+          && msg
+          && msg.hasOwnProperty("emit")
+          && Array.isArray(msg.emit)
+          && msg.emit.forEach(function (obj) {
+            
+            console.debug("Emitting " + JSON.stringify(obj));
+            // Registered events on the mode
+            myEvents.emit(obj.mode, obj.data);
+
+            // Only if data is set
+            typeof obj.data === "object" && obj.data && Object.keys(obj.data).forEach(function (item) {
+
+              // For each item in the object, trigger an event
+              obj.data[item].reply = (what, mode) => localTeam.send(obj.data.profile, what, mode);
+
+              // Registered events on a data item
+              myEvents.emit(item, obj.data[item]);
+            });
+          })
+      ); */
     })(module);
   }
 })(getScript.startAsThread(), [].filter.constructor("return this")());

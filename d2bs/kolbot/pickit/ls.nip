@@ -1,4 +1,7 @@
 [name] == grandcharm && [quality] == magic && [level] == 19
+// [name] == ring && [quality] == magic && [level] == 1 # # [maxquantity] == 6
+// [name] == amulet && [quality] == magic && [level] == 1 # # [maxquantity] == 6
+
 [name] == grandcharm && [quality] == magic && [level] >= 19 # [frw] == 7 && [itemlevelreq] <= 15
 [name] == grandcharm && [quality] == magic # [fhr] == 12 && [itemlevelreq] <= 1
 

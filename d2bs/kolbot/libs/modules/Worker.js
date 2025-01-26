@@ -23,8 +23,6 @@
     const self = this;
     const work = [];
     const workLowPrio = [];
-    const instances = {};
-
     /** @private */
     this.workDisabled = false;
 
@@ -62,29 +60,19 @@
     };
 
     /**
-     *
      * @param {function({Worker}):boolean} callback
      */
     this.runInBackground = new Proxy({ processes: {} }, {
       set: function (target, name, callback) {
-        // print("Setting " + name);
-        /* if (target.processes.hasOwnProperty(name)) {
-          throw new Error("Process " + name + " already exists.");
-        } */
-        // Ugly workaround, count instances of same process 
-        // (e.g. in case Team and Messaging modules are used at the same time)
+        //console.debug("Trying to set process " + name + ", processes: " + JSON.stringify(target.processes));
         if (target.processes.hasOwnProperty(name)) {
-          instances.hasOwnProperty(name) ?
-            instances[name] = instances[name] + 1 :
-            instances[name] = 2;
-          name = name + instances[name];
+          throw new Error("Process " + name + " already exists.");
         }
         target.processes[name] = {
           callback: callback,
           running: true,
           name: name
         };
-
         let proxyCallback = function () {
           if (!target.processes[name]) return;
           target.processes[name].running = callback();
@@ -95,15 +83,6 @@
           }
         };
         self.pushLowPrio(proxyCallback);
-        /* let proxyCallback = function () {
-          if (target.processes[name].running) {
-            target.processes[name].running = (callback() && self.pushLowPrio(proxyCallback) > -1);
-          }
-          if (!target.processes[name].running) {
-            delete target.processes[name];
-          }
-        };
-        self.pushLowPrio(proxyCallback); */
       },
       deleteProperty: function (target, name) {
         if (!target.processes.hasOwnProperty(name)) {
@@ -123,19 +102,7 @@
       if (typeof self.runInBackground.processes[name] === "undefined") {
         return;
       }
-
-      // more than one instance with the same process name
-      // maybe just throw error here instead of deleting process?
-      if (instances.hasOwnProperty(name)) {
-        Object.keys(self.runInBackground.processes).forEach(process => {
-          // delete all processes name, name2, name3...
-          if (self.runInBackground.processes[process].name.includes(name)) {
-            delete self.runInBackground.processes[process];
-          }
-        });
-      } else {
-        delete self.runInBackground.processes[name];
-      }
+      delete self.runInBackground.processes[name];
     };
 
     /** @param {Promise<*>} promise */
