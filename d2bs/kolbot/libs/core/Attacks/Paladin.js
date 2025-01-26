@@ -79,7 +79,11 @@ const ClassAttack = {
         if (Config.AttackSkill[5] > -1 && Attack.checkResist(unit, Config.AttackSkill[5])) {
           attackSkill = Config.AttackSkill[5];
           aura = Config.AttackSkill[6];
-        } else if (Config.AttackSkill[7] > -1 && Attack.checkResist(unit, Config.AttackSkill[7])) {
+        } else if (
+          Config.AttackSkill.length === 9
+          && Config.AttackSkill[7] > -1
+          && Attack.checkResist(unit, Config.AttackSkill[7])
+        ) {
           attackSkill = Config.AttackSkill[7];
           aura = Config.AttackSkill[8];
         }

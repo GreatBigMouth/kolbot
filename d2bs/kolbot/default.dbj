@@ -251,6 +251,14 @@ function main () {
     try {
       Town.goToTown();
 
+      if (Config.AnnounceGameTimeRemaing) {
+        say(
+          "Next game in "
+          + Math.round(((startTime + Config.MinGameTime) - getTickCount()) / 1000)
+          + " seconds."
+        );
+      }
+      
       while (getTickCount() - startTime < Config.MinGameTime * 1000) {
         me.overhead(
           "Stalling for "

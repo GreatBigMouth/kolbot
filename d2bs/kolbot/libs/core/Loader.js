@@ -5,17 +5,6 @@
 *
 */
 
-/** @typedef {function(): boolean} GlobalScript */
-// TODO: preaction/postaction
-/**
- * @typedef {Object} RunnableOptions
- * @property {function(): any} preAction
- * @property {function(): boolean} postAction
- * @property {function(): any} cleanup
- * @property {boolean} forceTown
- * @property {number} bossid
- * @property {number} startArea
- */
 
 /**
  * @constructor
@@ -25,6 +14,7 @@
 function Runnable (action, options = {}) {
   this.action = action;
   this.startArea = options.hasOwnProperty("startArea") ? options.startArea : null;
+  this.setup = options.hasOwnProperty("setup") ? options.setup : null;
   this.preAction = options.hasOwnProperty("preAction")
     ? options.preAction
     : function chores () {
@@ -70,10 +60,11 @@ const Loader = {
     }
   },
 
-  _runCurrent: function () {
+  /** @param {ScriptContext} ctx */
+  _runCurrent: function (ctx) {
     return this.currentScript instanceof Runnable
-      ? this.currentScript.action()
-      : this.currentScript();
+      ? this.currentScript.action(ctx)
+      : this.currentScript(ctx);
   },
 
   /**
@@ -156,7 +147,8 @@ const Loader = {
     }
 
     for (Loader.scriptIndex = 0; Loader.scriptIndex < Loader.scriptList.length; Loader.scriptIndex++) {
-      let script = this.scriptList[this.scriptIndex];
+      const ctx = {};
+      const script = this.scriptList[this.scriptIndex];
 
       if (this.fileList.indexOf(script) === -1) {
         if (FileTools.exists("scripts/" + script + ".js")) {
@@ -203,7 +195,7 @@ const Loader = {
             }
 
             if (preAction && typeof preAction === "function") {
-              preAction();
+              preAction(ctx);
             }
 
             if (startArea && me.inArea(startArea)) {
@@ -248,7 +240,7 @@ const Loader = {
               say("nextup " + script);
             }
 
-            if (Loader._runCurrent()) {
+            if (Loader._runCurrent(ctx)) {
               let gain = Math.max(me.getStat(sdk.stats.Experience) - exp, 0);
               let duration = Time.elapsed(tick);
               console.log(
@@ -273,7 +265,7 @@ const Loader = {
             // run cleanup if applicable
             if (Loader.currentScript instanceof Runnable) {
               if (Loader.currentScript.cleanup && typeof Loader.currentScript.cleanup === "function") {
-                Loader.currentScript.cleanup();
+                Loader.currentScript.cleanup(ctx);
               }
             }
             // remove script function from global scope, so it can be cleared by GC
@@ -302,7 +294,7 @@ const Loader = {
 
   /**
    * @param {string} script 
-   * @param {Object | function(): any} configOverride 
+   * @param {Partial<Config> | function(): any} configOverride 
    * @returns {boolean}
    */
   runScript: function (script, configOverride) {
@@ -331,9 +323,10 @@ const Loader = {
     Loader.currentScript = global[script];
 
     if (isIncluded("scripts/" + script + ".js")) {
+      const ctx = {};
       try {
         if (Loader.currentScript instanceof Runnable) {
-          const { startArea, bossid } = Loader.currentScript;
+          const { startArea, bossid, preAction } = Loader.currentScript;
 
           if (startArea && me.inArea(startArea)) {
             Loader.skipTown.push(script);
@@ -342,6 +335,10 @@ const Loader = {
           if (bossid && Attack.haveKilled(bossid)) {
             console.log("ÿc2Skipping script: ÿc9" + script + " ÿc2- Boss already killed.");
             return true;
+          }
+
+          if (preAction && typeof preAction === "function") {
+            preAction(ctx);
           }
         } else if (typeof (Loader.currentScript) !== "function") {
           throw new Error("Invalid script function name");
@@ -371,7 +368,7 @@ const Loader = {
           let tick = getTickCount();
           let exp = me.getStat(sdk.stats.Experience);
 
-          if (Loader._runCurrent()) {
+          if (Loader._runCurrent(ctx)) {
             console.log(
               mainScriptStr + "ÿc7" + script
               + " :: ÿc0Complete ÿc0- ÿc7Duration: ÿc0" + (Time.format(getTickCount() - tick))
@@ -405,10 +402,9 @@ const Loader = {
         // run cleanup if applicable
         if (Loader.currentScript instanceof Runnable) {
           if (Loader.currentScript.cleanup && typeof Loader.currentScript.cleanup === "function") {
-            Loader.currentScript.cleanup();
+            Loader.currentScript.cleanup(ctx);
           }
         }
-        
         Loader.currentScript = null;
         Loader.tempList.pop();
         

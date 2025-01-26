@@ -250,17 +250,37 @@ const MuleLogger = {
 
     // hcl = hardcore class ladder
     // sen = softcore expan nonladder
-    FileTools.writeText(
+    /**
+     * @param {string} account 
+     * @param {string} charName 
+     * @param {boolean} playerType 
+     * @param {number} gameType 
+     * @param {boolean} ladder 
+     * @returns {string}
+     */
+    const buildFileName = (account, charName, playerType, gameType, ladder) => (
       "mules/" + realm + "/"
-      + me.account + "/"
-      + me.name + "."
-      + ( me.playertype ? "h" : "s" )
-      + (me.gametype ? "e" : "c" )
-      + ( me.ladder > 0 ? "l" : "n" )
-      + ".txt",
+      + account + "/"
+      + charName + "."
+      + (playerType ? "h" : "s" )
+      + (gameType ? "e" : "c" )
+      + (ladder ? "l" : "n" )
+      + ".txt"
+    );
+    FileTools.writeText(
+      buildFileName(me.account, me.name, me.playertype, me.gametype, me.ladder > 0),
       finalString
     );
-    print("Item logging done.");
+
+    if (!me.ladder) {
+      let ladderVersion = buildFileName(me.account, me.name, me.playertype, me.gametype, true);
+      if (FileTools.exists(ladderVersion)) {
+        // this character is probably being relogged after ladder reset, log that we are deleting and remove the old file
+        console.log("Found ladder version of this char, removing the old file as assuming this is leftover from before ladder reset.");
+        FileTools.remove(ladderVersion);
+      }
+    }
+    console.log("Item logging done.");
   }
 };
 

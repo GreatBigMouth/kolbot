@@ -187,7 +187,7 @@ const Pickit = {
       ]);
 
       for (let column of Config.BeltColumn) {
-        if (unit.code.includes(column)) {
+        if (unit.code && unit.code.includes(column)) {
           needPots += Pickit.beltSize;
         }
       }

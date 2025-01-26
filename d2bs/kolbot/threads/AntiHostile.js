@@ -1,12 +1,11 @@
-/* eslint-disable max-len */
 /**
-*  @filename    AntiHostile.js
-*  @author      kolton
-*  @desc        handle hostile threats
-*
-*/
+ *  @filename    AntiHostile.js
+ *  @author      kolton
+ *  @desc        handle hostile threats
+ *
+ */
 js_strict(true);
-include("critical.js");	// required
+include("critical.js"); // required
 
 // globals needed for core gameplay
 includeCoreLibs();
@@ -18,43 +17,53 @@ include("systems/gameaction/GameAction.js");
 
 include("oog/ShitList.js");
 
-function main () {
+function main() {
   // Variables and functions
   let player, attackCount, prevPos, check, missile, outside;
-  let charClass = ["Amazon", "Sorceress", "Necromancer", "Paladin", "Barbarian", "Druid", "Assassin"];
   let hostiles = [];
 
-  // AntiHostile gets game event info from ToolsThread
-  this.scriptEvent = function (msg) {
+  /**
+   * Handles game events for AntiHostile.
+   * @const
+   * @param {string} msg - The message received from the game event.
+   */
+  const scriptEvent = function (msg) {
     if (!msg || typeof msg !== "string") return;
-    
+
     switch (msg.split(" ")[0]) {
     case "remove": // Remove a hostile player that left the game
       if (hostiles.indexOf(msg.split(" ")[1]) > -1) {
         hostiles.splice(hostiles.indexOf(msg.split(" ")[1]), 1);
       }
-
       break;
     case "mugshot": // Take a screenshot and log the kill
       D2Bot.printToConsole(msg.split(" ")[1] + " has been neutralized.", sdk.colors.D2Bot.Blue);
       hideConsole();
       delay(500);
       takeScreenshot();
-
       break;
     }
   };
 
-  // Find all hostile players and add their names to the 'hostiles' list
-  this.findHostiles = function () {
+  /**
+   * Find all hostile players and add their names to the 'hostiles' list
+   * @returns {boolean}
+   */
+  const findHostiles = function () {
     let party = getParty();
 
     if (party) {
       do {
-        if (party.name !== me.name
-          && getPlayerFlag(me.gid, party.gid, 8)
-          && hostiles.indexOf(party.name) === -1) {
-          D2Bot.printToConsole(party.name + " (Level " + party.level + " " + charClass[party.classid] + ")" + " has declared hostility.", sdk.colors.D2Bot.Orange);
+        if (hostiles.includes(party.name) && !getPlayerFlag(me.gid, party.gid, 8)) {
+          hostiles.splice(hostiles.indexOf(party.name), 1);
+
+          continue;
+        }
+        if (party.name !== me.name && getPlayerFlag(me.gid, party.gid, 8) && hostiles.indexOf(party.name) === -1) {
+          D2Bot.printToConsole(
+            party.name + " (Level " + party.level + " " + sdk.player.class.nameOf(party.classid) + ")" + " has declared hostility.",
+            sdk.colors.D2Bot.Orange
+          );
           hostiles.push(party.name);
           if (Config.ShitList) {
             ShitList.add(party.name);
@@ -66,8 +75,10 @@ function main () {
     return true;
   };
 
-  // Pause default so actions don't conflict
-  this.pause = function () {
+  /**
+   * Pause default so actions don't conflict
+   */
+  const pause = function () {
     let script = getScript("default.dbj");
 
     if (script && script.running) {
@@ -76,18 +87,24 @@ function main () {
     }
   };
 
-  // Resume default
-  this.resume = function () {
+  /**
+   * Resume default
+   */
+  const resume = function () {
     let script = getScript("default.dbj");
 
     if (script && !script.running) {
       console.log("ÿc2Resuming.");
       script.resume();
+      scriptBroadcast("hostileEventEnded");
     }
   };
 
-  // Find hostile player Units
-  this.findPlayer = function () {
+  /**
+   * Find hostile player Units
+   * @returns {Player | boolean}
+   */
+  const findPlayer = function () {
     for (let i = 0; i < hostiles.length; i += 1) {
       let player = Game.getPlayer(hostiles[i]);
 
@@ -103,8 +120,14 @@ function main () {
     return false;
   };
 
-  // Find a missile type
-  this.findMissile = function (owner, id, range) {
+  /**
+   * Find a missile type
+   * @param {Player} owner 
+   * @param {number} id 
+   * @param {number} range 
+   * @returns {Missile | boolean}
+   */
+  const findMissile = function (owner, id, range) {
     range === undefined && (range = 999);
 
     let missile = Game.getMissile(id);
@@ -119,7 +142,11 @@ function main () {
     return false;
   };
 
-  this.checkSummons = function (player) {
+  /**
+   * @param {Player} player 
+   * @returns {boolean}
+   */
+  const checkSummons = function (player) {
     if (!player) return false;
     let name = player.name;
     let unit = Game.getMonster();
@@ -127,7 +154,11 @@ function main () {
     if (unit) {
       do {
         // Revives and spirit wolves
-        if (unit.getParent() && unit.getParent().name === name && (unit.getState(sdk.states.Revive) || unit.classid === sdk.monsters.Wolf2)) {
+        if (
+          unit.getParent()
+          && unit.getParent().name === name
+          && (unit.getState(sdk.states.Revive) || unit.classid === sdk.monsters.Wolf2)
+        ) {
           return true;
         }
       } while (unit.getNext());
@@ -146,21 +177,28 @@ function main () {
   Skill.usePvpRange = true;
 
   // Attack sequence adjustments - this only affects the AntiHostile thread
-  if (Skill.canUse(sdk.skills.MindBlast)
-    && [sdk.skills.FireBlast, sdk.skills.ShockWeb].includes(Config.AttackSkill[1])) {
+  if (
+    Skill.canUse(sdk.skills.MindBlast)
+    && [sdk.skills.FireBlast, sdk.skills.ShockWeb].includes(Config.AttackSkill[1])
+  ) {
     Config.AttackSkill[1] = sdk.skills.MindBlast;
     ClassAttack.trapRange = 40;
   }
 
-  // A simple but fast player dodge function
-  this.moveAway = function (unit, range) {
-    let angle = Math.round(Math.atan2(me.y - unit.y, me.x - unit.x) * 180 / Math.PI);
+  /**
+   * A simple but fast player dodge function
+   * @param {Player | Monster} unit 
+   * @param {number} range 
+   * @returns {boolean}
+   */
+  const moveAway = function (unit, range) {
+    let angle = Math.round((Math.atan2(me.y - unit.y, me.x - unit.x) * 180) / Math.PI);
     let angles = [0, 45, -45, 90, -90, 135, -135, 180];
 
     for (let i = 0; i < angles.length; i += 1) {
       // Avoid the position where the player actually tries to move to
-      let coordx = Math.round((Math.cos((angle + angles[i]) * Math.PI / 180)) * range + unit.x); // unit.targetx
-      let coordy = Math.round((Math.sin((angle + angles[i]) * Math.PI / 180)) * range + unit.y); // unit.targety
+      let coordx = Math.round(Math.cos(((angle + angles[i]) * Math.PI) / 180) * range + unit.x); // unit.targetx
+      let coordy = Math.round(Math.sin(((angle + angles[i]) * Math.PI) / 180) * range + unit.y); // unit.targety
 
       if (Attack.validSpot(coordx, coordy)) {
         return Pather.moveTo(coordx, coordy);
@@ -170,19 +208,19 @@ function main () {
     return false;
   };
 
-  addEventListener("scriptmsg", this.scriptEvent);
+  addEventListener("scriptmsg", scriptEvent);
   console.log("ÿc2Anti-Hostile thread loaded.");
 
   // Main Loop
   while (true) {
     if (me.gameReady) {
       // Scan for hostiles
-      this.findHostiles();
+      findHostiles();
 
       if (hostiles.length > 0 && (Config.HostileAction === 0 || (Config.HostileAction === 1 && me.inTown))) {
         if (Config.TownOnHostile) {
           console.log("ÿc1Hostility detected, going to town.");
-          this.pause();
+          pause();
 
           if (!me.inTown) {
             outside = true;
@@ -196,6 +234,7 @@ function main () {
           }
 
           while (hostiles.length > 0) {
+            findHostiles();
             delay(500);
           }
 
@@ -204,7 +243,7 @@ function main () {
             Pather.usePortal(null, me.name);
           }
 
-          this.resume();
+          resume();
         } else {
           scriptBroadcast("quit");
         }
@@ -219,10 +258,10 @@ function main () {
         switch (me.classid) {
         case sdk.player.class.Sorceress:
           prevPos = { x: me.x, y: me.y };
-          this.pause();
+          pause();
           Pather.moveTo(15103, 5247);
 
-          while (!this.findPlayer() && hostiles.length > 0) {
+          while (!findPlayer() && hostiles.length > 0) {
             if (!me.skillDelay) {
               Skill.cast(Config.AttackSkill[1], Skill.getHand(Config.AttackSkill[1]), 15099, 5237);
             } else {
@@ -244,10 +283,10 @@ function main () {
           }
 
           prevPos = { x: me.x, y: me.y };
-          this.pause();
+          pause();
           Pather.moveTo(15103, 5247);
 
-          while (!this.findPlayer() && hostiles.length > 0) {
+          while (!findPlayer() && hostiles.length > 0) {
             // Tornado path is a function of target x. Slight randomization will make sure it can't always miss
             Skill.cast(Config.AttackSkill[1], Skill.getHand(Config.AttackSkill[1]), 15099 + rand(-2, 2), 5237);
           }
@@ -255,10 +294,10 @@ function main () {
           break;
         case sdk.player.class.Assassin:
           prevPos = { x: me.x, y: me.y };
-          this.pause();
+          pause();
           Pather.moveTo(15103, 5247);
 
-          while (!this.findPlayer() && hostiles.length > 0) {
+          while (!findPlayer() && hostiles.length > 0) {
             if (Config.UseTraps) {
               check = ClassAttack.checkTraps({ x: 15099, y: 5242, classid: 544 });
 
@@ -281,20 +320,20 @@ function main () {
       // Player left, return to old position
       if (!hostiles.length && prevPos) {
         Pather.moveTo(prevPos.x, prevPos.y);
-        this.resume();
+        resume();
 
         // Reset position
         prevPos = false;
       }
 
-      player = this.findPlayer();
+      player = findPlayer();
 
       if (player) {
         // Mode 1 - Quit if hostile player is nearby
         if (Config.HostileAction === 1) {
           if (Config.TownOnHostile) {
             console.log("ÿc1Hostile player nearby, going to town.");
-            this.pause();
+            pause();
 
             if (!me.inTown) {
               outside = true;
@@ -316,7 +355,7 @@ function main () {
               Pather.usePortal(null, me.name);
             }
 
-            this.resume();
+            resume();
           } else {
             scriptBroadcast("quit");
           }
@@ -331,7 +370,7 @@ function main () {
           prevPos = { x: me.x, y: me.y };
         }
 
-        this.pause();
+        pause();
 
         Config.UseMerc = false; // Don't go revive the merc mid-fight
         attackCount = 0;
@@ -353,8 +392,12 @@ function main () {
 
             if (missile) {
               do {
-                if (getPlayerFlag(me.gid, missile.owner, 8) && (getDistance(me, missile) < 15 || (missile.targetx && getDistance(me, missile.targetx, missile.targety) < 15))) {
-                  this.moveAway(missile, Skill.getRange(Config.AttackSkill[1]));
+                if (
+                  getPlayerFlag(me.gid, missile.owner, 8)
+                    && (getDistance(me, missile) < 15
+                      || (missile.targetx && getDistance(me, missile.targetx, missile.targety) < 15))
+                ) {
+                  moveAway(missile, Skill.getRange(Config.AttackSkill[1]));
 
                   break;
                 }
@@ -362,15 +405,23 @@ function main () {
             }
 
             // Move away if the player is too close or if he tries to move too close (telestomp)
-            if (Skill.getRange(Config.AttackSkill[1]) > 20 && (getDistance(me, player) < 30 || (player.targetx && getDistance(me, player.targetx, player.targety) < 15))) {
-              this.moveAway(player, Skill.getRange(Config.AttackSkill[1]));
+            if (
+              Skill.getRange(Config.AttackSkill[1]) > 20
+                && (getDistance(me, player) < 30
+                  || (player.targetx && getDistance(me, player.targetx, player.targety) < 15))
+            ) {
+              moveAway(player, Skill.getRange(Config.AttackSkill[1]));
             }
 
             break;
           case sdk.player.class.Paladin:
             // Smite summoners
             if (Config.AttackSkill[1] === sdk.skills.BlessedHammer && Skill.canUse(sdk.skills.Smite)) {
-              if ([sdk.player.class.Necromancer, sdk.player.class.Druid].includes(player.classid) && getDistance(me, player) < 4 && this.checkSummons(player)) {
+              if (
+                [sdk.player.class.Necromancer, sdk.player.class.Druid].includes(player.classid)
+                  && getDistance(me, player) < 4
+                  && checkSummons(player)
+              ) {
                 Skill.cast(sdk.skills.Smite, sdk.skills.hand.Left, player);
               }
             }
@@ -386,7 +437,7 @@ function main () {
         }
 
         Pather.moveTo(prevPos.x, prevPos.y);
-        this.resume();
+        resume();
       }
     }
 

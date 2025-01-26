@@ -661,8 +661,45 @@
       }
       Town.goToTown(3);
       Town.doChores();
+    } else if (AutoRush.rushMode === RushModes.chanter) {
+      Pather.moveToExit([sdk.areas.HaremLvl1, sdk.areas.LutGholein], true);
+      Pather.useWaypoint(sdk.areas.RogueEncampment);
     }
 
+    return true;
+  };
+  /** @param {string} [nick] */
+  const gidbinn = function (nick) {
+    log("starting gidbinn");
+
+    Town.doChores();
+    Pather.useWaypoint(sdk.areas.FlayerJungle, true) && Precast.doPrecast(true);
+    if (!Pather.moveToPreset(sdk.areas.FlayerJungle, sdk.unittype.Object, sdk.quest.chest.GidbinnAltar)) {
+      throw new Error("gidbinn failed");
+    }
+    const altar = Game.getObject(sdk.quest.chest.GidbinnAltar);
+    if (!altar) {
+      throw new Error("gidbinn failed - couldn't find altar");
+    }
+    Misc.poll(function () {
+      altar.interact();
+      return altar.mode === sdk.objects.mode.Active;
+    }, Time.minutes(1), Time.seconds(1));
+    Attack.securePosition(me.x, me.y, 30, 3000, true);
+    Pather.makePortal();
+    log(AutoRush.playersIn);
+    if (!Misc.poll(function () {
+      return playerIn(me.area, nick);
+    }, AutoRush.playerWaitTimeout, 1000)) {
+      log("timed out");
+      return false;
+    }
+    if (AutoRush.rushMode !== RushModes.chanter) {
+      while (playerIn(me.area, nick)) {
+        delay(100);
+      }
+    }
+    Pather.usePortal(null, me.name);
     return true;
   };
   /** @param {string} [nick] */
@@ -1336,6 +1373,7 @@
     baal: baal,
     cain: cain,
     radament: radament,
+    gidbinn: gidbinn,
     lamesen: lamesen,
     izual: izual,
     shenk: shenk,

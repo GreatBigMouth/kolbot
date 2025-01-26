@@ -502,9 +502,9 @@ const Pather = {
                 }
               }
             }
-          } else if (fail > 0 && me.inArea(sdk.areas.LutGholein) && me.x > 5122 && me.y <= 5049) {
+          } else if (fail > 0 && me.inArea(sdk.areas.LutGholein)) {
             // dislike have this here but handle atma blocking us from inside the tavern
-            if (me.inArea(sdk.areas.LutGholein) && me.x > 5122 && me.y <= 5049) {
+            if (me.x > 5122 && me.y <= 5049) {
               let atma = Game.getNPC(NPC.Atma);
               if (atma && (atma.x === 5136 || atma.x === 5137)
                 && (atma.y >= 5048 && atma.y <= 5051)) {
@@ -513,6 +513,10 @@ const Pather = {
                   Pather.walkTo(node[0], node[1]);
                 });
               }
+            } else if (me.x >= 5051 && me.x <= 5068 && me.y <= 5145) {
+              // we might not be able to get past the guards - rare but can happen to rushers
+              Pather.moveToExit(sdk.areas.HaremLvl1, true);
+              Pather.makePortal(true);
             }
           }
 

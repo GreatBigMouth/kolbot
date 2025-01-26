@@ -142,6 +142,14 @@ const Attack = {
     // Check if unit got invalidated
     if (!unit || !unit.name || !copyUnit(unit).x) return false;
     
+    for (let el of Config.AdvancedCustomAttack) {
+      if (el.hasOwnProperty("check") && el.hasOwnProperty("attack")) {
+        if (typeof el.check === "function" && el.check(unit)) {
+          return el.attack;
+        }
+      }
+    }
+    
     for (let i in Config.CustomAttack) {
       if (Config.CustomAttack.hasOwnProperty(i)) {
         // if it contains numbers but is a string, convert to an int

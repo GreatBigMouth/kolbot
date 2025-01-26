@@ -72,6 +72,7 @@ const ShitList = {
 
   /** @param {string} name */
   add: function (name) {
+    me.shitList.add(name);
     let obj = this.getObj();
     if (obj.shitlist.includes(name)) return;
     obj.shitlist.push(name);
@@ -84,6 +85,7 @@ const ShitList = {
 
   /** @param {string} name */
   remove: function (name) {
+    me.shitList.delete(name);
     let obj = this.getObj();
     let index = obj.shitlist.indexOf(name);
     if (index === -1) return false;

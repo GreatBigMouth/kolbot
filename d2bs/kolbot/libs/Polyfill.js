@@ -677,6 +677,29 @@ if (!Array.prototype.toSpliced) {
 }
 
 /**
+ * @description The with() method of Array instances is the copying version of using the bracket notation to change the value of a given index.
+ * It returns a new array with the element at the given index replaced with the given value.
+ * @param {number} index - Zero-based index at which to change the array, converted to an integer.
+ * @param {*} value - Any value to be assigned to the given index.
+ * @returns {Array} A new array with the element at index replaced with value.
+ * @throws {RangeError} If index >= array.length or index < -array.length.
+ */
+if (!Array.prototype.with) {
+  Array.prototype.with = function (index, value) {
+    const len = this.length;
+    const relativeIndex = index < 0 ? len + index : index;
+
+    if (relativeIndex < 0 || relativeIndex >= len) {
+      throw new RangeError("Index out of range");
+    }
+
+    const newArray = this.slice();
+    newArray[relativeIndex] = value;
+    return newArray;
+  };
+}
+
+/**
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Object Polyfills ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

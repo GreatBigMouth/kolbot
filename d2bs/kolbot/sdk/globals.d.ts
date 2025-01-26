@@ -81,6 +81,15 @@ declare global {
      * @returns {Array<T>} A new array with the removed elements and optionally added elements.
      */
     toSpliced(start: number, deleteCount?: number, ...items: T[]): T[];
+    /**
+     * @description The with() method of Array instances is the copying version of using the bracket notation to change the value of a given index.
+     * It returns a new array with the element at the given index replaced with the given value.
+     * @param {number} index - Zero-based index at which to change the array, converted to an integer.
+     * @param {*} value - Any value to be assigned to the given index.
+     * @returns {Array} A new array with the element at index replaced with value.
+     * @throws {RangeError} If index >= array.length or index < -array.length.
+     */
+    with(index: number, value: T): T[];
   }
 
   interface String {
@@ -278,7 +287,8 @@ declare global {
     readText(filename: string)
     writeText(filename: string, data: string)
     appendText(filename: string, data: string)
-    exists(filename: string): Boolean;
+    exists(filename: string): boolean;
+    remove(filename: string): boolean;
   }
 
   function getCollision(area: number, x: number, y: number, x2: number, y2: number)
@@ -681,6 +691,12 @@ declare global {
      */
     readonly maxgold: number;
     waypoints: boolean[];
+    /**
+     * @private
+     * Don't use directly, use `me.shitList`
+     */
+    _shitList: Set<string>;
+    shitList: Set<string>;
 
     // d2bs functions
     overhead(msg: string): void;
@@ -1347,6 +1363,6 @@ declare global {
    * @param type - The expected type as a string.
    * @returns {boolean} - Returns true if the value matches the expected type, otherwise false.
    */
-  function isType(val: any, type: PrimitiveType): boolean;
+  function isType<T extends PrimitiveType>(val: any, type: T): val is PrimitiveTypeMap[T];
 }
 export {};

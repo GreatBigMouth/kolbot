@@ -4423,6 +4423,7 @@ declare global {
         const Identify: 3350;
         const Repair2: 3351;
         const EnhancedDefense: 3520;
+        const RealmGoingDownInXMinutes: 3651;
         const Strength: 4060;
         const Dexterity: 4062;
         const Vitality: 4066;

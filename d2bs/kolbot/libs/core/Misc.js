@@ -666,6 +666,9 @@ const Misc = (function () {
       if (shrine) {
         do {
           if (!shrine.name) continue;
+          // don't leave our area to grab shrines
+          // TODO: better fix for this as it'd be okay for small detours but orginally found this at halls of vaught stairs attempting to get shrine that was on next level
+          if (!me.inArea(shrine.area)) continue;
           let _name = shrine.name.toLowerCase();
           if ((_name.includes("shrine") && ShrineData.has(shrine.objtype) || (_name.includes("well")))
             && ShrineData.has(shrine.objtype)

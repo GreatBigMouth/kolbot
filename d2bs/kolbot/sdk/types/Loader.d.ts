@@ -1,14 +1,28 @@
 export {};
 declare global {
   type GlobalScript = () => boolean;
-  interface Runnable {
+  type ScriptContext = { [key: string]: any };
+  interface RunnableOptions {
+    setup?: (ctx: ScriptContext) => any;
+    preAction?: (ctx: ScriptContext) => any;
+    postAction?: (ctx: ScriptContext) => any;
+    cleanup?: (ctx: ScriptContext) => any;
+    forceTown?: boolean;
+    bossid?: number;
+    startArea?: number;
+  }
+
+  class Runnable {
+    constructor(action: () => boolean, options: Partial<RunnableOptions>);
+
+    action: (ctx: ScriptContext) => boolean;
     startArea: number | null;
+    setup: ((ctx: ScriptContext) => any) | null;
+    preAction: (ctx: ScriptContext) => any;
+    postAction: ((ctx: ScriptContext) => any) | null;
+    cleanup: ((ctx: ScriptContext) => any) | null;
     forceTown: boolean;
     bossid: number | null;
-    preAction: () => any;
-    action: () => boolean;
-    postAction: () => any;
-    cleanup: () => any;
   }
   
   namespace Loader {
@@ -24,11 +38,11 @@ declare global {
 
     function init(): void;
     function getScripts(): void;
-    function _runCurrent(): boolean;
+    function _runCurrent(ctx: ScriptContext): boolean;
     function clone(obj: any): void;
     function copy(from: any, to: any): void;
     function loadScripts(): void;
-    function runScript(name: string, configOverride: Object | (() => any)): boolean;
+    function runScript(name: string, configOverride: Partial<Config> | (() => any)): boolean;
     function scriptName(offset?: number): string;
   }
 

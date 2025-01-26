@@ -1694,6 +1694,8 @@
       BluePortal: 59,
       RedPortal: 60,
       Smoke: 401,
+      Well: 132,
+      Wells: [130, 132, 322],
     },
 
     exits: {
@@ -4498,6 +4500,7 @@
         Identify: 3350,
         Repair2: 3351,
         EnhancedDefense: 3520,
+        RealmGoingDownInXMinutes: 3651,
         Strength: 4060,
         Dexterity: 4062,
         Vitality: 4066,

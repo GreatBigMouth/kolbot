@@ -1,9 +1,9 @@
 (function (module, require) {
   // party thread specific
   include("oog/ShitList.js");
-  const shitList = (Config.ShitList || Config.UnpartyShitlisted)
-    ? ShitList.read()
-    : [];
+  if ((Config.ShitList || Config.UnpartyShitlisted)) {
+    ShitList.read().forEach((name) => me.shitList.add(name));
+  }
   const Worker = require("../Worker");
   const NO_PARTY = 65535;
   const PARTY_MEMBER = 1;
@@ -90,6 +90,13 @@
   SimpleParty.timer = 0;
 
   if (new RegExp(/[default.dbj|main.js]/gi).test(getScript(true).name)) {
+    addEventListener("scriptmsg", function (msg) {
+      if (!isType(msg, "string")) return;
+      if (msg === "hostileEventEnded" && (Config.ShitList || Config.UnpartyShitlisted)) {
+        ShitList.read().forEach((name) => me.shitList.add(name));
+      }
+    });
+    
     // For now, we gonna do this in game with a single party
     (Worker.runInBackground.party = (function () {
       console.log("ÿc2Kolbotÿc0 :: Simple party running");
@@ -128,10 +135,10 @@
 
           // Deal with inviting
           if ( // If no party is formed, or im member of the biggest party
-            party.partyflag !== INVITED && // Already invited
-            party.partyflag !== ACCEPTABLE && // Need to accept invite, so cant invite
-            party.partyflag !== PARTY_MEMBER && // cant party again with soemone
-            party.partyid === NO_PARTY // Can only invite someone that isnt in a party
+            party.partyflag !== INVITED // Already invited
+            && party.partyflag !== ACCEPTABLE // Need to accept invite, so cant invite
+            && party.partyflag !== PARTY_MEMBER // cant party again with soemone
+            && party.partyid === NO_PARTY // Can only invite someone that isnt in a party
             && ( // If im not in a party, only if there is no party
               myPartyId === NO_PARTY && biggestPartyId === NO_PARTY
               // OR, if im part of the biggest party
@@ -139,18 +146,17 @@
             )
           ) {
             if (getPlayerFlag(me.gid, party.gid, sdk.player.flag.Hostile)) {
-              if (shitList.includes(party.name)) {
+              if (me.shitList.has(party.name)) {
                 say(party.name + " has been shitlisted.");
-                shitList.push(party.name);
                 ShitList.add(party.name);
               }
 
-              if (player.partyflag === sdk.party.flag.Cancel) {
+              if (party.partyflag === sdk.party.flag.Cancel) {
                 clickParty(party, BUTTON_INVITE_ACCEPT_CANCEL); // cancel invitation
               }
 
               continue;
-            } else if (shitList.includes(party.name)) {
+            } else if (me.shitList.has(party.name)) {
               continue;
             }
             
@@ -174,7 +180,7 @@
               if (acceptFirst !== party.name) {
                 continue; // Ignore party acceptation
               }
-              if (shitList.includes(party.name)) {
+              if (me.shitList.has(party.name)) {
                 continue;
               }
             }
@@ -194,11 +200,11 @@
           if (Config.UnpartyShitlisted) {
             // Add new hostile players to temp shitlist, leader should have Config.ShitList set to true to update the permanent list.
             if (getPlayerFlag(me.gid, party.gid, sdk.player.flag.Hostile)
-              && shitList.includes(party.name)) {
-              shitList.push(player.name);
+              && !me.shitList.has(party.name)) {
+              me.shitList.add(party.name);
             }
 
-            if (shitList.includes(player.name)
+            if (me.shitList.has(party.name)
               && myPartyId !== NO_PARTY
               && party.partyid === myPartyId) {
               console.log("Unpartying shitlisted player: " + party.name);

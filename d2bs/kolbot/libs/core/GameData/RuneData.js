@@ -20,9 +20,29 @@
       sdk.items.type.Polearm, sdk.items.type.Scepter, sdk.items.type.HandtoHand
     ];
     const ladderRws = [
-      "Brand", "Death", "Destruction", "Dragon", "Edge", "Fortitude", "Grief",
-      "Ice", "Infinity", "Insight", "LastWish", "Lawbringer", "Oath", "Obedience",
-      "Phoenix", "Pride", "Rift", "Spirit", "VoiceofReason", "White",
+      "Brand",
+      "Death",
+      "Destruction",
+      "Dream",
+      "Dragon",
+      "Edge",
+      "Faith",
+      "Fortitude",
+      "Grief",
+      "Harmony",
+      "Ice",
+      "Infinity",
+      "Insight",
+      "LastWish",
+      "Lawbringer",
+      "Oath",
+      "Obedience",
+      "Phoenix",
+      "Pride",
+      "Rift",
+      "Spirit",
+      "VoiceofReason",
+      "Wrath",
     ];
 
     function getItemType (iType) {

@@ -259,6 +259,7 @@ function LoadConfig () {
     Config.ControlBot.Rush.Amulet = true; // Get amulet on command
     Config.ControlBot.Rush.Summoner = true; // Kill Summoner on command
     Config.ControlBot.Rush.Duriel = true; // Kill Duriel on command
+    Config.ControlBot.Rush.Gidbinn = true; // Clear Gidbinn altar on command
     Config.ControlBot.Rush.LamEsen = true; // Get LamEsen's tome on command
     Config.ControlBot.Rush.Eye = true; // Get Khalim's eye on command
     Config.ControlBot.Rush.Heart = true; // Get Khalim's heart on command
@@ -497,6 +498,7 @@ function LoadConfig () {
   Config.ShitList = false; // Blacklist hostile players so they don't get invited to party.
   Config.UnpartyShitlisted = false; // Leave party if someone invited a blacklisted player.
   Config.LastMessage = ""; // Message or array of messages to say at the end of the run. Use $nextgame to say next game - "Next game: $nextgame" (works with lead entry point)
+  Config.AnnounceGameTimeRemaing = false; // Announce time remaing in game if MinGameTime is set and hasn't been reached
 
   // Shrine Scanner - scan for shrines while moving.
   // Put the shrine types in order of priority (from highest to lowest). For a list of types, see sdk/txt/shrines.txt
@@ -563,6 +565,16 @@ function LoadConfig () {
   Config.CustomAttack = {
     // "Monster Name": [-1, -1]
   };
+
+  /**
+   * @type {{ check: (unit: Monster) => boolean, attack: [number, number] }[]}
+   * Advanced Attack config. Allows custom skills to be used on custom conditions.
+   * Each entry in the array should be an object with a `check` function and an `attack` array.
+   * The `check` function determines whether the custom attack should be used on a given monster.
+   * The `attack` array specifies the skills to use: [timed skill id, untimed skill id].
+   * Multiple entries are separated by commas.
+   */
+  Config.AdvancedCustomAttack = [];
 
   /**
    * Advanced PreAttack config. Allows custom skills to be used on custom monsters.

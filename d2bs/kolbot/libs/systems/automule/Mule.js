@@ -49,6 +49,7 @@ const MuleData = {
 
   // set next account - increase account number in mule datafile
   nextAccount: function () {
+    Starter.makeAccount = true;
     let obj = MuleData.read();
 
     obj.accNum += 1;

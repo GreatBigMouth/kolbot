@@ -108,7 +108,7 @@ const ItemHooks = (function () {
   * @param {string} uniqueName 
   * @returns {Map<number, string>}
   */
-  const buildClassIdAndQuality = function (id, setName = "", uniqueName = "") {
+  const buildClassIdAndQuality = function (setName = "", uniqueName = "") {
     let temp = new Map();
     setName && temp.set(sdk.items.quality.Set, setName);
     uniqueName && temp.set(sdk.items.quality.Unique, uniqueName);
@@ -136,7 +136,7 @@ const ItemHooks = (function () {
     [sdk.items.Diadem, buildClassIdAndQuality("Mavina's Helm", "Griffon's Eye")],
     [sdk.items.SharkskinBelt, buildClassIdAndQuality("Mavina's Belt", "Razortail")],
     [sdk.items.BattleGauntlets, buildClassIdAndQuality("Mavina's Gloves", "Lava Gout")],
-    [sdk.items.ScissorsKatar, buildClassIdAndQuality("Natalya's Wep")],
+    [sdk.items.ScissorsSuwayyah, buildClassIdAndQuality("Natalya's Wep")],
     [sdk.items.LoricatedMail, buildClassIdAndQuality("Natalya's Armor")],
     [sdk.items.GrimHelm, buildClassIdAndQuality("Natalya's Helm", "Vamp Gaze")],
     [sdk.items.MeshBoots, buildClassIdAndQuality("Natalya's Boots", "Silkweave")],
@@ -275,7 +275,7 @@ const ItemHooks = (function () {
         abbrName += abbr[0] + "-";
 
         for (let i = 1; i < abbr.length; i++) {
-          abbrName += abbr[i].substring(0, 1);
+          abbrName += abbr[i].substring(0, 2);
         }
       }
 

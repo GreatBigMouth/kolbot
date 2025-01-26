@@ -147,7 +147,7 @@ const locationAction = (function () {
           return;
         }
 
-        print("updating runs");
+        console.log("updating runs");
         D2Bot.updateRuns();
 
         lastGameTick = getTickCount();
@@ -198,7 +198,7 @@ const locationAction = (function () {
           try {
             joinGame(gameToJoin, "");
           } catch (joinErr) {
-            print(joinErr);
+            console.log(joinErr);
           }
 
           retry++;
@@ -209,6 +209,8 @@ const locationAction = (function () {
 
           if (getLocation() === sdk.game.locations.GameDoesNotExist) {
             Starter.LocationEvents.openJoinGameWindow();
+          } else {
+            return;
           }
         }
       }
@@ -257,7 +259,7 @@ const locationAction = (function () {
           try {
             joinGame(gameToJoin, "");
           } catch (joinErr) {
-            print(joinErr);
+            console.log(joinErr);
           }
 
           me.blockMouse = false;
@@ -345,7 +347,7 @@ function main () {
 
   while (!Object.keys(Starter.profileInfo).length) {
     D2Bot.getProfile();
-    print("Getting Profile");
+    console.log("Getting Profile");
     delay(500);
   }
 
@@ -359,7 +361,7 @@ function main () {
         if (!Starter.inGame) {
           Starter.gameStart = getTickCount();
 
-          print("Updating Status");
+          console.log("Updating Status");
 
           Starter.lastGameStatus = "ingame";
           Starter.inGame = true;
@@ -369,6 +371,18 @@ function main () {
           DataFile.updateStats("runs", Starter.gameCount);
           DataFile.updateStats("ingameTick");
           Starter.setNextGame(me.gamename);
+
+          /** @type {string[]} */
+          let doneGames = [];
+          if (FileTools.exists("logs/doneGames.json")) {
+            doneGames = JSON.parse(FileAction.read("logs/doneGames.json"));
+          }
+
+          doneGames.length >= 20 && doneGames.shift();
+          if (!doneGames.includes(me.gamename)) {
+            doneGames.push(me.gamename);
+          }
+          FileAction.write("logs/doneGames.json", JSON.stringify(doneGames));
         }
 
         D2Bot.updateStatus(

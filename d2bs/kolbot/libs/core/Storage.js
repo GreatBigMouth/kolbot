@@ -479,6 +479,9 @@
 
     // Make sure stash is open
     if (this.location === sdk.storage.Stash && !Town.openStash()) return false;
+    if (this.location === sdk.storage.Inventory && item.location === sdk.storage.Stash && !Town.openStash()) {
+      return false;
+    }
 
     const [orgX, orgY, orgLoc] = [item.x, item.y, item.location];
     const moveItem = (x, y, location) => {

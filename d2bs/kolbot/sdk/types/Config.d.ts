@@ -83,6 +83,7 @@ declare global {
     Greetings: any[];
     DeathMessages: any[];
     Congratulations: any[];
+    AnnounceGameTimeRemaing: boolean;
     ShitList: boolean;
     UnpartyShitlisted: boolean;
     Leader: string;
@@ -176,7 +177,9 @@ declare global {
     DodgeHP: number;
     AttackSkill: any[];
     LowManaSkill: any[];
-    CustomAttack: {};
+    CustomAttack: Record<string | number, [number, number]>;
+    CustomPreAttack: Record<string | number, [number, number]>,
+    AdvancedCustomAttack: { check: (unit: Monster) => boolean, attack: [number, number] }[],
     TeleStomp: boolean;
     NoTele: boolean;
     ClearType: boolean;
@@ -400,6 +403,7 @@ declare global {
         Staff: boolean;
         Summoner: boolean;
         Duriel: boolean;
+        Gidbinn: boolean;
         LamEsen: boolean;
         Eye: boolean;
         Heart: boolean;

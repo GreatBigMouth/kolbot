@@ -7,6 +7,8 @@
 
 // Ensure these are in polyfill.js
 !isIncluded("Polyfill.js") && include("Polyfill.js");
+/** @global */
+const Me = me;
 
 /**
  * @desciption Set me.runwalk to 0 (walk)
@@ -726,8 +728,13 @@ me.checkScrolls = function (id) {
 };
 
 me.checkKeys = function () {
-  if (!Config.OpenChests.Enabled || me.assassin || me.gold < 540
-    || (!me.getItem("key") && !Storage.Inventory.CanFit({ sizex: 1, sizey: 1 }))) {
+  if (!Config.OpenChests.Enabled) return 12;
+  // sins don't need keys
+  if (me.assassin) return 12;
+  // cam't afford key
+  if (me.gold < 540) return 12;
+  // no room for key
+  if (!me.getItem(sdk.items.Key) && !Storage.Inventory.CanFit({ sizex: 1, sizey: 1 })) {
     return 12;
   }
 
@@ -947,6 +954,27 @@ Object.defineProperties(me, {
       return me.getState(sdk.states.SkillDelay);
     }
   },
+  _shitList: {
+    value: new Set(),
+    writable: true,
+    enumerable: true,
+    configurable: true
+  },
+  shitList: {
+    get: function () {
+      return this._shitList;
+    },
+    /** @param {Set<string>} value */
+    set: function (value) {
+      if (value instanceof Set) {
+        this._shitList = value;
+      } else {
+        throw new TypeError("shitList must be a Set");
+      }
+    },
+    enumerable: true,
+    configurable: true
+  }
 });
 
 /**
@@ -1097,11 +1125,21 @@ Object.defineProperties(me, {
 });
 
 /**
- * Quests
+ * Quests + AreaData
  */
 (function () {
   const QuestData = require("./GameData/QuestData");
 
+  /**
+   * @param {number} act 
+   * @returns {boolean}
+   */
+  me.accessToAct = function (act) {
+    if (act === 1) return true;
+    return me.highestAct >= act;
+  };
+
+  // const AMOUNT_OF_WAYPOINTS = 39;
   const AMOUNT_OF_WAYPOINTS = [
     sdk.waypoints.Act1,
     sdk.waypoints.Act2,
@@ -1126,15 +1164,6 @@ Object.defineProperties(me, {
       });
     }
   });
-  
-  /**
-   * @param {number} act 
-   * @returns {boolean}
-   */
-  me.accessToAct = function (act) {
-    if (act === 1) return true;
-    return me.highestAct >= act;
-  };
 
   /**
    * Easier way to check if you have a waypoint
@@ -1142,7 +1171,7 @@ Object.defineProperties(me, {
    * @returns {boolean}
    */
   me.haveWaypoint = function (area) {
-    let areaIndex = Pather.wpAreas.indexOf(area);
+    const areaIndex = Pather.wpAreas.indexOf(area);
     if (areaIndex === -1) return false;
     return getWaypoint(areaIndex);
   };
@@ -1177,7 +1206,8 @@ Object.defineProperties(me, {
           if ([
             sdk.quest.id.RescueonMountArreat,
             sdk.quest.id.SiegeOnHarrogath,
-            sdk.quest.id.ToolsoftheTrade
+            sdk.quest.id.ToolsoftheTrade,
+            sdk.quest.id.PrisonofIce,
           ].includes(i) && QuestData.get(i).complete(true)) {
             return i;
           }
