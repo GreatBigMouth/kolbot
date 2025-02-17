@@ -41,3 +41,5 @@ d2bs/kolbot/libs/systems/rushservice
 d2bs/kolbot/libs/systems/rushservice/**
 d2bs/kolbot/libs/systems/rushservice*
 d2bs/kolbot/libs/systems/rushservice*/**
+
+d2bs/kolbot/libs/core/BlizzardError
