@@ -105,23 +105,20 @@ function main () {
 
       break;
     case sdk.keys.NumpadStar: // precast
-      {
-        let preSkill = me.getSkill(sdk.skills.get.RightId);
+      let preSkill = me.getSkill(sdk.skills.get.RightId);
 
-        Precast.doPrecast(true);
-        Skill.setSkill(preSkill, sdk.skills.hand.Right);
-      }
+      Precast.doPrecast(true);
+      Skill.setSkill(preSkill, sdk.skills.hand.Right);
       
       break;
     
-    case sdk.keys.Nine:
-      {
-        if (me.inTown) {
-          Town.move("portalspot");
-        }
+    case sdk.keys.Numpad9:
+      if (me.inTown) {
+        Town.move("portalspot");
       }
       break;
     }
+      
   };
 
   const gameEvent = function (mode, param1, param2, name1, name2) {
