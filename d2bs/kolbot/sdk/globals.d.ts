@@ -116,6 +116,7 @@ declare global {
     values(source: object): any[];
     entries(source: object): any[][];
     is(o1: any, o2: any): boolean;
+    hasOwn(obj: object, prop: string): boolean;
   }
 
   interface Object {
@@ -563,6 +564,17 @@ declare global {
     useUnit(targetArea?: number): boolean;
   }
 
+  type GetOwnedSettings = {
+    itemType?: number,
+    classid?: number,
+    mode?: number,
+    quality?: number,
+    sockets?: number,
+    location?: number,
+    ethereal?: boolean,
+    cb?: (item: ItemUnit) => boolean,
+  };
+
   interface MeType extends Unit {
     public type: PlayerType;
     readonly account: string;
@@ -724,6 +736,7 @@ declare global {
     getItemsForRepair(repairPercent: number, chargedItems: boolean): ItemUnit[];
     castingFrames(skillId: number, fcr?: number, charClass?: number): number;
     castingDuration(skillId: number, fcr?: number, charClass?: number): number;
+    getOwned(itemInfo: ItemUnit | GetOwnedSettings): ItemUnit[];
 
     // #checkers?
     needBeltPots(): boolean;

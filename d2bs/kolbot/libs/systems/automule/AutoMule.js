@@ -492,25 +492,30 @@ const AutoMule = {
 
   /**
    * @param {ItemUnit} item 
-   * @param {string[] | number[]} list 
+   * @param {(number | string | ((item: ItemUnit) => boolean))[]} list 
    * @returns {boolean}
    */
   matchItem: function (item, list) {
-    let parsedPickit = [], classIDs = [];
+    const parsedPickit = [];
+    const classIDs = [];
 
-    for (let i = 0; i < list.length; i += 1) {
+    for (let check of list) {
       let info = {
         file: "Character Config",
-        line: list[i]
+        line: check
       };
 
       // classids
-      if (typeof list[i] === "number") {
-        classIDs.push(list[i]);
-      } else if (typeof list[i] === "string") {
+      if (typeof check === "number") {
+        classIDs.push(check);
+      } else if (typeof check === "string") {
         // pickit entries
-        let parsedLine = NTIP.ParseLineInt(list[i], info);
+        let parsedLine = NTIP.ParseLineInt(check, info);
         parsedLine && parsedPickit.push(parsedLine);
+      } else if (typeof check === "function") {
+        if (check(item)) {
+          return true;
+        }
       }
     }
 

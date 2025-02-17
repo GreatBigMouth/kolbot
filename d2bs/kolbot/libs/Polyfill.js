@@ -759,6 +759,12 @@ if (!Object.entries) {
   };
 }
 
+if (!Object.hasOwn) {
+  Object.hasOwn = function (obj, prop) {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
+  };
+}
+
 // eslint-disable-next-line no-var
 if (typeof global === "undefined") var global = [].filter.constructor("return this")();
 // eslint-disable-next-line dot-notation

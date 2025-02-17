@@ -115,7 +115,7 @@ declare global {
     ScanShrines: any[];
     Debug: boolean;
     AutoMule: {
-      Trigger: any[];
+      Trigger: (number | string | ((item: ItemUnit) => boolean))[];
       Force: any[];
       Exclude: any[];
     };

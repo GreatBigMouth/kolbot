@@ -854,6 +854,43 @@ me.switchToPrimary = function () {
 };
 
 /**
+ * Get a list of items that match the given criteria.
+ * @param {ItemUnit | {
+ * itemType?: number,
+ * classid?: number,
+ * mode?: number,
+ * quality?: number,
+ * sockets?: number,
+ * location?: number,
+ * ethereal?: boolean,
+ * cb?: (item: ItemUnit) => boolean
+ * }} itemInfo 
+ * @param {boolean} skipSame
+ * @returns {ItemUnit[]}
+ */
+me.getOwned = function (itemInfo = {}, skipSame = false) {
+  let itemList = [];
+  let item = me.getItem();
+
+  if (item) {
+    do {
+      if (itemInfo.itemType !== undefined && itemInfo.itemType !== item.itemType) continue;
+      if (itemInfo.classid !== undefined && itemInfo.classid !== item.classid) continue;
+      if (itemInfo.mode !== undefined && itemInfo.mode !== item.mode) continue;
+      if (itemInfo.quality !== undefined && itemInfo.quality !== item.quality) continue;
+      if (itemInfo.sockets !== undefined && itemInfo.sockets !== item.sockets) continue;
+      if (itemInfo.location !== undefined && itemInfo.location !== item.location) continue;
+      if (itemInfo.ethereal !== undefined && itemInfo.ethereal !== item.ethereal) continue;
+      if (typeof itemInfo.cb === "function" && !itemInfo.cb(item)) continue;
+      if (skipSame && itemInfo.gid !== undefined && itemInfo.gid !== item.gid) continue;
+      itemList.push(copyUnit(item));
+    } while (item.getNext());
+  }
+
+  return itemList;
+};
+
+/**
  * Misc functions, stats/modes/states/ etc
  */
 Object.defineProperties(me, {

@@ -932,11 +932,21 @@
    * List can either be set as string in pickit format and/or as number referring to item classids. Each entries are separated by commas.
    * Example :
    *  Config.AutoMule.Trigger = [639, 640, "[type] == ring && [quality] == unique # [maxmana] == 20"];
-   *  	This will initiate muling when your character finds Ber, Jah, or SOJ.
+   *  	- This will initiate muling when your character finds Ber, Jah, or SOJ.
+   *  ADVANCED USAGE OF TRIGGER:
+   *  Config.AutoMule.Trigger = [
+   *    function (item) {
+   *      return (
+   *       item.classid === sdk.items.quest.KeyofTerror
+   *       && me.getOwned({ classid: sdk.items.quest.KeyofTerror }).length === 3
+   *      );
+   *    },
+   *  ];
+   *   - This will initiate muling if the item being checked is the Key of Terror and we own 3 of them
    *  Config.AutoMule.Force = [561, 566, 571, 576, 581, 586, 601];
-   *  	This will mule perfect gems/skull during muling.
+   *   - This will mule perfect gems/skull during muling.
    *  Config.AutoMule.Exclude = ["[name] >= talrune && [name] <= solrune", "[name] >= 654 && [name] <= 657"];
-   *  	This will exclude muling of runes from tal through sol, and any essences.
+   *   - This will exclude muling of runes from tal through sol, and any essences.
    */
   Config.AutoMule.Trigger = [];
   Config.AutoMule.Force = [];
