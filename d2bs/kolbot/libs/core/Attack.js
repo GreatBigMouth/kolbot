@@ -358,7 +358,10 @@ const Attack = {
         }
 
         // Random move
-        if (attackCount > 0 && (attackCount % 10 === 0 || checkCollision(me, target, sdk.collision.WallOrRanged)) && Skill.getRange(Config.AttackSkill[1]) >= 4) {
+        if (gid !== sdk.monsters.Diablo &&   // Looks like Diablo is always behind a wall (lava pits)
+          attackCount > 0 &&
+          (attackCount % 10 === 0 || checkCollision(me, target, sdk.collision.WallOrRanged)) &&
+          Skill.getRange(Config.AttackSkill[1]) >= 4) {
           Pather.randMove(-1, 1, -1, 1, 5);
         }
 
@@ -1225,7 +1228,7 @@ const Attack = {
    * @param {boolean} [special=false] 
    * @returns {void}
    */
-  securePosition: function (x, y, range = 15, timer = 3000, skipBlocked = true, special = false) {
+  securePosition: function (x, y, range = 15, timer = 3000, skipBlocked = true, special = false, skipClassIds = []) {
     let tick;
 
     (typeof x !== "number" || typeof y !== "number") && ({ x, y } = me);
@@ -1241,7 +1244,8 @@ const Attack = {
         do {
           if (getDistance(monster, x, y) <= range && monster.attackable && this.canAttack(monster)
               && (!skipBlocked || !checkCollision(me, monster, skipBlocked))
-              && (Pather.canTeleport() || !checkCollision(me, monster, sdk.collision.BlockWall))) {
+              && (Pather.canTeleport() || !checkCollision(me, monster, sdk.collision.BlockWall))
+              && (!(skipClassIds.includes(monster.classid)))) {
             monList.push(copyUnit(monster));
           }
         } while (monster.getNext());
