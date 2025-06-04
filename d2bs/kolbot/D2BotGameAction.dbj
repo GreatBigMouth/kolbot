@@ -25,7 +25,7 @@ include("systems/gameaction/GameAction.js");
 
 const Overrides = require("./modules/Override");
 
-if (!FileTools.exists("data/" + me.profile + ".json") && DataFile.create()) {
+if (DataFile.init()) {
   Starter.firstRun = true;
 }
 
@@ -156,7 +156,9 @@ const locationAction = (function () {
 
       // last char in list
       if (!charList || !charList.length) {
-        GameAction.update("done", "GameAction has completed task");
+        const loginInfo = GameAction.getLogin();
+        const accountInfo = loginInfo.account ? "for account " + loginInfo.account : "";
+        GameAction.update("done", "GameAction has completed task " + accountInfo);
         D2Bot.stop(me.profile, true);
         delay(5000);
         return;
@@ -180,7 +182,9 @@ const locationAction = (function () {
 
       // last char in list
       if (!charList || !charList.length) {
-        GameAction.update("done", "GameAction has completed task");
+        const loginInfo = GameAction.getLogin();
+        const accountInfo = loginInfo.account ? "for account " + loginInfo.account : "";
+        GameAction.update("done", "GameAction has completed task " + accountInfo);
         D2Bot.stop(me.profile, true);
         delay(5000);
         return;
@@ -324,6 +328,12 @@ function main () {
   }
 
   GameAction.init(tag);
+
+  if (GameAction.task.action === "doConvertNL") {
+    GameAction.convertLadderFiles();
+
+    return;
+  }
 
   if (Starter.gameInfo.error) {
     if (!!DataFile.getStats().debugInfo) {

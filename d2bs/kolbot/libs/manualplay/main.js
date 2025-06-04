@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 /**
 *  @filename    main.js
 *  @author      theBGuy
@@ -24,85 +23,9 @@ const LocalChat = require("../modules/LocalChat");
 include("manualplay/MapMode.js");
 MapMode.include();
 
-const Hooks = {
-  dashBoard: { x: 113, y: 490 },
-  portalBoard: { x: 12, y: 432 },
-  qolBoard: { x: 545, y: 490 },
-  resfix: { x: (me.screensize ? 0 : -160), y: (me.screensize ? 0 : -120) },
-  saidMessage: false,
-  userAddon: false,
-  enabled: true,
-  flushed: false,
-
-  init: function () {
-    let files = dopen("libs/manualplay/hooks/").getFiles();
-    
-    Array.isArray(files) && files
-      .filter(file => file.endsWith(".js"))
-      .forEach(function (x) {
-        if (!isIncluded("manualplay/hooks/" + x)) {
-          if (!include("manualplay/hooks/" + x)) {
-            throw new Error("Failed to include " + "manualplay/hooks/" + x);
-          }
-        }
-      });
-  },
-
-  update: function () {
-    while (!me.gameReady) {
-      delay(100);
-    }
-
-    if (!this.enabled) {
-      Hooks.enabled = getUIFlag(sdk.uiflags.AutoMap);
-
-      return;
-    }
-
-    ActionHooks.check();
-    VectorHooks.check();
-    MonsterHooks.check();
-    ShrineHooks.check();
-    ItemHooks.check();
-    TextHooks.check();
-    Hooks.flushed = false;
-  },
-
-  flush: function (flag) {
-    if (Hooks.flushed === flag) return true;
-
-    if (flag === true) {
-      Hooks.enabled = false;
-
-      MonsterHooks.flush();
-      ShrineHooks.flush();
-      TextHooks.flush();
-      VectorHooks.flush();
-      ActionHooks.flush();
-      ItemHooks.flush();
-    } else {
-      if (sdk.uiflags.Waypoint === flag) {
-        VectorHooks.flush();
-        TextHooks.displaySettings = false;
-        TextHooks.check();
-      } else if (sdk.uiflags.Inventory === flag && [sdk.uiflags.Stash, sdk.uiflags.Cube, sdk.uiflags.TradePrompt].every((el) => !getUIFlag(el))) {
-        ItemHooks.flush();
-        TextHooks.check();
-      } else {
-        MonsterHooks.flush();
-        ShrineHooks.flush();
-        TextHooks.flush();
-        VectorHooks.flush();
-        ActionHooks.flush();
-        ItemHooks.flush();
-      }
-    }
-
-    Hooks.flushed = flag;
-
-    return true;
-  }
-};
+/**
+ * @typedef {import('./hooks/TextHooks')}
+ */
 
 function main () {
   D2Bot.init(); // Get D2Bot# handle
@@ -149,6 +72,7 @@ function main () {
 
   const Worker = require("../modules/Worker");
   const UnitInfo = new (require("../modules/UnitInfo"));
+  const HelpMenu = require("./modules/HelpMenu");
 
   Worker.runInBackground.unitInfo = function () {
     // always, maybe a timeout would be good though
@@ -213,16 +137,17 @@ function main () {
 
   /** @param {number} area */
   const revealArea = function (area) {
-    if (!revealedAreas.has(area)) {
-      delay(500);
-      
-      if (!getRoom()) {
-        return;
-      }
-      
-      revealLevel(true);
-      revealedAreas.add(area);
+    if (revealedAreas.has(area)) {
+      return;
     }
+    delay(500);
+    
+    if (!getRoom()) {
+      return;
+    }
+    
+    revealLevel(true);
+    revealedAreas.add(area);
   };
 
   /**
@@ -236,7 +161,7 @@ function main () {
     msg = msg.toLowerCase();
     let cmd = msg.split(" ")[0].split(".")[1];
     let msgList = msg.split(" ");
-    let qolObj = { type: "qol", dest: false, action: false };
+    const qolObj = { type: "qol", dest: false, action: false, params: [] };
 
     switch (cmd) {
     case "useraddon":
@@ -262,6 +187,10 @@ function main () {
     case "filltps":
       qolObj.action = cmd;
 
+      if (msgList.length > 1) {
+        qolObj.params.push(msgList.at(1));
+      }
+
       break;
     case "drop":
       if (msgList.length < 2) {
@@ -281,6 +210,10 @@ function main () {
 
       qolObj.type = "stack";
       qolObj.action = msgList[1];
+
+      if (msgList.length > 2) {
+        qolObj.params.push(msgList.at(2));
+      }
 
       break;
     case "help":
@@ -341,36 +274,42 @@ function main () {
   addEventListener("keyup", ActionHooks.event);
   // addEventListener("itemaction", Pickit.itemEvent);
 
-  while (true) {
-    while (!me.area || !me.gameReady) {
-      delay(100);
-    }
-
-    let hideFlagFound = false;
-
-    revealArea(me.area);
-    
-    for (let i = 0; i < hideFlags.length; i++) {
-      if (getUIFlag(hideFlags[i])) {
-        Hooks.flush(hideFlags[i]);
-        ActionHooks.checkAction();
-        hideFlagFound = true;
+  try {
+    while (true) {
+      while (!me.area || !me.gameReady) {
         delay(100);
+      }
 
-        break;
+      let hideFlagFound = false;
+
+      revealArea(me.area);
+      
+      for (let i = 0; i < hideFlags.length; i++) {
+        if (getUIFlag(hideFlags[i])) {
+          Hooks.flush(hideFlags[i]);
+          ActionHooks.checkAction();
+          hideFlagFound = true;
+          delay(100);
+
+          break;
+        }
+      }
+
+      if (hideFlagFound) {
+        continue;
+      }
+
+      getUIFlag(sdk.uiflags.AutoMap)
+        ? Hooks.update()
+        : Hooks.flush(true) && (!HelpMenu.cleared && HelpMenu.hideMenu());
+
+      delay(20);
+
+      while (getUIFlag(sdk.uiflags.ShowItem)) {
+        ItemHooks.flush();
       }
     }
-
-    if (hideFlagFound) continue;
-
-    getUIFlag(sdk.uiflags.AutoMap)
-      ? Hooks.update()
-      : Hooks.flush(true) && (!HelpMenu.cleared && HelpMenu.hideMenu());
-
-    delay(20);
-
-    while (getUIFlag(sdk.uiflags.ShowItem)) {
-      ItemHooks.flush();
-    }
+  } catch (e) {
+    Misc.errorReport(e, "main.js", "main()");
   }
 }

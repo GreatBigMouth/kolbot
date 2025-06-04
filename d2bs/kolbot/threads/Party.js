@@ -99,6 +99,11 @@ function main () {
         quitting = true;
 
         break;
+      case "unparty":
+        clickParty(getParty(), sdk.party.controls.Leave);
+        quitting = true;
+
+        break;
       default:
         let obj;
 

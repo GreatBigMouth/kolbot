@@ -1,5 +1,7 @@
 export {};
 declare global {
+  type DamageType = "physical" | "fire" | "lightning" | "magic" | "cold" | "poison" | "holybolt";
+  
   interface AttackResult {
     FAILED: 0,
     SUCCESS: 1,

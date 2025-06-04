@@ -1416,6 +1416,7 @@ declare global {
     export namespace player {
       export namespace flag {
         const Ignore: 2;
+        const Squelch: 4;
         const Hostile: 8;
       }
       export namespace slot {
@@ -1876,6 +1877,9 @@ declare global {
         const DeathMauler: 57;
         const PutridDefiler: 58;
       }
+      const PoisonCreeper: 425;
+      const CarrionVine: 426;
+      const SolarCreeper: 427;
       const DiablosBoneCage: 340;
       const DiablosBoneCage2: 342;
       const Dummy1: 149;

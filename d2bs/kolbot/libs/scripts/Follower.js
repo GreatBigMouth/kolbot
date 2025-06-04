@@ -566,7 +566,18 @@ const Follower = new Runnable(
           return Pather.usePortal(null, null, wsp);
         }
       }
-
+      // Uber portals 
+      const uberPortals = [
+        sdk.areas.MatronsDen, sdk.areas.ForgottenSands, sdk.areas.FurnaceofPain, sdk.areas.UberTristram
+      ];
+      if (me.inArea(sdk.areas.Harrogath) && uberPortals.includes(area)) {
+        Town.moveToSpot("stash");
+        let uberPortal = Pather.getPortal(area);
+        if (uberPortal) {
+          announce("Special transit to " + getAreaName(area));
+          return Pather.usePortal(null, null, uberPortal);
+        }
+      }
       return false;
     };
 

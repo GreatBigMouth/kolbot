@@ -15,6 +15,7 @@ declare global {
     function getNearbyPlayerCount(): number;
     function getPlayerCount(): number;
     function getPartyCount(): number;
+    function getPartyMembers(): Party[];
     function checkPartyLevel(levelCheck: number, exclude: string | string[]): boolean;
     function getPlayerArea(player: Party | string): number | false;
 

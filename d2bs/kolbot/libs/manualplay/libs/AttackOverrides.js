@@ -11,14 +11,14 @@ Attack.init = function (notify = false) {
   if (Config.Wereform) {
     include("core/Attacks/wereform.js");
   } else if (Config.CustomClassAttack && FileTools.exists("libs/core/Attacks/" + Config.CustomClassAttack + ".js")) {
-    print("Loading custom attack file");
+    console.log("Loading custom attack file");
     include("core/Attacks/" + Config.CustomClassAttack + ".js");
   } else {
     include("core/Attacks/" + sdk.player.class.nameOf(me.classid) + ".js");
   }
 
   if (Config.AttackSkill[1] < 0 || Config.AttackSkill[3] < 0) {
-    notify && print("ÿc1Bad attack config. Don't expect your bot to attack.");
+    notify && console.log("ÿc1Bad attack config. Don't expect your bot to attack.");
   }
 
   this.getPrimarySlot();

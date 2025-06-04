@@ -784,6 +784,78 @@ if (!global.hasOwnProperty("require")) {
   });
 }
 
+if (!global.hasOwnProperty("env")) {
+  /**
+   * @typedef {Object} EnvStore
+   * @property {function(Record<string, any>): EnvStore} update - Updates environment settings
+   * @property {Object.<string, any>} [customSettings] - Any additional custom settings
+   */
+  
+  /** @type {EnvStore} */
+  const envStore = {};
+  let initialized = false;
+  
+  Object.defineProperty(global, "env", {
+    value: new Proxy({}, {
+      get: function (target, prop) {
+        if (!initialized) {
+          /** @param {Record<string, any>} settings */
+          envStore.update = function(settings) {
+            Object.assign(this, settings);
+            return this;
+          };
+          
+          if (FileTools.exists(".env.json")) {
+            try {
+              let loadedEnv = FileAction.parse(".env.json");
+              envStore.update(loadedEnv);
+            } catch (err) {
+              console.error(err);
+            }
+          }
+          
+          initialized = true;
+        }
+        
+        if (prop in envStore) {
+          return typeof envStore[prop] === "function"
+            ? envStore[prop].bind(envStore)
+            : envStore[prop];
+        }
+        
+        return undefined;
+      },
+      
+      set: function (target, prop, value) {
+        if (!initialized) {
+          this.get(target, "version");
+        }
+        
+        envStore[prop] = value;
+        return true;
+      },
+      
+      has: function (target, prop) {
+        if (!initialized) {
+          this.get(target, "version");
+        }
+        
+        return prop in envStore;
+      },
+      
+      ownKeys: function (target) {
+        if (!initialized) {
+          this.get(target, "version");
+        }
+        
+        return Object.keys(envStore);
+      }
+    }),
+    writable: false,
+    configurable: false
+  });
+}
+
 /**
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Math Polyfills ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

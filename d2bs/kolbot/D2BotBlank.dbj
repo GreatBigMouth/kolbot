@@ -9,8 +9,8 @@
 function main() {
   include("critical.js"); // required
 
-  if (!FileTools.exists("data/" + me.profile + ".json")) {
-    DataFile.create();
+  if (DataFile.init()) {
+    Starter.firstRun = true;
   }
   
   addEventListener("copydata", Starter.receiveCopyData);

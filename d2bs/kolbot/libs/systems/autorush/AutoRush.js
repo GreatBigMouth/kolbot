@@ -21,6 +21,10 @@
     sayMsg && say(msg);
   };
 
+  const timedOut = function (nick = "") {
+    return nick ? "timed out waiting for " + nick : "timed out";
+  };
+
   /**
    * @param {number} area 
    * @param {string} [nick] 
@@ -78,7 +82,8 @@
     return true;
   };
 
-  const cain = function () {
+  /** @param {string} [nick] */
+  const cain = function (nick) {
     log("starting cain");
     Town.doChores();
     Pather.useWaypoint(sdk.areas.DarkWood, true) && Precast.doPrecast(true);
@@ -118,8 +123,17 @@
     tick = getTickCount();
 
     while (getTickCount() - tick < Time.minutes(2)) {
-      if (Pather.getPortal(sdk.areas.Tristram) && Pather.usePortal(sdk.areas.Tristram)) {
-        break;
+      if (Pather.getPortal(sdk.areas.Tristram)) {
+        let playersleftStony = Misc.poll(function () {
+          if (playerIn(me.area, nick)) {
+            return true;
+          }
+          return false;
+        }, AutoRush.playerWaitTimeout, 1000);
+        
+        if (playersleftStony && Pather.usePortal(sdk.areas.Tristram)) {
+          break;
+        }
       }
       Attack.securePosition(StoneAlpha.x, StoneAlpha.y, 35, 1000);
     }
@@ -144,6 +158,19 @@
             break;
           }
           Attack.securePosition(me.x, me.y, 15, 1000);
+        }
+
+        const playersLeftTrist = Misc.poll(function () {
+          if (playerIn(me.area, nick)) {
+            return true;
+          }
+          Pather.move(gibbet);
+          return false;
+        }, AutoRush.playerWaitTimeout, 1000);
+        
+        if (!playersLeftTrist) {
+          log(timedOut(nick));
+          return false;
         }
       }
     }
@@ -174,7 +201,7 @@
       Pather.move(safeNode);
       return false;
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -188,7 +215,6 @@
       }
 
       Pather.usePortal(null, me.name);
-      Town.goToTown(2);
       for (let i = 0; i < 3; i++) {
         log("a2");
         
@@ -200,6 +226,7 @@
           break;
         }
       }
+      Town.goToTown(2);
     }
 
     return true;
@@ -226,7 +253,7 @@
       Pather.moveTo(22582, 9612);
       return false;
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -266,7 +293,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
     if (AutoRush.rushMode !== RushModes.chanter) {
@@ -282,6 +309,11 @@
   const radament = function (nick) {
     log("starting radament");
 
+    /**
+     * @param {Monster} unit 
+     * @param {number} range 
+     * @returns {boolean}
+     */
     const	moveIntoPos = function (unit, range) {
       let coords = [];
       let angle = Math.round(Math.atan2(me.y - unit.y, me.x - unit.x) * 180 / Math.PI);
@@ -335,7 +367,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -354,7 +386,7 @@
     if (!Misc.poll(function () {
       return !playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -363,9 +395,13 @@
     log(AutoRush.allIn);
 
     if (!Misc.poll(function () {
+      // often happens with chanter mode where users don't listen to the commands
+      if (!Game.getItem(sdk.quest.item.BookofSkill)) {
+        return true;
+      }
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -401,7 +437,7 @@
       if (!Misc.poll(function () {
         return playerIn(me.area, nick);
       }, AutoRush.playerWaitTimeout, 1000)) {
-        log("timed out");
+        log(timedOut(nick));
         return false;
       }
 
@@ -436,7 +472,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -468,7 +504,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -533,7 +569,7 @@
       Attack.securePosition(me.x, me.y, 25, 500);
       return false;
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -577,8 +613,6 @@
     if (me.inTown) {
       Town.doChores();
       Pather.useWaypoint(sdk.areas.CanyonofMagic, true);
-    } else {
-      giveWP();
     }
 
     Precast.doPrecast(true);
@@ -595,7 +629,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -606,7 +640,7 @@
     if (!Misc.poll(function () {
       return !playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -621,12 +655,7 @@
     Attack.kill(sdk.monsters.Duriel);
     Pickit.pickItems();
 
-    Pather.teleport = false;
-
-    Pather.moveTo(22579, 15706);
-
-    Pather.teleport = true;
-
+    Pather.moveToEx(22579, 15706, { allowTeleport: false });
     Pather.moveTo(22577, 15649, 10);
     Pather.moveTo(22577, 15609, 10);
     Pather.makePortal();
@@ -635,7 +664,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -649,7 +678,7 @@
 
     if (AutoRush.rushMode !== RushModes.chanter) {
       for (let i = 0; i < 3; i++) {
-        log("a3");
+        log("changeact 3");
         
         let playersMoved = Misc.poll(function () {
           return !playersInAct(3);
@@ -662,6 +691,7 @@
       Town.goToTown(3);
       Town.doChores();
     } else if (AutoRush.rushMode === RushModes.chanter) {
+      Pather.makePortal();
       Pather.moveToExit([sdk.areas.HaremLvl1, sdk.areas.LutGholein], true);
       Pather.useWaypoint(sdk.areas.RogueEncampment);
     }
@@ -681,19 +711,35 @@
     if (!altar) {
       throw new Error("gidbinn failed - couldn't find altar");
     }
-    Misc.poll(function () {
-      altar.interact();
-      return altar.mode === sdk.objects.mode.Active;
-    }, Time.minutes(1), Time.seconds(1));
+
     Attack.securePosition(me.x, me.y, 30, 3000, true);
     Pather.makePortal();
     log(AutoRush.playersIn);
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
+
+    Misc.poll(function () {
+      Attack.clear(15);
+      altar.distance > 5 && Pather.moveToUnit(altar);
+      return altar.mode === sdk.objects.mode.Active;
+    }, Time.minutes(1), Time.seconds(1));
+    
+    Misc.poll(function () {
+      const gidbinn = Game.getItem(sdk.quest.item.TheGidbinn);
+      if (gidbinn) {
+        Attack.securePosition(gidbinn.x, gidbinn.y, 30, 3000, true);
+        Pather.moveToUnit(gidbinn);
+        return true;
+      }
+      Attack.clear(25);
+      altar.distance > 5 && Pather.moveToUnit(altar);
+      return false;
+    }, Time.minutes(1), Time.seconds(1));
+    
     if (AutoRush.rushMode !== RushModes.chanter) {
       while (playerIn(me.area, nick)) {
         delay(100);
@@ -724,7 +770,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -732,7 +778,7 @@
       if (!Misc.poll(function () {
         return !playerIn(me.area, nick);
       }, AutoRush.playerWaitTimeout, 1000)) {
-        log("timed out");
+        log(timedOut(nick));
         return false;
       }
     }
@@ -765,7 +811,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -798,7 +844,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -831,7 +877,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -856,25 +902,24 @@
     const portalSpot = new PathNode(wpCoords.x + 23, wpCoords.y - 102);
 
     [
-      new PathNode(4742, 2179),
-      new PathNode(4738, 2133),
-      new PathNode(4768, 2150),
-      new PathNode(4762, 2106),
-    ].forEach((node) => {
-      Pather.move(node);
-      Attack.securePosition(node.x, node.y, 25, 2500);
+      new PathNode(wpCoords.x + 4, wpCoords.y - 47),
+      new PathNode(wpCoords.x - 4, wpCoords.y - 92),
+      new PathNode(wpCoords.x + 25, wpCoords.y - 70),
+      new PathNode(wpCoords.x + 20, wpCoords.y - 123),
+    ].forEach(function (node) {
+      Pather.move(node) && Attack.securePosition(node.x, node.y, 25, 2500);
     });
 
     Pather.move(portalSpot);
-    console.debug("Mob Count? " + me.mobCount({ range: 40 }));
     Attack.securePosition(portalSpot.x, portalSpot.y, 40, 4000);
     Pather.makePortal();
     log(AutoRush.playersIn);
 
     if (!Misc.poll(function () {
+      Attack.securePosition(portalSpot.x, portalSpot.y, 25, 1000);
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -906,7 +951,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -964,6 +1009,11 @@
   const izual = function (nick) {
     log("starting izual");
 
+    /**
+     * @param {Monster} unit 
+     * @param {number} range 
+     * @returns {boolean}
+     */
     const	moveIntoPos = function (unit, range) {
       let coords = [];
       let angle = Math.round(Math.atan2(me.y - unit.y, me.x - unit.x) * 180 / Math.PI);
@@ -1022,7 +1072,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -1055,7 +1105,7 @@
       if (!Misc.poll(function () {
         return playerIn(me.area, nick);
       }, AutoRush.playerWaitTimeout, 1000)) {
-        log("timed out");
+        log(timedOut(nick));
         return false;
       }
 
@@ -1119,7 +1169,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -1168,8 +1218,13 @@
     }
 
     if (AutoRush.rushMode === RushModes.chanter) {
+      let malahspotion = me.getItem(sdk.quest.item.MalahsPotion);
+      if (malahspotion) {
+        malahspotion.drop();
+      }
       log("Talk to Malah to get potion then come in");
     }
+
     Pather.makePortal();
     if (AutoRush.rushMode !== RushModes.chanter) {
       log(AutoRush.playersIn);
@@ -1178,7 +1233,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -1241,7 +1296,7 @@
     if (!Misc.poll(function () {
       return playerIn(me.area, nick);
     }, AutoRush.playerWaitTimeout, 1000)) {
-      log("timed out");
+      log(timedOut(nick));
       return false;
     }
 
@@ -1271,6 +1326,7 @@
         delay(500);
         quit();
       }
+      scriptBroadcast("rush-removewp " + sdk.areas.WorldstoneLvl2);
 
       return false;
     }
@@ -1281,7 +1337,14 @@
         delay(500);
         quit();
       }
+      scriptBroadcast("rush-removewp " + sdk.areas.WorldstoneLvl2);
 
+      return false;
+    }
+
+    if (AutoRush.rushMode === RushModes.chanter && !bumperCheck(nick)) {
+      log(nick + " you are not eligible for baal. You need to be at least level " + bumperLvlReq());
+        
       return false;
     }
 
@@ -1352,6 +1415,7 @@
 
   module.exports = {
     log: log,
+    timedOut: timedOut,
     playerIn: playerIn,
     playersInAct: playersInAct,
     bumperCheck: bumperCheck,

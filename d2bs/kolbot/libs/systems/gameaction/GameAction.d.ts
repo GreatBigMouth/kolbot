@@ -18,6 +18,7 @@ declare global {
     function load(hash: string): string;
     function save(hash: string, data: string): void;
     function dropItems(dropList: string[]): void;
+    function convertLadderFiles(): void;
   }
 }
 export {};

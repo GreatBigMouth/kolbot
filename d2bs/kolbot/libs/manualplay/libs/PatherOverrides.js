@@ -85,7 +85,7 @@ Pather.changeAct = function (act) {
   } else if (useWp) {
     Town.goToTown(act);
   } else {
-    print("Failed to move to " + npc);
+    console.log("Failed to move to " + npc);
     me.overhead("Failed to move to " + npc);
   }
 

@@ -40,20 +40,51 @@
   const AREA_INDEX_COUNT = 137;
   
   /**
-   * @typedef AreaDataObj
-   * @type {object}
-   * @property {number} Super = number of super uniques present in this area
-   * @property {number} Index = areaID
-   * @property {number} Act = act this area is in [0-4]
-   * @property {number} MonsterDensity = value used to determine monster population density
-   * @property {number} ChampionPacks.Min = minimum number of champion or unique packs that spawn here
-   * @property {number} ChampionPacks.Max = maximum number of champion or unique packs that spawn here
-   * @property {number} Waypoint = number in waypoint menu that leads to this area
-   * @property {number} Level = level of area (use GameData.areaLevel)
-   * @property {number} Size.x = width of area
-   * @property {number} Size.y = depth of area
-   * @property {number} Monsters = array of monsters that can spawn in this area
-   * @property {number} LocaleString = locale string index for getLocaleString
+   * @typedef {Object} AreaDataObj
+   * @property {number} Super - Number of super uniques present in this area
+   * @property {number} Index - Area ID
+   * @property {number} Act - Act this area is in [0-4]
+   * @property {number} MonsterDensity - Value used to determine monster population density
+   * @property {Object} ChampionPacks - Champion packs information
+   * @property {number} ChampionPacks.Min - Minimum number of champion or unique packs that spawn here
+   * @property {number} ChampionPacks.Max - Maximum number of champion or unique packs that spawn here
+   * @property {number} Waypoint - Number in waypoint menu that leads to this area
+   * @property {number} Level - Level of area (use GameData.areaLevel)
+   * @property {Object} Size - Size of the area
+   * @property {number} Size.x - Width of area
+   * @property {number} Size.y - Depth of area
+   * @property {number[]} Monsters - Array of monsters that can spawn in this area
+   * @property {string} LocaleString - Locale string index for getLocaleString
+   * @property {string} InternalName - Internal name
+   * @property {function(number): boolean} hasMonsterType - Check if this area has a monster of a certain type
+   * @property {function(function(any, number): void): void} forEachMonster - Iterate through each monster in this area and apply a callback function
+   * @property {function(function(any, number, any): void): void} forEachMonsterAndMinion - Iterate through each monster and minion in this area and apply a callback function
+   * @property {function(): AreaDataObj} townArea - Check if area is a town area
+   * @property {function(): boolean} haveWaypoint - Check if the area has a waypoint
+   * @property {function(): (AreaDataObj|undefined)} nearestWaypointArea - Find nearest waypoint in area
+   * @property {function(): (PresetUnit|undefined)} waypointPreset - Get the waypoint preset unit
+   */
+
+  /**
+   * @typedef {Object} Dungeons
+   * @property {number[]} DenOfEvil
+   * @property {number[]} Hole
+   * @property {number[]} Pit
+   * @property {number[]} Cave
+   * @property {number[]} UndergroundPassage
+   * @property {number[]} Cellar
+   * @property {number[]} A2Sewers
+   * @property {number[]} StonyTomb
+   * @property {number[]} HallsOfDead
+   * @property {number[]} ClawViperTemple
+   * @property {number[]} MaggotLair
+   * @property {number[]} Tombs
+   * @property {number[]} Swamp
+   * @property {number[]} FlayerDungeon
+   * @property {number[]} A3Sewers
+   * @property {number[]} HighLevelForgottenTemples
+   * @property {number[]} LowLevelForgottenTemples
+   * @property {number[]} RedPortalPits
    */
 
   /** @type {AreaDataObj[]} */
@@ -152,7 +183,7 @@
         let wpArea = this.nearestWaypointArea();
 
         // If you dont need a wp, we want at least the town's wp
-        return getWaypoint(Pather.wpAreas.indexOf(wpArea || this.townArea().Index));
+        return me.haveWaypoint((wpArea || this.townArea().Index));
       },
       /**
        * Find nearest waypoint in area
@@ -183,18 +214,84 @@
   }
 
   /**
-   * @property {function} AreaData.findByName
-   * @param {string} whatToFind 
-   * @returns 
+   * @function
+   * @static
+   * @name AreaData.findByName
+   * @param {string} whatToFind
+   * @param {function(AreaDataObj): boolean} [filter] - Optional filter function to restrict which areas are considered
+   * @returns {AreaDataObj}
    */
-  AreaData.findByName = function (whatToFind) {
-    let matches = AreaData
-      .map(area => [Math.min(whatToFind.diffCount(area.LocaleString), whatToFind.diffCount(area.InternalName)), area])
-      .sort((a, b) => a[0] - b[0]);
+  AreaData.findByName = function (whatToFind, filter) {
+    if (!whatToFind || typeof whatToFind !== "string") {
+      return AreaData[1];
+    }
+  
+    const searchTerm = whatToFind.toLowerCase().trim();
 
+    const areaPool = typeof filter === "function"
+      ? AreaData.filter(area => area && area.LocaleString && filter(area))
+      : AreaData.filter(area => area && area.LocaleString);
+
+    if (areaPool.length === 0) {
+      return AreaData[1];
+    }
+  
+    // First attempt: Look for exact matches or contains
+    const exactMatches = areaPool.filter(function (area) {
+      if (!area || !area.LocaleString) return false;
+    
+      const localeLower = area.LocaleString.toLowerCase();
+      const internalLower = area.InternalName ? area.InternalName.toLowerCase() : "";
+    
+      // Exact match gets highest priority
+      if (localeLower === searchTerm || internalLower === searchTerm) {
+        return true;
+      }
+    
+      // Contains match gets second priority (handles partial names like "worldstone")
+      if (localeLower.includes(searchTerm) || internalLower.includes(searchTerm)) {
+        return true;
+      }
+    
+      return false;
+    });
+  
+    // If we found exact or contains matches, sort them by length (shorter names first)
+    // This helps prioritize more specific matches when partial names are given
+    if (exactMatches.length > 0) {
+      exactMatches.sort(function (a, b) {
+        const aLocale = a.LocaleString.toLowerCase();
+        const bLocale = b.LocaleString.toLowerCase();
+      
+        // If one contains the term exactly at the start, prioritize it
+        const aStartsWith = aLocale.startsWith(searchTerm);
+        const bStartsWith = bLocale.startsWith(searchTerm);
+      
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+      
+        // Otherwise sort by shortest containing name
+        return aLocale.length - bLocale.length;
+      });
+    
+      return exactMatches[0];
+    }
+  
+    // Fallback: Use the diffCount approach for fuzzy matching
+    let matches = areaPool
+      .map(area => {
+        const localeDiff = area.LocaleString ? searchTerm.diffCount(area.LocaleString.toLowerCase()) : Infinity;
+        const internalDiff = area.InternalName ? searchTerm.diffCount(area.InternalName.toLowerCase()) : Infinity;
+        return [Math.min(localeDiff, internalDiff), area];
+      })
+      .sort((a, b) => a[0] - b[0]);
+  
     return matches[0][1];
   };
 
+  /**
+   * @type {Dungeons}
+   */
   AreaData.dungeons = {
     DenOfEvil: [sdk.areas.DenofEvil],
 

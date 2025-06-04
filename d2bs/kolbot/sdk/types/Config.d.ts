@@ -7,6 +7,12 @@
 
 declare global {
   // interface Scripts { [data: string]: Partial<Config> | boolean }
+  type ExtendedCubingOpts = { Ethereal: number, MaxQuantity: number, condition: () => boolean };
+  type CubingRecipe =
+    | [number, string]
+    | [number, string, number]
+    | [number, string, ExtendedCubingOpts];
+
   interface Config {
     init(notify: any): void;
     Loaded: boolean;
@@ -17,11 +23,21 @@ declare global {
       Skill: boolean,
       Town: boolean,
     };
+
+    // Experimental
+    FastParty: boolean;
+    AutoEquip: boolean;
+    UseExperimentalAvoid: boolean;
+
+    Experimental: {
+    }
+
     StartDelay: number;
     PickDelay: number;
     AreaDelay: number;
     MinGameTime: number;
     MaxGameTime: number;
+    UnpartyForMinGameTimeWait: boolean;
     LifeChicken: number;
     ManaChicken: number;
     UseHP: number;
@@ -72,6 +88,16 @@ declare global {
       MinUnids: number;
     };
     Inventory: number[][];
+    SortSettings: {
+      SortInventory: boolean,
+      SortStash: boolean,
+      PlugYStash: boolean,
+      ItemsSortedFromLeft: number[],
+      ItemsSortedFromRight: number[],
+      PrioritySorting: boolean,
+      ItemsSortedFromLeftPriority: number[],
+      ItemsSortedFromRightPriority: number[],
+    },
     LocalChat: {
       Enabled: boolean;
       Toggle: boolean;
@@ -107,11 +133,12 @@ declare global {
     PickitFiles: string[];
     BeltColumn: any[];
     MinColumn: any[];
-    SkipId: any[];
-    SkipEnchant: any[];
-    SkipImmune: any[];
-    SkipAura: any[];
-    SkipException: any[];
+    SkipId: number[];
+    SkipEnchant: string[];
+    SkipImmune: string[];
+    SkipAura: string[];
+    SkipException: (number | string)[];
+    ImmunityException: DamageType[];
     ScanShrines: any[];
     Debug: boolean;
     AutoMule: {
@@ -133,7 +160,7 @@ declare global {
     Cubing: boolean;
     CubeRepair: boolean;
     RepairPercent: number;
-    Recipes: any[];
+    Recipes: CubingRecipe[];
     MakeRunewords: boolean;
     Runewords: any[][];
     KeepRunewords: any[];
@@ -168,8 +195,6 @@ declare global {
     KillDclone: boolean;
     DCloneQuit: boolean;
     DCloneWaitTime: number;
-    FastParty: boolean;
-    AutoEquip: boolean;
     ChampionBias: number;
     UseCta: boolean;
     Dodge: boolean;
@@ -179,7 +204,7 @@ declare global {
     LowManaSkill: any[];
     CustomAttack: Record<string | number, [number, number]>;
     CustomPreAttack: Record<string | number, [number, number]>,
-    AdvancedCustomAttack: { check: (unit: Monster) => boolean, attack: [number, number] }[],
+    AdvancedCustomAttack: { check: (unit: Monster) => boolean, attack: [number, number], preAttack: number }[],
     TeleStomp: boolean;
     NoTele: boolean;
     ClearType: boolean;
@@ -324,6 +349,7 @@ declare global {
       KillNihlathak: boolean;
       FastChaos: boolean;
       DollQuit: boolean;
+      SoulQuit: boolean;
       KillBaal: boolean;
       SkipTP: boolean;
     };
@@ -360,6 +386,7 @@ declare global {
     };
     MFHelper: {
       BreakClearLevel: boolean;
+      BreakOnDiaBaal: boolean;
     };
     Wakka: {
       Wait: number;
@@ -378,6 +405,11 @@ declare global {
     BoBarbHelper: {
       Mode: number;
       Wp: number;
+    };
+    Idle: {
+      Advertise: boolean;
+      AdvertiseMessage: string;
+      MaxGameLength: number;
     };
     ControlBot: {
       Bo: boolean;
@@ -403,7 +435,6 @@ declare global {
         Staff: boolean;
         Summoner: boolean;
         Duriel: boolean;
-        Gidbinn: boolean;
         LamEsen: boolean;
         Eye: boolean;
         Heart: boolean;
@@ -419,6 +450,9 @@ declare global {
       };
       EndMessage: string;
       GameLength: number;
+      MinGameLength: number;
+      NGVoting: boolean;
+      NGVoteCooldown: number;
     };
     IPHunter: {
       IPList: any[];
@@ -465,6 +499,13 @@ declare global {
           At: any[];
         };
       };
+    };
+    OrgTorchHelper: {
+      Taxi: boolean;
+      Helper: boolean;
+      SkipTp: boolean;
+      GetFade: boolean;
+      UseWalkPath: boolean;
     };
     Synch: {
       WaitFor: any[];

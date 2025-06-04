@@ -41,6 +41,8 @@ const Pickit = {
     sdk.items.type.Gold, sdk.items.type.Scroll,
     sdk.items.type.HealingPotion, sdk.items.type.ManaPotion, sdk.items.type.RejuvPotion
   ],
+  /** @type {{ reason: string, gid: number }[]} */
+  systemKeep: [],
 
   /** 
    * @param {boolean} notify
@@ -299,15 +301,25 @@ const Pickit = {
     if (Scripts.GemHunter && rval.result === Pickit.Result.UNWANTED) {
       // gemhunter active
       if (Config.GemHunter.GemList.some((p) => [unit.classid - 1, unit.classid].includes(p))) {
-        // base and upgraded gem will be kept
-        let _items = me.getItemsEx(unit.classid, sdk.items.mode.inStorage)
-          .filter(function (i) {
-            return i.gid !== unit.gid
-              && !CraftingSystem.checkItem(i)
-              && !Cubing.checkItem(i)
-              && !Runewords.checkItem(i);
-          });
-        if (_items.length === 0) return resultObj(Pickit.Result.WANTED, "GemHunter");
+        let existingGem = Pickit.systemKeep.find((el) => el.reason === "GemHunter");
+        if (existingGem && existingGem.gid === unit.gid) {
+          return resultObj(Pickit.Result.WANTED, "GemHunter");
+        }
+        if (!existingGem || !me.getItem(-1, -1, existingGem.gid)) {
+          existingGem && Pickit.systemKeep.findAndRemove((el) => el.reason === "GemHunter");
+          // base and upgraded gem will be kept
+          let _items = me.getItemsEx(unit.classid, sdk.items.mode.inStorage)
+            .filter(function (i) {
+              return i.gid !== unit.gid
+                && !CraftingSystem.checkItem(i)
+                && !Cubing.checkItem(i)
+                && !Runewords.checkItem(i);
+            });
+          if (_items.length === 0) {
+            Pickit.systemKeep.push({ reason: "GemHunter", gid: unit.gid });
+            return resultObj(Pickit.Result.WANTED, "GemHunter");
+          }
+        }
       }
     }
 

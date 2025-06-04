@@ -20,13 +20,32 @@ include("systems/gameaction/GameAction.js");
 include("manualplay/MapMode.js");
 MapMode.include();
 
+/**
+ * @typedef {Object} UnitAction
+ * @property {string} do - The action to perform ('openChest', 'usePortal')
+ * @property {number} [id] - The ID associated with the action
+ */
+
+/**
+ * @typedef {'area' | 'unit' | 'wp' | 'actChange' | 'portal' | 'qol' | 'drop' |'stack'} EventType
+ */
+
+/**
+ * @typedef {Object} ActionEvent
+ * @property {EventType} type - The type of action to perform
+ * @property {number|string|null} [dest] - The destination area ID, unit ID, or act number
+ * @property {UnitAction|string} [action] - Action details or action string
+ * @property {string[]} params
+ */
+
 function main () {
   // getUnit test
   getUnit(-1) === null && console.warn("getUnit bug detected");
   
   console.log("ÿc9MapHelper loaded");
 
-  let obj = { type: false, dest: false, action: false };
+  /** @type {ActionEvent} */
+  const obj = { type: null, dest: null, action: null, params: [] };
   let action, fail = 0, x, y;
   const mapThread = getScript("libs/manualplay/main.js");
 
@@ -45,6 +64,7 @@ function main () {
   };
   portalMap[sdk.areas.InfernalPit] = {
     14: [12638, 9373],
+    15: [12638, 9063],
     20: [12708, 9063],
     25: [12948, 9128],
   };
@@ -223,9 +243,14 @@ function main () {
 
               break;
             case sdk.areas.ArcaneSanctuary:
-              Pather.moveTo(12692, 5195);
-              redPortal = Pather.getPortal(obj.dest);
-              !redPortal && Pather.useWaypoint(obj.dest);
+              if (me.inArea(sdk.areas.CanyonofMagic)) {
+                Pather.moveTo(12692, 5195);
+                redPortal = Pather.getPortal(obj.dest);
+                !redPortal && Pather.useWaypoint(obj.dest);
+              } else if (me.inArea(sdk.areas.PalaceCellarLvl3)) {
+                Pather.moveTo(10073, 8670);
+                Pather.usePortal(null);
+              }
 
               break;
             case sdk.areas.Harrogath:
@@ -366,7 +391,12 @@ function main () {
 
               break;
             case "pick":
-              Config.ManualPlayPick ? Pickit.pickItems() : Pickit.basicPickItems();
+              {
+                let range = obj.params.length > 0 && !isNaN(Number(obj.params[0]))
+                  ? Number(obj.params[0])
+                  : Config.PickRange;
+                Config.ManualPlayPick ? Pickit.pickItems(range) : Pickit.basicPickItems(range);
+              }
 
               break;
             case "sellItem":
@@ -398,19 +428,24 @@ function main () {
 
             break;
           case "stack":
-            switch (obj.action) {
-            case "thawing":
-              Town.buyPots(10, "Thawing", true, true);
+            {
+              let quantity = obj.params.length > 0 && !isNaN(Number(obj.params[0]))
+                ? Number(obj.params[0])
+                : 10;
+              switch (obj.action) {
+              case "thawing":
+                Town.buyPots(quantity, "Thawing", true, true);
 
-              break;
-            case "antidote":
-              Town.buyPots(10, "Antidote", true, true);
+                break;
+              case "antidote":
+                Town.buyPots(quantity, "Antidote", true, true);
 
-              break;
-            case "stamina":
-              Town.buyPots(10, "Stamina", true, true);
+                break;
+              case "stamina":
+                Town.buyPots(quantity, "Stamina", true, true);
 
-              break;
+                break;
+              }
             }
 
             break;

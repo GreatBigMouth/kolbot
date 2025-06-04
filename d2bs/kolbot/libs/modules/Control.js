@@ -187,6 +187,7 @@
     // these two are the same as popup yes/no, should they be kept seperate or merged?
     Control.CharCreateHCWarningOk = new Control(sdk.controls.Button, 421, 337, 96, 32);
     Control.CharCreateHCWarningCancel = new Control(sdk.controls.Button, 281, 337, 96, 32);
+    Control.CharCreateStatusText = new Control(sdk.controls.LabelBox, 268, 320, 264, 120);
   }
 
   // Lobby Menu Controls

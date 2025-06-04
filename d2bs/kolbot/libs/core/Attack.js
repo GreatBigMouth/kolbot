@@ -186,6 +186,14 @@ const Attack = {
   getCustomPreAttack: function (unit) {
     // Check if unit got invalidated
     if (!unit || !unit.name || !copyUnit(unit).x) return false;
+
+    for (let el of Config.AdvancedCustomAttack) {
+      if (el.hasOwnProperty("check") && el.hasOwnProperty("preAttack")) {
+        if (typeof el.check === "function" && el.check(unit)) {
+          return el.preAttack;
+        }
+      }
+    }
     
     for (let i in Config.CustomPreAttack) {
       if (Config.CustomPreAttack.hasOwnProperty(i)) {
@@ -514,7 +522,9 @@ const Attack = {
    * @property {(a: T, b: T) => number} sortfunc
    * @property {boolean} pickit
    * @property {(unit: Monster) => boolean} filter
-   * @property {() => any} callback
+   * @property {() => any} onLoop - Called on each iteration of the main loop
+   * @property {() => boolean} earlyExit - If returns true, exit the clearing loop. Called on each iteration of the main loop
+   * @property {() => void} onCleared - Called after all clearing is complete
    */
 
   /**
@@ -524,24 +534,39 @@ const Attack = {
    * @returns {boolean}
    */
   clearEx: function (range, opts = {}) {
+    if (Config.AttackSkill[1] < 0 || Config.AttackSkill[3] < 0) {
+      return false;
+    }
+
+    if (typeof (range) !== "number") {
+      throw new Error("Attack.clear: range must be a number.");
+    }
+
     while (!me.gameReady) {
       delay(40);
     }
-    if (Config.AttackSkill[1] < 0 || Config.AttackSkill[3] < 0) return false;
 
     range === undefined && (range = 25);
-    if (typeof (range) !== "number") throw new Error("Attack.clear: range must be a number.");
     
-    const settings = Object.assign({
-      spectype: 0,
-      bossId: false,
+    const { spectype, bossId, sortfunc, filter, onLoop, pickit, earlyExit, onCleared } = Object.assign({
+      spectype: sdk.monsters.spectype.All,
+      bossId: undefined,
       sortfunc: Attack.sortMonsters,
       pickit: true,
-      filter: false,
-      callback: false,
+      filter: undefined,
+      onLoop: undefined,
+      earlyExit: undefined,
+      onCleared: undefined,
     }, opts);
-    const { spectype, bossId, sortfunc, pickit, filter, callback } = settings;
 
+    /**
+     * @param {unknown} unit 
+     * @returns {boolean}
+     */
+    const isMonsterUnit = function (unit) {
+      return unit && typeof unit === "object" && unit.type === sdk.unittype.Monster;
+    };
+    
     /** @type {Map<number, { attacks: number, name: string }} */
     const attacks = new Map();
     let boss, orgx, orgy, start, skillCheck;
@@ -550,6 +575,10 @@ const Attack = {
     let [retry, attackCount] = [0, 0];
 
     if (bossId) {
+      if (Attack.haveKilled(bossId)) {
+        console.log("ÿc7Cleared ÿc0:: " + (isMonsterUnit(bossId) ? bossId.name : bossId));
+        return true;
+      }
       boss = Misc.poll(function () {
         switch (true) {
         case typeof bossId === "object":
@@ -572,13 +601,15 @@ const Attack = {
         // mfhelper is disabled for these scripts so announcing is pointless
         && !Loader.scriptName(0).toLowerCase().includes("diablo")
         && !Loader.scriptName(0).toLowerCase().includes("baal")
-        && Pather.makePortal()) {
+        // bypass UberTristram check, we can't make a portal there
+        && (me.inArea(sdk.areas.UberTristram) || Pather.makePortal())) {
         say("clear " + (["number", "string"].includes(typeof bossId) ? bossId : bossId.name));
       }
     } else {
       ({ orgx, orgy } = { orgx: me.x, orgy: me.y });
     }
 
+    /** @type {Monster[]} */
     let monsterList = [];
     let target = Game.getMonster();
 
@@ -597,17 +628,35 @@ const Attack = {
       } while (target.getNext());
     }
 
+    // sometimes boss doesn't get added to monsterList due to distance but we want them in it anyway
+    if (boss && !monsterList.some((mon) => mon.gid === boss.gid)) {
+      console.log("Adding boss to monsterList");
+      monsterList.push(copyUnit(boss));
+    }
+
     while (start && monsterList.length > 0 && attackCount < Config.MaxAttackCount) {
       if (me.dead) return false;
-      if (typeof callback === "function") callback();
+      if (typeof onLoop === "function") {
+        onLoop();
+      }
+
+      if (typeof earlyExit === "function" && earlyExit()) {
+        console.log("ÿc7Cleared ÿc0:: Early exit condition met");
+        break;
+      }
       
       boss && (({ orgx, orgy } = { orgx: boss.x, orgy: boss.y }));
       monsterList.sort(sortfunc);
       target = Game.getMonster(-1, -1, monsterList[0].gid);
 
-      if (target && target.x !== undefined && (getDistance(target, orgx, orgy) <= range
-        || (this.getScarinessLevel(target) > 7 && target.distance <= range))
-        && target.attackable) {
+      if (
+        (target && target.x !== undefined)
+        && (
+          getDistance(target, orgx, orgy) <= range
+          || (this.getScarinessLevel(target) > 7 && target.distance <= range)
+        )
+          && target.attackable
+      ) {
         Config.Dodge && me.hpPercent <= Config.DodgeHP && this.deploy(target, Config.DodgeRange, 5, 9);
         tick = getTickCount();
 
@@ -615,12 +664,10 @@ const Attack = {
           logged = true;
           console.log("ÿc7Clear ÿc0:: " + (!!target.name ? target.name : bossId));
         }
-        // me.overhead("attacking " + target.name + " spectype " + target.spectype + " id " + target.classid);
 
         let _currMon = attacks.get(target.gid);
         const checkAttackSkill = (!!_currMon && _currMon.attacks % 15 === 0);
         const result = ClassAttack.doAttack(target, checkAttackSkill);
-        // let result = ClassAttack.doAttack(target, attackCount % 15 === 0);
 
         if (result) {
           retry = 0;
@@ -725,7 +772,7 @@ const Attack = {
 
     if (attackCount > 0) {
       ClassAttack.afterAttack(pickit);
-      this.openChests(range, orgx, orgy);
+      Attack.openChests(range, orgx, orgy);
       pickit && Pickit.pickItems();
     } else {
       Precast.doPrecast(false); // we didn't attack anything but check if we need to precast. TODO: better method of keeping track of precast skills
@@ -741,6 +788,10 @@ const Attack = {
       } else {
         console.log("ÿc7Clear ÿc0:: ÿc1Failed to clear ÿc0:: " + (!!boss.name ? boss.name : bossId));
       }
+    }
+
+    if (typeof onCleared === "function") {
+      onCleared();
     }
 
     return true;
@@ -800,7 +851,8 @@ const Attack = {
         // mfhelper is disabled for these scripts so announcing is pointless
         && !Loader.scriptName(0).toLowerCase().includes("diablo")
         && !Loader.scriptName(0).toLowerCase().includes("baal")
-        && Pather.makePortal()) {
+        // bypass UberTristram check, we can't make a portal there
+        && (me.inArea(sdk.areas.UberTristram) || Pather.makePortal())) {
         say("clear " + (["number", "string"].includes(typeof bossId) ? bossId : bossId.name));
       }
     } else {
@@ -1885,7 +1937,7 @@ const Attack = {
   /**
    * @description Get element by skill number
    * @param {number} skillId 
-   * @returns {"physical" | "fire" | "lightning" | "magic" | "cold" | "poison" | "holybolt" | "none" | false}
+   * @returns {DamageType | "none" | false}
    */
   getSkillElement: function (skillId) {
     let elements = ["physical", "fire", "lightning", "magic", "cold", "poison", "none"];
@@ -1917,7 +1969,7 @@ const Attack = {
   /**
    * @description Get a monster's resistance to specified element
    * @param {Unit | Monster} unit 
-   * @param {"physical" | "fire" | "lightning" | "magic" | "cold" | "poison" | "holybolt" | "none"} type 
+   * @param {DamageType | "none"} type 
    * @returns {number}
    */
   getResist: function (unit, type) {
@@ -1979,6 +2031,10 @@ const Attack = {
     // Static handler
     if (val === sdk.skills.StaticField && this.getResist(unit, damageType) < 100) {
       return unit.hpPercent > Config.CastStatic;
+    }
+
+    if (Config.ImmunityException.includes(damageType)) {
+      return true;
     }
 
     // TODO: sometimes unit is out of range of conviction so need to check that

@@ -234,6 +234,7 @@
     Config.ControlBot.Rush.Andy = true; // Kill Andy on command
     Config.ControlBot.Rush.Bloodraven = true; // Kill Bloodraven on command
     Config.ControlBot.Rush.Smith = true; // Kill Smith on command
+    Config.ControlBot.Rush.Cain = true; // Rescue cain on command
     Config.ControlBot.Rush.Cube = true; // Get cube on command
     Config.ControlBot.Rush.Radament = true; // Kill Radament on command
     Config.ControlBot.Rush.Staff = true; // Get staff on command
@@ -255,6 +256,9 @@
     Config.ControlBot.Rush.Baal = true; // Kill Baal on command
     Config.ControlBot.EndMessage = ""; // Message before quitting
     Config.ControlBot.GameLength = 20; // Game length in minutes
+    Config.ControlBot.NGVoting = true; // Allow players to vote on new game
+    Config.ControlBot.NGVoteCooldown = 3; // Time in minutes after a vote period a players has to wait to start a new vote
+    Config.ControlBot.MinGameLength = 3; // Minimum time in minutes before a ng vote can be called
 
   // ##### ORG/TORCH ##### //
   Scripts.GetKeys = false; // Hunt for T/H/D keys
@@ -264,10 +268,18 @@
     Config.OrgTorch.WaitTimeout = 15; // Time in minutes to wait for keys before moving on
     Config.OrgTorch.UseSalvation = true; // Use Salvation aura on Mephisto (if possible)
     Config.OrgTorch.GetFade = false; // Get fade by standing in a fire. You MUST have Last Wish, Treachery, or SpiritWard on your character being worn.
+    Config.OrgTorch.TaxiChar = ""; // Name of the taxi character running OrgTorchHelper.
     Config.OrgTorch.PreGame.Antidote.At = [sdk.areas.MatronsDen, sdk.areas.UberTristram]; // Chug x antidotes before each area
     Config.OrgTorch.PreGame.Antidote.Drink = 10; // Chug x antidotes. Each antidote gives +50 poison res and +10 max poison for 30 seconds. The duration stacks. 10 potions == 5 minutes
     Config.OrgTorch.PreGame.Thawing.At = [sdk.areas.FurnaceofPain, sdk.areas.UberTristram]; // Chug x thawing pots before each area
     Config.OrgTorch.PreGame.Thawing.Drink = 10; // Chug x thawing pots. Each thawing pot gives +50 cold res and +10 max cold for 30 seconds. The duration stacks. 10 potions == 5 minutes
+
+  Scripts.OrgTorchHelper = false;
+    Config.OrgTorchHelper.Taxi = false; // Taxi the killer to the area
+    Config.OrgTorchHelper.Helper = true; // Set to true to help attack, set false to wait in town.
+    Config.OrgTorchHelper.UseWalkPath = false; // Use walk path to get to the area - helpful if leader is a walker and you have tele
+    Config.OrgTorchHelper.SkipTp = false; // Skip and go through the red portal
+    Config.OrgTorchHelper.GetFade = false; // Get fade by standing in a fire. You MUST have Last Wish, Treachery, or SpiritWard on your character being worn.
     
   // ##### AUTO-RUSH ##### //
   // RUSHER USES FOLLOWER ENTRY SCRIPT
@@ -366,6 +378,7 @@
   Config.MinGameTime = 60; // Min game time in seconds. Bot will TP to town and stay in game if the run is completed before.
   Config.MaxGameTime = 0; // Maximum game time in minutes. Quit game when limit is reached.
   Config.LogExperience = false; // Print experience statistics in the manager.
+  Config.UnpartyForMinGameTimeWait = false; // Unparty for MinGameTime wait - can prevent players from completing q's in your game you don't want completed
 
   // Chicken settings
   Config.LifeChicken = 30; // Exit game if life is less or equal to designated percent.

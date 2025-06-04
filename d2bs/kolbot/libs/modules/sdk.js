@@ -1489,6 +1489,7 @@
     player: {
       flag: {
         Ignore: 2,
+        Squelch: 4,
         Hostile: 8,
       },
       slot: {
@@ -1954,6 +1955,9 @@
         DeathMauler: 57,
         PutridDefiler: 58,
       },
+      PoisonCreeper: 425,
+      CarrionVine: 426,
+      SolarCreeper: 427,
       DiablosBoneCage: 340,
       DiablosBoneCage2: 342,
       Dummy1: 149,

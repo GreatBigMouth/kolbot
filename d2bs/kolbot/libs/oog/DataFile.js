@@ -19,6 +19,7 @@ includeIfNotIncluded("oog/FileAction.js");
   }
 }(this, function () {
   const DataFile = {
+    _path: "data/" + me.profile + ".json",
     _default: {
       handle: 0,
       name: "",
@@ -34,8 +35,17 @@ includeIfNotIncluded("oog/FileAction.js");
       nextGame: ""
     },
 
+    init: function () {
+      if (!FileTools.exists(this._path)) {
+        this.create();
+
+        return true;
+      }
+      return false;
+    },
+
     create: function () {
-      FileAction.write("data/" + me.profile + ".json", JSON.stringify(this._default, null, 2));
+      FileAction.write(this._path, JSON.stringify(this._default, null, 2));
 
       return this._default;
     },
@@ -60,10 +70,10 @@ includeIfNotIncluded("oog/FileAction.js");
     },
 
     getObj: function () {
-      !FileTools.exists("data/" + me.profile + ".json") && DataFile.create();
+      !FileTools.exists(this._path) && DataFile.create();
       
       let obj;
-      let string = FileAction.read("data/" + me.profile + ".json");
+      let string = FileAction.read(this._path);
 
       try {
         obj = JSON.parse(string);
@@ -150,7 +160,7 @@ includeIfNotIncluded("oog/FileAction.js");
 
       let string = JSON.stringify(obj, null, 2);
 
-      FileAction.write("data/" + me.profile + ".json", string);
+      FileAction.write(this._path, string);
     }
   };
 

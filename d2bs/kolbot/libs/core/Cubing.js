@@ -110,21 +110,15 @@ const Recipe = {
   },
   Rejuv: 62,
   FullRejuv: 63,
-};
 
-/**
- * @memberof Recipe
- * @function ingredients
- * @returns {number[]}
- */
-Object.defineProperty(Recipe, "ingredients", {
+  // TODO: refactor to one method that returns the baseRecipeObj
   /**
    * Get list of ingredients needed for certain recipe
    * @param {number} index - Index of recipe to check
    * @param {number} [keyItem] - Key item in cubing recipe
    * @returns {number[]}
    */
-  value: function (index, keyItem) {
+  ingredients: function (index, keyItem) {
     switch (index) {
     case Recipe.Gem:
       return [keyItem - 1, keyItem - 1, keyItem - 1];
@@ -331,6 +325,126 @@ Object.defineProperty(Recipe, "ingredients", {
     }
     return [];
   },
+
+  /**
+   * @param {number} index 
+   */
+  itemLevel: function (index) {
+    switch (index) {
+    case Recipe.HitPower.Helm:
+      return 84;
+    case Recipe.HitPower.Boots:
+      return 71;
+    case Recipe.HitPower.Gloves:
+      return 79;
+    case Recipe.HitPower.Belt:
+      return 71;
+    case Recipe.HitPower.Shield:
+      return 82;
+    case Recipe.HitPower.Body:
+      return 85;
+    case Recipe.HitPower.Amulet:
+      return 90;
+    case Recipe.HitPower.Ring:
+      return 77;
+    case Recipe.HitPower.Weapon:
+      return 85;
+    case Recipe.Blood.Helm:
+      return 84;
+    case Recipe.Blood.Boots:
+      return 71;
+    case Recipe.Blood.Gloves:
+      return 79;
+    case Recipe.Blood.Belt:
+      return 71;
+    case Recipe.Blood.Shield:
+      return 82;
+    case Recipe.Blood.Body:
+      return 85;
+    case Recipe.Blood.Amulet:
+      return 90;
+    case Recipe.Blood.Ring:
+      return 77;
+    case Recipe.Blood.Weapon:
+      return 85;
+    case Recipe.Caster.Helm:
+      return 84;
+    case Recipe.Caster.Boots:
+      return 71;
+    case Recipe.Caster.Gloves:
+      return 79;
+    case Recipe.Caster.Belt:
+      return 71;
+    case Recipe.Caster.Shield:
+      return 82;
+    case Recipe.Caster.Body:
+      return 85;
+    case Recipe.Caster.Amulet:
+      return 90;
+    case Recipe.Caster.Ring:
+      return 77;
+    case Recipe.Caster.Weapon:
+      return 85;
+    case Recipe.Safety.Helm:
+      return 84;
+    case Recipe.Safety.Boots:
+      return 71;
+    case Recipe.Safety.Gloves:
+      return 79;
+    case Recipe.Safety.Belt:
+      return 71;
+    case Recipe.Safety.Shield:
+      return 82;
+    case Recipe.Safety.Body:
+      return 85;
+    case Recipe.Safety.Amulet:
+      return 90;
+    case Recipe.Safety.Ring:
+      return 77;
+    case Recipe.Safety.Weapon:
+      return 85;
+      // Upgrading Recipes------------------------------------------------------------------------//
+    case Recipe.Socket.Magic.LowWeapon:
+    case Recipe.Socket.Magic.HighWeapon:
+      // ilvl < 30
+      // ilvl >= 30
+      return 30;
+    case Recipe.Reroll.Charm.Small:
+    case Recipe.Reroll.Charm.Large:
+    case Recipe.Reroll.Charm.LowGrand:
+    case Recipe.Reroll.Charm.Grand:
+    case Recipe.Reroll.Magic: // Hacky solution ftw
+      /**
+       * Charm ilvls based on https://diablo2.diablowiki.net/Guide:Charms_v1.10,_by_Kronos
+       */
+      if (index === Recipe.Reroll.Charm.Small) {
+        return 94;
+      } else if (index === Recipe.Reroll.Charm.Large) {
+        return 76;
+      } else if (index === Recipe.Reroll.Charm.LowGrand) {
+        return 50;
+      } else if (index === Recipe.Reroll.Charm.Grand) {
+        return 77;
+      }
+      return 91;
+    }
+    return undefined;
+  },
+};
+
+/**
+ * @memberof Recipe
+ * @function ingredients
+ */
+Object.defineProperty(Recipe, "ingredients", {
+  enumerable: false,
+});
+
+/**
+ * @memberof Recipe
+ * @function itemLevel
+ */
+Object.defineProperty(Recipe, "itemLevel", {
   enumerable: false,
 });
 
@@ -413,11 +527,15 @@ const Cubing = {
    * @typedef recipeObj
    * @property {number[] | string[]} Ingredients
    * @property {number} Index
+   * @property {number} KeyItem
    * @property {number} [Level]
    * @property {number} [Ethereal]
    * @property {boolean} [Enabled]
    * @property {boolean} [AlwaysEnabled]
    * @property {number} [MainRecipe]
+   * @property {number} [MaxQuantity]
+   * @property {() => boolean} [condition]
+   * @property {string} [pickLine]
    *
    *
    * @todo
@@ -427,301 +545,72 @@ const Cubing = {
     Cubing.recipes = [];
 
     for (let i = 0; i < Config.Recipes.length; i += 1) {
-      if (typeof Config.Recipes[i] !== "object"
-        || (Config.Recipes[i].length > 2 && typeof Config.Recipes[i][2] !== "number")
-        || Config.Recipes[i].length < 1) {
+      if (
+        !isType(Config.Recipes[i], "array")
+        || Config.Recipes[i].length < 1
+        || (
+          Config.Recipes[i].length > 2
+          && typeof Config.Recipes[i][2] !== "number"
+          && typeof Config.Recipes[i][2] !== "object"
+        )
+      ) {
         throw new Error("Cubing.buildRecipes: Invalid recipe format.");
       }
 
       /** @type {number[]} */
-      let [index, keyItem] = Config.Recipes[i];
+      const [index, keyItem, opts] = Config.Recipes[i];
       const ingredients = Recipe.ingredients(index, keyItem);
+      const itemLevel = Recipe.itemLevel(index);
+      /** @type {Partial<ExtendedCubingOpts>} */
+      const extendedOpts = {
+        Ethereal: undefined,
+        MaxQuantity: undefined,
+        condition: undefined
+      };
+
+      if (isType(opts, "number")) {
+        extendedOpts.Ethereal = opts;
+      } else if (isType(opts, "object")) {
+        Object.assign(extendedOpts, opts);
+      }
+
+      /** @type {recipeObj} */
+      const baseRecipeObj = {
+        Index: index,
+        KeyItem: keyItem,
+        Ingredients: ingredients
+      };
+
+      if (itemLevel) {
+        baseRecipeObj.Level = itemLevel;
+      }
+      const recipeObj = Object.assign(baseRecipeObj, extendedOpts);
 
       switch (index) {
       case Recipe.Gem:
-        this.recipes.push({ Ingredients: ingredients, Index: index, AlwaysEnabled: true });
-
-        break;
-        // Crafting Recipes--------------------------------------------------------------//
-      case Recipe.HitPower.Helm:
-        this.recipes.push({ Ingredients: ingredients, Level: 84, Index: index });
-
-        break;
-      case Recipe.HitPower.Boots:
-        this.recipes.push({ Ingredients: ingredients, Level: 71, Index: index });
-
-        break;
-      case Recipe.HitPower.Gloves:
-        this.recipes.push({ Ingredients: ingredients, Level: 79, Index: index });
-
-        break;
-      case Recipe.HitPower.Belt:
-        this.recipes.push({ Ingredients: ingredients, Level: 71, Index: index });
-
-        break;
-      case Recipe.HitPower.Shield:
-        this.recipes.push({ Ingredients: ingredients, Level: 82, Index: index });
-
-        break;
-      case Recipe.HitPower.Body:
-        this.recipes.push({ Ingredients: ingredients, Level: 85, Index: index });
-
-        break;
-      case Recipe.HitPower.Amulet:
-        this.recipes.push({ Ingredients: ingredients, Level: 90, Index: index });
-
-        break;
-      case Recipe.HitPower.Ring:
-        this.recipes.push({ Ingredients: ingredients, Level: 77, Index: index });
-
-        break;
-      case Recipe.HitPower.Weapon:
-        this.recipes.push({ Ingredients: ingredients, Level: 85, Index: index });
-
-        break;
-      case Recipe.Blood.Helm:
-        this.recipes.push({ Ingredients: ingredients, Level: 84, Index: index });
-
-        break;
-      case Recipe.Blood.Boots:
-        this.recipes.push({ Ingredients: ingredients, Level: 71, Index: index });
-
-        break;
-      case Recipe.Blood.Gloves:
-        this.recipes.push({ Ingredients: ingredients, Level: 79, Index: index });
-
-        break;
-      case Recipe.Blood.Belt:
-        this.recipes.push({ Ingredients: ingredients, Level: 71, Index: index });
-
-        break;
-      case Recipe.Blood.Shield:
-        this.recipes.push({ Ingredients: ingredients, Level: 82, Index: index });
-
-        break;
-      case Recipe.Blood.Body:
-        this.recipes.push({ Ingredients: ingredients, Level: 85, Index: index });
-
-        break;
-      case Recipe.Blood.Amulet:
-        this.recipes.push({ Ingredients: ingredients, Level: 90, Index: index });
-
-        break;
-      case Recipe.Blood.Ring:
-        this.recipes.push({ Ingredients: ingredients, Level: 77, Index: index });
-
-        break;
-      case Recipe.Blood.Weapon:
-        this.recipes.push({ Ingredients: ingredients, Level: 85, Index: index });
-
-        break;
-      case Recipe.Caster.Helm:
-        this.recipes.push({ Ingredients: ingredients, Level: 84, Index: index });
-
-        break;
-      case Recipe.Caster.Boots:
-        this.recipes.push({ Ingredients: ingredients, Level: 71, Index: index });
-
-        break;
-      case Recipe.Caster.Gloves:
-        this.recipes.push({ Ingredients: ingredients, Level: 79, Index: index });
-
-        break;
-      case Recipe.Caster.Belt:
-        this.recipes.push({ Ingredients: ingredients, Level: 71, Index: index });
-
-        break;
-      case Recipe.Caster.Shield:
-        this.recipes.push({ Ingredients: ingredients, Level: 82, Index: index });
-
-        break;
-      case Recipe.Caster.Body:
-        this.recipes.push({ Ingredients: ingredients, Level: 85, Index: index });
-
-        break;
-      case Recipe.Caster.Amulet:
-        this.recipes.push({ Ingredients: ingredients, Level: 90, Index: index });
-
-        break;
-      case Recipe.Caster.Ring:
-        this.recipes.push({ Ingredients: ingredients, Level: 77, Index: index });
-
-        break;
-      case Recipe.Caster.Weapon:
-        this.recipes.push({ Ingredients: ingredients, Level: 85, Index: index });
-
-        break;
-      case Recipe.Safety.Helm:
-        this.recipes.push({ Ingredients: ingredients, Level: 84, Index: index });
-
-        break;
-      case Recipe.Safety.Boots:
-        this.recipes.push({ Ingredients: ingredients, Level: 71, Index: index });
-
-        break;
-      case Recipe.Safety.Gloves:
-        this.recipes.push({ Ingredients: ingredients, Level: 79, Index: index });
-
-        break;
-      case Recipe.Safety.Belt:
-        this.recipes.push({ Ingredients: ingredients, Level: 71, Index: index });
-
-        break;
-      case Recipe.Safety.Shield:
-        this.recipes.push({ Ingredients: ingredients, Level: 82, Index: index });
-
-        break;
-      case Recipe.Safety.Body:
-        this.recipes.push({ Ingredients: ingredients, Level: 85, Index: index });
-
-        break;
-      case Recipe.Safety.Amulet:
-        this.recipes.push({ Ingredients: ingredients, Level: 90, Index: index });
-
-        break;
-      case Recipe.Safety.Ring:
-        this.recipes.push({ Ingredients: ingredients, Level: 77, Index: index });
-
-        break;
-      case Recipe.Safety.Weapon:
-        this.recipes.push({ Ingredients: ingredients, Level: 85, Index: index });
-
-        break;
-        // Upgrading Recipes------------------------------------------------------------------------//
-      case Recipe.Unique.Weapon.ToExceptional:
-        this.recipes.push({ Ingredients: ingredients, Index: index, Ethereal: Config.Recipes[i][2] });
+      case Recipe.Token:
+        recipeObj.AlwaysEnabled = true;
 
         break;
       case Recipe.Unique.Weapon.ToElite: // Ladder only
-        if (me.ladder) {
-          this.recipes.push({ Ingredients: ingredients, Index: index, Ethereal: Config.Recipes[i][2] });
-        }
-
-        break;
-      case Recipe.Unique.Armor.ToExceptional:
-        this.recipes.push({ Ingredients: ingredients, Index: index, Ethereal: Config.Recipes[i][2] });
-
-        break;
       case Recipe.Unique.Armor.ToElite: // Ladder only
-        if (me.ladder) {
-          this.recipes.push({ Ingredients: ingredients, Index: index, Ethereal: Config.Recipes[i][2] });
-        }
-
-        break;
-      case Recipe.Rare.Weapon.ToExceptional:
-      case Recipe.Rare.Weapon.ToElite:
-      case Recipe.Rare.Armor.ToExceptional:
-      case Recipe.Rare.Armor.ToElite:
-      case Recipe.Socket.Shield:
-      case Recipe.Socket.Weapon:
-      case Recipe.Socket.Armor:
-      case Recipe.Socket.Helm:
-      case Recipe.Socket.Rare:
-        this.recipes.push({ Ingredients: ingredients, Index: index, Ethereal: Config.Recipes[i][2] });
-
-        break;
-      case Recipe.Socket.Magic.LowWeapon:
-        // ilvl < 30
-        this.recipes.push({ Ingredients: ingredients, Level: 30, Index: index, Ethereal: Config.Recipes[i][2] });
-
-        break;
-      case Recipe.Socket.Magic.HighWeapon:
-        // ilvl >= 30
-        this.recipes.push({ Ingredients: ingredients, Level: 30, Index: index, Ethereal: Config.Recipes[i][2] });
-
-        break;
-      case Recipe.Reroll.Charm.Small:
-      case Recipe.Reroll.Charm.Large:
-      case Recipe.Reroll.Charm.LowGrand:
-      case Recipe.Reroll.Charm.Grand:
-      case Recipe.Reroll.Magic: // Hacky solution ftw
-        /**
-         * Charm ilvls based on https://diablo2.diablowiki.net/Guide:Charms_v1.10,_by_Kronos
-         */
-        if (index === Recipe.Reroll.Charm.Small) {
-          this.recipes.push({ Ingredients: ingredients, Level: 94, Index: index });
-        } else if (index === Recipe.Reroll.Charm.Large) {
-          this.recipes.push({ Ingredients: ingredients, Level: 76, Index: index });
-        } else if (index === Recipe.Reroll.Charm.LowGrand) {
-          this.recipes.push({ Ingredients: ingredients, Level: 50, Index: index });
-        } else if (index === Recipe.Reroll.Charm.Grand) {
-          this.recipes.push({ Ingredients: ingredients, Level: 77, Index: index });
-        } else {
-          this.recipes.push({ Ingredients: ingredients, Level: 91, Index: index });
-        }
-
-        break;
-      case Recipe.Reroll.Rare:
-        this.recipes.push({ Ingredients: ingredients, Index: index });
-
+        if (!me.ladder) continue;
         break;
       case Recipe.Reroll.HighRare:
-        this.recipes.push({ Ingredients: ingredients, Index: index, Enabled: false });
-
-        break;
-      case Recipe.LowToNorm.Weapon:
-      case Recipe.LowToNorm.Armor:
-        this.recipes.push({ Ingredients: ingredients, Index: index });
+        recipeObj.Enabled = false;
 
         break;
       case Recipe.Rune:
-        switch (Config.Recipes[i][1]) {
-        case sdk.items.runes.Eld:
-        case sdk.items.runes.Tir:
-        case sdk.items.runes.Nef:
-        case sdk.items.runes.Eth:
-        case sdk.items.runes.Ith:
-        case sdk.items.runes.Tal:
-        case sdk.items.runes.Ral:
-        case sdk.items.runes.Ort:
-          this.recipes.push({ Ingredients: ingredients, Index: index, AlwaysEnabled: true });
-
-          break;
-        case sdk.items.runes.Thul:
-        case sdk.items.runes.Amn:
-        case sdk.items.runes.Sol:
-        case sdk.items.runes.Shael:
-        case sdk.items.runes.Dol:
-          this.recipes.push({ Ingredients: ingredients, Index: index });
-
-          break;
-        case sdk.items.runes.Hel:
-        case sdk.items.runes.Io:
-        case sdk.items.runes.Lum:
-        case sdk.items.runes.Ko:
-        case sdk.items.runes.Fal:
-        case sdk.items.runes.Lem:
-        case sdk.items.runes.Pul:
-        case sdk.items.runes.Um:
-        case sdk.items.runes.Mal:
-        case sdk.items.runes.Ist:
-        case sdk.items.runes.Gul:
-        case sdk.items.runes.Vex:
-        case sdk.items.runes.Ohm:
-        case sdk.items.runes.Lo:
-        case sdk.items.runes.Sur:
-        case sdk.items.runes.Ber:
-        case sdk.items.runes.Jah:
-        case sdk.items.runes.Cham:
-        case sdk.items.runes.Zod:
-          if (me.ladder || !me.realm) {
-            this.recipes.push({ Ingredients: ingredients, Index: index });
-          }
-
-          break;
+        if (keyItem >= sdk.items.runes.Eld && keyItem <= sdk.items.runes.Ort) {
+          recipeObj.AlwaysEnabled = true;
+        } else {
+          // not ladder and online - we can do these recipes on single player
+          if (!me.ladder && me.realm) continue;
         }
 
         break;
-      case Recipe.Token:
-        this.recipes.push({ Ingredients: ingredients, Index: index, AlwaysEnabled: true });
-
-        break;
-      case Recipe.Rejuv:
-      case Recipe.FullRejuv:
-        this.recipes.push({ Ingredients: ingredients, Index: index });
-
-        break;
       }
+      this.recipes.push(recipeObj);
     }
   },
 
@@ -738,6 +627,31 @@ const Cubing = {
     let items = me.findItems(-1, sdk.items.mode.inStorage);
 
     for (let i = 0; i < this.recipes.length; i += 1) {
+      const recipe = this.recipes[i];
+
+      if (recipe.hasOwnProperty("condition") && typeof recipe.condition === "function") {
+        if (!recipe.condition()) {
+          console.debug("Skipping recipe due to condition cb");
+          continue;
+        }
+      }
+
+      if (recipe.hasOwnProperty("MaxQuantity") && typeof recipe.MaxQuantity === "number") {
+        let itemClassid = recipe.KeyItem;
+        let itemCount = me.getItemsEx(itemClassid).filter(function (item) {
+          return item.isInStorage;
+        }).length;
+
+        if (itemCount >= recipe.MaxQuantity) {
+          console.debug(
+            "Skipping recipe due to item count exceeding MaxQuantity."
+            + " Have: " + itemCount
+            + ", Wanted: " + recipe.MaxQuantity
+          );
+          continue;
+        }
+      }
+      
       // Set default Enabled property - true if recipe is always enabled, false otherwise
       this.recipes[i].Enabled = this.recipes[i].hasOwnProperty("AlwaysEnabled");
 
@@ -745,16 +659,20 @@ const Cubing = {
       for (let j = 0; j < this.recipes[i].Ingredients.length; j += 1) {
         const currIngred = this.recipes[i].Ingredients[j];
         for (let k = 0; k < items.length; k += 1) {
-          if (((currIngred === "pgem" && this.gemList.includes(items[k].classid))
-            || (currIngred === "fgem" && this.gems.flawless.includes(items[k].classid))
-            || (currIngred === "gem" && this.gems.normal.includes(items[k].classid))
-            || (currIngred === "cgem" && this.gems.chipped.includes(items[k].classid))
-            || (currIngred === "hpot" && this.pots.healing.includes(items[k].classid))
-            || (currIngred === "mpot" && this.pots.mana.includes(items[k].classid))
-            || items[k].classid === currIngred) && this.validItem(items[k], this.recipes[i])) {
+          const item = items[k];
+          const { classid, gid } = item;
+          if ((
+            (currIngred === "pgem" && this.gemList.includes(classid))
+            || (currIngred === "fgem" && this.gems.flawless.includes(classid))
+            || (currIngred === "gem" && this.gems.normal.includes(classid))
+            || (currIngred === "cgem" && this.gems.chipped.includes(classid))
+            || (currIngred === "hpot" && this.pots.healing.includes(classid))
+            || (currIngred === "mpot" && this.pots.mana.includes(classid))
+            || classid === currIngred) && this.validItem(item, this.recipes[i])
+          ) {
 
             // push the item's info into the valid ingredients array. this will be used to find items when checking recipes
-            this.validIngredients.push({ classid: items[k].classid, gid: items[k].gid });
+            this.validIngredients.push({ classid: classid, gid: gid });
 
             // Remove from item list to prevent counting the same item more than once
             items.splice(k, 1);
@@ -762,7 +680,8 @@ const Cubing = {
 
             // Enable recipes for gem/jewel pickup
             if (this.recipes[i].Index !== Recipe.Rune
-              || ([Recipe.Rune, Recipe.Rejuv, Recipe.FullRejuv].includes(this.recipes[i].Index) && j >= 1)) {
+              || ([Recipe.Rune, Recipe.Rejuv, Recipe.FullRejuv].includes(this.recipes[i].Index) && j >= 1)
+            ) {
               // Enable rune recipe after 2 bases are found
               this.recipes[i].Enabled = true;
             }
@@ -1145,16 +1064,19 @@ const Cubing = {
 
     this.update();
     // Randomize the recipe array to prevent recipe blocking (multiple caster items etc.)
-    let tempArray = this.recipes.slice().shuffle();
+    const tempArray = this.recipes.slice().shuffle();
 
     for (let i = 0; i < tempArray.length; i += 1) {
+      const recipe = tempArray[i];
+
       let string = "Transmuting: ";
-      let items = this.checkRecipe(tempArray[i]);
+      let items = this.checkRecipe(recipe);
       if (!Array.isArray(items) || !items.length) continue;
 
       // If cube isn't open, attempt to open stash (the function returns true if stash is already open)
-      if ((!getUIFlag(sdk.uiflags.Cube) && !Town.openStash()) || !this.emptyCube()) return false;
-
+      if ((!getUIFlag(sdk.uiflags.Cube) && !Town.openStash()) || !this.emptyCube()) {
+        return false;
+      }
       this.cursorCheck();
 
       i = -1;

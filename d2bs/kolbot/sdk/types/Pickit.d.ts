@@ -18,6 +18,7 @@ declare global {
     const Result: PickitResult;
     const tkable: number[];
     const essentials: number[];
+    const systemKeep: { reason: string, gid: number }[];
 
     function init(notify: any): void;
     function itemEvent(gid?: number, mode?: number, code?: number, global?: number): void;

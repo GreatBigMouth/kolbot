@@ -1,10 +1,28 @@
 // @ts-nocheck
 declare global {
-  namespace DataFile {
-    function create(): void
-    function getObj(): void
-    function getStats(): any
-    function updateStats(arg: any, value?: any): void
+ namespace DataFile {
+    const _path: string;
+    const _default: {
+      handle: number;
+      name: string;
+      level: number;
+      experience: number;
+      gold: number;
+      deaths: number;
+      runs: number;
+      lastArea: string;
+      ingameTick: number;
+      gameName: string;
+      currentGame: string;
+      nextGame: string;
+    };
+
+    function init(): boolean;
+    function create(): typeof _default;
+    function read(profile: string): typeof _default | null;
+    function getObj(): typeof _default;
+    function getStats(): typeof _default;
+    function updateStats(arg: string | string[], value?: any): void;
   }
 
   namespace FileAction {
@@ -12,6 +30,18 @@ declare global {
     function write(path: string, msg: string): boolean;
     function append(path: string, msg: string): boolean;
     function parse(path: string): any;
+  }
+
+  interface D2BotProfileInfo {
+    Name: string;
+    Status: string;
+    Account: string;
+    Character: string;
+    Difficulty: string;
+    Realm: string;
+    Game: string;
+    Entry: string;
+    Tag: string;
   }
 
   export const D2Bot: {
@@ -46,7 +76,7 @@ declare global {
     ingame(): void
     joinMe(profile: any, gameName: any, gameCount: any, gamePass: any, isUp: any): void
     requestGame(profile: any): void
-    getProfile(): void
+    getProfile(): D2BotProfileInfo
     setProfile(account: any, password: any, character: any, difficulty: any, realm: any, infoTag: any, gamePath: any): void
     setTag(tag: any): void
     store(info: any): void
@@ -133,6 +163,8 @@ declare global {
       ysize: number
     ): string;
 
+    type Difficulty = 'Normal' | 'Nightmare' | 'Hell' | 'Highest';
+
     function scrollDown(): void;
     function clickRealm(realm: realms): boolean;
     function findCharacter(info: CharacterInfo): Control | false;
@@ -147,7 +179,7 @@ declare global {
     function makeAccount(info: AccountInfo): boolean;
     function loginAccount(info: AccountInfo): boolean;
     function joinChannel(channel: string): boolean;
-    function createGame(name: string, pass: string, diff: string, delay: number): void;
+    function createGame(name: string, pass: string, diff: Difficulty, delay: number): void;
     function getGameList(): { gameName: string, players: number }[] | false;
     function getQueueTime(): number;
     function loginOtherMultiplayer(): boolean;

@@ -4,6 +4,9 @@
 *  @desc        Entry script for following public games
 *
 *  @typedef {import("./sdk/globals")}
+*  @typedef {import("./libs/systems/torch/TorchSystem")}
+*  @typedef {import("./libs/systems/crafting/CraftingSystem")}
+*  @typedef {import("./libs/systems/gambling/Gambling")}
 */
 
 include("critical.js"); // required
@@ -17,7 +20,8 @@ Starter.Config.AttemptNextGameRetrys = 5;
 Starter.Config.MinPlayers = 1; // Minimum players in game to join
 const {
   includeFilter,
-  excludeFilter
+  excludeFilter,
+  profileOverides,
 } = require("./libs/systems/pubjoin/PubJoinConfig");
 
 // Override default values for StarterConfig under here by following format
@@ -35,6 +39,22 @@ if (typeof Starter.AdvancedConfig[me.profile] === "object") {
 }
 delete Starter.AdvancedConfig;
 
+if (typeof profileOverides[me.profile] === "object") {
+  if (profileOverides[me.profile].hasOwnProperty("includeFilter")) {
+    includeFilter.length = 0; // reset
+    for (let filter of profileOverides[me.profile].includeFilter) {
+      includeFilter.push(filter);
+    }
+  }
+
+  if (profileOverides[me.profile].hasOwnProperty("excludeFilter")) {
+    excludeFilter.length = 0; // reset
+    for (let filter of profileOverides[me.profile].excludeFilter) {
+      excludeFilter.push(filter);
+    }
+  }
+}
+
 new Overrides.Override(Starter, Starter.setNextGame, function (orignal, gameName) {
   function incrementString (text) {
     return text.replace(/(\d*)$/, (_, t) => (+t + 1).toString().padStart(t.length, 0));
@@ -46,15 +66,46 @@ new Overrides.Override(Starter, Starter.setNextGame, function (orignal, gameName
   DataFile.updateStats("nextGame", nextGame);
 }).apply();
 
-if (!FileTools.exists("data/" + me.profile + ".json") && DataFile.create()) {
+if (DataFile.init()) {
   Starter.firstRun = true;
 }
 
 let lastGameTick, retry = 0;
 let retryTick = 0;
 
+const GameTracker = {
+  _path: "data/" + me.profile + "/pubjoin.json",
+
+  init: function () {
+    if (!FileTools.exists("data/" + me.profile)) {
+      let folder = dopen("data");
+      folder.create(me.profile);
+    }
+
+    if (!FileTools.exists(this._path)) {
+      FileAction.write(this._path, JSON.stringify([]));
+    }
+  },
+
+  /**
+   * @returns {string[]}
+   */
+  read: function () {
+    return FileAction.parse(this._path);
+  },
+
+  /** @param {string[]} doneGames */
+  update: function (doneGames) {
+    return FileAction.write(this._path, JSON.stringify(doneGames));
+  },
+};
+
 const locationAction = (function () {
-  let gameToJoin, doneGames, gameList;
+  let gameToJoin;
+  /** @type {{ gameName: string; players: number }[] } */
+  let gameList;
+  /** @type {string[]} */
+  let doneGames = [];
 
   const Controls = require("./libs/modules/Control");
   const {
@@ -226,11 +277,8 @@ const locationAction = (function () {
       }
 
       if (gameList) {
-        doneGames = [];
+        doneGames = GameTracker.read();
         gameToJoin = false;
-        if (FileTools.exists("logs/doneGames.json")) {
-          doneGames = JSON.parse(FileAction.read("logs/doneGames.json"));
-        }
 
         gameList
           .sort(function (a, b) {
@@ -252,7 +300,7 @@ const locationAction = (function () {
         if (gameToJoin) {
           doneGames.length >= 20 && doneGames.shift();
           doneGames.push(gameToJoin);
-          FileAction.write("logs/doneGames.json", JSON.stringify(doneGames));
+          GameTracker.update(doneGames);
 
           me.blockMouse = true;
 
@@ -351,6 +399,8 @@ function main () {
     delay(500);
   }
 
+  GameTracker.init();
+
   while (true) {
     // returns true before actually in game so we can't only use this check
     while (me.ingame) {
@@ -373,16 +423,13 @@ function main () {
           Starter.setNextGame(me.gamename);
 
           /** @type {string[]} */
-          let doneGames = [];
-          if (FileTools.exists("logs/doneGames.json")) {
-            doneGames = JSON.parse(FileAction.read("logs/doneGames.json"));
-          }
+          let doneGames = GameTracker.read();
 
           doneGames.length >= 20 && doneGames.shift();
           if (!doneGames.includes(me.gamename)) {
             doneGames.push(me.gamename);
           }
-          FileAction.write("logs/doneGames.json", JSON.stringify(doneGames));
+          GameTracker.update(doneGames);
         }
 
         D2Bot.updateStatus(

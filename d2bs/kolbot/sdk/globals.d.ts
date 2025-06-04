@@ -49,10 +49,12 @@ declare global {
     symmetricDifference(other: T[]): T[];
     flat(depth?: number): T[];
     compactMap(callback: (value: T, index: number, obj: T[]) => any, thisArg?: any): any[];
+    filterNull(): T[];
     filterHighDistance(step: number): any[]
     isEqual(t: T[]): boolean
     remove(val: T): T[]
     random(): T;
+    shuffle(): T[];
     /**
      * Creates a new array by sorting the elements of the original array.
      *
@@ -90,6 +92,12 @@ declare global {
      * @throws {RangeError} If index >= array.length or index < -array.length.
      */
     with(index: number, value: T): T[];
+    /**
+     * Finds the first element that matches the predicate and removes it from the array.
+     * @param predicate A function to test each element of the array.
+     * @returns The modified array.
+     */
+    findAndRemove(predicate: (value: T, index: number, array: T[]) => boolean): this;
   }
 
   interface String {
@@ -137,6 +145,30 @@ declare global {
     dateStamp(): string;
   }
 
+  /**
+   * Environment configuration
+   * @namespace
+   */
+  interface Env {
+    /**
+     * Updates environment settings with provided values
+     * @param settings Object containing settings to update
+     * @returns The updated env object for chaining
+     */
+    update(settings: Record<string, any>): Env;
+    
+    /**
+     * Any additional custom properties
+     */
+    [key: string]: any;
+  }
+  
+  /**
+   * Global environment object
+   * This object is lazily loaded when first accessed.
+   */
+  const env: Env;
+
   class ScriptError extends Error {
   }
 
@@ -172,6 +204,8 @@ declare global {
     automap: boolean;
 
     remove(): void;
+    click(): void;
+    hover(): void;
   }
 
   class Line extends Hook {
@@ -388,6 +422,7 @@ declare global {
   type PlayerType = 0;
   class Player extends Unit {
     public type: PlayerType;
+    readonly size: number;
   }
 
   type MonsterType = 1;
@@ -419,6 +454,7 @@ declare global {
     readonly isUnraveler: boolean;
     readonly isFallen: boolean;
     readonly isBeetle: boolean;
+    readonly isDruidVine: boolean;
     readonly extraStrong: boolean;
     readonly extraFast: boolean;
     readonly cursed: boolean;
@@ -441,6 +477,7 @@ declare global {
     readonly lightRes: number;
     readonly poisonRes: number;
     resPenalty: number;
+    readonly size: number;
 
     getEnchant(type: number): boolean;
     hasEnchant(...enchants: number): boolean
@@ -542,6 +579,7 @@ declare global {
     readonly durabilityPercent: number;
     readonly isCharm: boolean;
     readonly gold: number;
+    readonly itemclass: number;
 
     getColor(): number;
     getBodyLoc(): number[];
@@ -574,6 +612,17 @@ declare global {
     ethereal?: boolean,
     cb?: (item: ItemUnit) => boolean,
   };
+
+  interface ItemInfo {
+    classid?: number;
+    itemtype?: number;
+    quality?: number;
+    runeword?: boolean;
+    ethereal?: boolean;
+    equipped?: boolean | number;
+    basetype?: boolean;
+    name?: string | number;
+  }
 
   interface MeType extends Unit {
     public type: PlayerType;
@@ -709,6 +758,12 @@ declare global {
      */
     _shitList: Set<string>;
     shitList: Set<string>;
+    /**
+     * @private
+     * Don't use directly, use `me.qutting`
+     */
+    _quitting: boolean;
+    quitting: boolean;
 
     // d2bs functions
     overhead(msg: string): void;
@@ -767,6 +822,7 @@ declare global {
       name?: string | number;
       equipped?: boolean | number;
     }): {have: boolean; item: ItemUnit | null};
+    findFirst(itemInfo: ItemInfo): { have: boolean; item: ItemUnit | null };
     usingShield(): boolean;
     checkQuest(questId: number, state: number): boolean;
 
@@ -1053,14 +1109,46 @@ declare global {
   function sendDDE()
   function keystate()
 
-  type eventName = 'gamepacket' | 'scriptmsg' | 'copydata' | 'keyup' | 'keydown' | 'itemaction' | 'chatmsg';
+  type eventName =
+    | 'itemaction'
+    | 'gameevent'
+    | 'copydata'
+    | 'chatmsg'
+    | 'chatinput'
+    | 'whispermsg'
+    | 'chatmsgblocker'
+    | 'chatinputblocker'
+    | 'whispermsgblocker'
+    | 'mousemove'
+    | 'ScreenHookHover'
+    | 'mouseclick'
+    | 'keyup'
+    | 'keydownblocker'
+    | 'keydown'
+    | 'memana'
+    | 'melife'
+    | 'playerassign'
+    | 'ScreenHookClick'
+    | 'Command'
+    | 'scriptmsg'
+    | 'gamepacket'
+    | 'gamepacketsent'
+    | 'realmpacket';
 
+  function addEventListener(eventType: 'realmpacket', callback: ((bytes: ArrayBufferLike) => boolean)): void
   function addEventListener(eventType: 'gamepacket', callback: ((bytes: ArrayBufferLike) => boolean)): void
   function addEventListener(eventType: 'scriptmsg', callback: ((data: string | object | number) => void)): void
   function addEventListener(eventType: 'copydata', callback: ((mode: number, msg: string) => void)): void
   function addEventListener(eventType: 'itemaction', callback: ((gid: number, mode?: number, code?: string, global?: true) => void)): void
-  function addEventListener(eventType: 'keyup' | 'keydown', callback: ((key: number|string) => void)): void
-  function addEventListener(eventType: 'chatmsg', callback: ((nick: string, msg: string) => void)): void
+  function addEventListener(eventType: 'keyup' | 'keydown' | 'keydownblocker', callback: ((key: number|string) => void)): void
+  function addEventListener(eventType: 'chatmsg' | 'chatinput' | 'whispermsg', callback: ((nick: string, msg: string) => void)): void
+  function addEventListener(eventType: 'chatmsgblocker' | 'chatinputblocker' | 'whispermsgblocker', callback: ((arg1: string, arg2: string) => void)): void
+  function addEventListener(eventType: 'mousemove', callback: ((arg1: string, arg2: string) => void)): void
+  function addEventListener(eventType: 'ScreenHookHover', callback: ((arg1: string, arg2: string) => void)): void
+  function addEventListener(eventType: 'mouseclick', callback: ((arg1: string, arg2: string, arg3: string, arg4: string) => void)): void
+  function addEventListener(eventType: 'memana' | 'melife', callback: ((arg1: string, arg2: string) => void)): void
+  function addEventListener(eventType: 'playerassign', callback: ((arg1: string, arg4: string) => void)): void
+  function addEventListener(eventType: 'ScreenHookClick', callback: ((arg1: any, arg2: any, arg3: any, arg4: any) => void)): void
   function addEventListener(eventType: eventName, callback: ((...args: any) => void)): void
 
   function removeEventListener(eventType: 'gamepacket', callback: ((bytes: ArrayBufferLike) => boolean)): void
@@ -1288,6 +1376,7 @@ declare global {
     },
     joinInfo: {},
     profileInfo: ProfileInfo,
+    ftjCount: number,
 
     sayMsg(string: string): void,
     timer(tick: number): string,
@@ -1377,5 +1466,11 @@ declare global {
    * @returns {boolean} - Returns true if the value matches the expected type, otherwise false.
    */
   function isType<T extends PrimitiveType>(val: any, type: T): val is PrimitiveTypeMap[T];
+
+  /**
+   * This method sleeps the caller thread for the duration in ms passed to it
+   * @note Use sparingly, this method stops the background workers on the callers thread
+   */
+  function threadSleep(ms: number);
 }
 export {};

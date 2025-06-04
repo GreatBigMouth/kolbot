@@ -210,6 +210,30 @@ const Misc = (function () {
     },
 
     /**
+     * Get players in game and in my party
+     * @returns {Party[]}
+     */
+    getPartyMembers: function () {
+      /** @type {Party[]} */
+      const members = [];
+      let party = getParty();
+
+      if (party) {
+        let myPartyId = party.partyid;
+        
+        do {
+          if (party.partyid !== sdk.party.NoParty
+            && party.partyid === myPartyId
+            && party.name !== me.name) {
+            members.push(copyObj(party));
+          }
+        } while (party.getNext());
+      }
+
+      return members;
+    },
+
+    /**
      * Check if any member of our party meets a certain level req
      * @param {number} levelCheck 
      * @param {string | string[]} exclude 
@@ -644,7 +668,8 @@ const Misc = (function () {
         case sdk.shrines.Gem:
           // for now we ignore if we are gem hunting later on
           // TODO: add gem hunting logic, get gem from stash if we have one
-          return !Scripts.GemHunter;
+          console.debug("shriner: gem shrine. try my best.");
+          return Town.prepareForGemShrine();
         }
         return false;
       };
@@ -706,6 +731,7 @@ const Misc = (function () {
               }
             }
             this.getShrine(shrine);
+            Pickit.pickItems();
           }
         }
       }
@@ -797,6 +823,11 @@ const Misc = (function () {
                 shrine.objtype === Config.ScanShrines[i]
                 || (Config.ScanShrines[i] === "well" && shrine.name.toLowerCase().includes("well") && needWell())
               ) && (Pather.useTeleport() || !checkCollision(me, shrine, sdk.collision.WallOrRanged))) {
+                // Gem shrine - prepare and pick anyways
+                if (Config.ScanShrines[i] === sdk.shrines.Gem) {
+                  console.debug("scanshrines: gem shine. try my best.");
+                  Town.prepareForGemShrine();
+                }
                 this.getShrine(shrine);
 
                 // Gem shrine - pick gem

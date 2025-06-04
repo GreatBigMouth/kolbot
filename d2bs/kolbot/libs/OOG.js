@@ -368,9 +368,20 @@ includeIfNotIncluded("core/Me.js");
       if (!control) return false;
 
       let text = control.getText();
-      if (!Array.isArray(text) || typeof text[1] !== "string") return false;
+      if (!Array.isArray(text) || typeof text[1] !== "string") {
+        return false;
+      }
+      
+      let expireText = text.find(el => el.includes(expireStr));
+      if (!expireText) {
+        return true;
+      }
 
-      return !text.some(el => el.includes(expireStr));
+      let daysMatch = /\d+/.exec(expireText);
+      let days = daysMatch ? parseInt(daysMatch[0], 10) : 0;
+
+      // > 11 days means this char has been permed before
+      return days > 11;
     },
 
     /**

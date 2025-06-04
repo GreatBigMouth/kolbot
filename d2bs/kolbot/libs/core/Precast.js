@@ -371,9 +371,19 @@ const Precast = (function () {
                 chantList.has(unit.name)
                   ? chantList.get(unit.name).update()
                   : chantList.set(unit.name, new ChantTracker());
+                
+                // not sure why this happens but sometimes clicks on other characters while casting
+                if (getUIFlag(sdk.uiflags.TradePrompt)) {
+                  me.cancel();
+                }
               }
             }
           } while (unit.getNext());
+        }
+
+        // not sure why this happens but sometimes clicks on other characters while casting
+        if (getUIFlag(sdk.uiflags.TradePrompt)) {
+          me.cancel();
         }
 
         // Minion

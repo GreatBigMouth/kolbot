@@ -7,13 +7,17 @@
 
 includeIfNotIncluded("core/Pickit.js");
 
-Pickit.basicPickItems = function () {
+/**
+ * @param {number} range 
+ * @returns {boolean}
+ */
+Pickit.basicPickItems = function (range) {
   let itemList = [];
   let item = Game.getItem();
 
   if (item) {
     do {
-      if (item.onGroundOrDropping) {
+      if (item.onGroundOrDropping && item.distance <= range) {
         itemList.push(copyUnit(item));
       }
     } while (item.getNext());

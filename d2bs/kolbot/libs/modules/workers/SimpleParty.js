@@ -88,12 +88,16 @@
   };
 
   SimpleParty.timer = 0;
+  SimpleParty.enabled = true;
 
   if (new RegExp(/[default.dbj|main.js]/gi).test(getScript(true).name)) {
     addEventListener("scriptmsg", function (msg) {
       if (!isType(msg, "string")) return;
       if (msg === "hostileEventEnded" && (Config.ShitList || Config.UnpartyShitlisted)) {
         ShitList.read().forEach((name) => me.shitList.add(name));
+      } else if (msg === "unparty") {
+        SimpleParty.enabled = false;
+        clickParty(getParty(), BUTTON_LEAVE_PARTY);
       }
     });
     

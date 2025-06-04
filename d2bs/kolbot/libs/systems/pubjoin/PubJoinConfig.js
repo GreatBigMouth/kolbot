@@ -42,8 +42,18 @@
     [""]
   ];
 
+  /**
+   * @type {Record<string, { includeFilter?: Array<Array<string>>, excludeFilter?: Array<Array<string>>}>}
+   */
+  const profileOverides = {
+    // "test": {
+    //   includeFilter: [["trist"], ["tombs"]]
+    // }
+  };
+
   module.exports = {
     includeFilter: includeFilter,
     excludeFilter: excludeFilter,
+    profileOverides: profileOverides,
   };
 })(module);

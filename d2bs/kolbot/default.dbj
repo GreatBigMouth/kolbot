@@ -206,7 +206,7 @@ function main () {
     Config.ClearInvOnStart && Town.clearInventory();
     [x, y].distance > 3 && Pather.moveTo(x, y);
     Pickit.pickItems();
-    me.hpPercent <= 10 && Town.heal() && me.cancelUIFlags();
+    Town.heal() && me.cancelUIFlags();
 
     if (Config.DebugMode.Memory) {
       delay(2000);
@@ -257,6 +257,10 @@ function main () {
           + Math.round(((startTime + Config.MinGameTime) - getTickCount()) / 1000)
           + " seconds."
         );
+      }
+
+      if (Config.UnpartyForMinGameTimeWait) {
+        scriptBroadcast("unparty");
       }
       
       while (getTickCount() - startTime < Config.MinGameTime * 1000) {

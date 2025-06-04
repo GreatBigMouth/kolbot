@@ -117,14 +117,13 @@
   /**
    * @class
    * @description new PacketBuilder() - create new packet object
+   * @param {number} [initialByte] - Optional initial byte to add to the packet
    * @example <caption>(Spoof 'reassign player' packet to client):</caption>
    * new PacketBuilder().byte(sdk.packets.recv.ReassignPlayer).byte(0).dword(me.gid).word(x).word(y).byte(1).get();
    * @example <caption>(Spoof 'player move' packet to server):</caption>
-   * new PacketBuilder().byte(sdk.packets.send.RunToLocation).word(x).word(y).send();
-   * @todo pass the inital byte into the constructor so we don't always have to do `new PacketBuilder().byte(sdk.packets.recv.ReassignPlayer)...`
-   * it would just be `new PacketBuilder(sdk.packets.recv.ReassignPlayer)...`
+   * new PacketBuilder(sdk.packets.send.RunToLocation).word(x).word(y).send();
    */
-  function PacketBuilder () {
+  function PacketBuilder (initialByte) {
     // globals DataView ArrayBuffer
     if (this.__proto__.constructor !== PacketBuilder) {
       throw new Error("PacketBuilder must be called with 'new' operator!");
@@ -133,20 +132,35 @@
     let queue = [];
     let count = 0;
 
-    // accepts any number of arguments
-    let enqueue = (type, size) => (...args) => {
-      args.forEach(arg => {
-        if (type === "String") {
-          arg = stringToEUC(arg);
-          size = arg.length + 1;
+    // If initial byte was provided, add it
+    if (typeof initialByte === "number") {
+      queue.push({ type: "Uint8", size: 1, data: initialByte });
+      count += 1;
+    }
+
+    /**
+     * Internal function to add data to the packet queue
+     * @param {string} type - The data type
+     * @param {number} size - The byte size
+     * @returns {function} - A function that accepts data and adds it to the queue
+     */
+    function enqueue(type, size) {
+      return function() {
+        for (let i = 0; i < arguments.length; i++) {
+          let arg = arguments[i];
+        
+          if (type === "String") {
+            arg = stringToEUC(arg);
+            size = arg.length + 1;
+          }
+
+          queue.push({ type: type, size: size, data: arg });
+          count += size;
         }
 
-        queue.push({ type: type, size: size, data: arg });
-        count += size;
-      });
-
-      return this;
-    };
+        return this;
+      };
+    }
 
     /** @description size = 4 */
     this.float = enqueue("Float32", 4);
@@ -158,9 +172,13 @@
     this.byte = enqueue("Uint8", 1);
     this.string = enqueue("String");
 
-    this.buildDataView = () => {
+    /**
+     * Builds a DataView from the packet data
+     * @returns {DataView} - The built packet as a DataView
+     */
+    this.buildDataView = function () {
       let dv = new DataView(new ArrayBuffer(count)), i = 0;
-      queue.forEach(field => {
+      queue.forEach(function (field) {
         if (field.type === "String") {
           for (let l = 0; l < field.data.length; l++) {
             dv.setUint8(i++, field.data.charCodeAt(l), true);
@@ -176,8 +194,23 @@
       return dv;
     };
 
-    this.send = () => (sendPacket(this.buildDataView().buffer), this);
-    this.spoof = () => (getPacket(this.buildDataView().buffer), this);
+    /**
+     * Sends the packet to the server
+     * @returns {PacketBuilder} - Returns this for method chaining
+     */
+    this.send = function() {
+      sendPacket(this.buildDataView().buffer);
+      return this;
+    };
+
+    /**
+     * Spoofs the packet to the client
+     * @returns {PacketBuilder} - Returns this for method chaining
+     */
+    this.spoof = function() {
+      getPacket(this.buildDataView().buffer);
+      return this;
+    };
     this.get = this.spoof; // same thing but spoof has clearer intent than get
   }
 

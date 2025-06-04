@@ -1,6 +1,6 @@
 /**
 *  @filename    GemHunter.js
-*  @author      icommitdesnet
+*  @author      icommitdesnet, theBGuy
 *  @desc        hunt gem shrines
 *
 */
@@ -14,32 +14,86 @@
  */
 const GemHunter = new Runnable(
   function GemHunter () {
-    Town.doChores();
-    Town.getGem();
-    if (Town.getGemsInInv().length === 0) {
+    if (!Town.prepareForGemShrine()) {
       console.log("ÿc4GemHunterÿc0: no gems in inventory - aborting.");
       return false;
     }
 
-    for (let area of Config.GemHunter.AreaList) {
-      if (Town.getGemsInInv().length > 0) {
-        console.log("ÿc4GemHunterÿc0: Moving to " + getAreaName(area));
-        Pather.journeyTo(area);
-        if (i % 2 === 0) Precast.doPrecast(true);
-        if (Misc.getShrinesInArea(area, sdk.shrines.Gem, true)) {
-          Pickit.pickItems();
-          console.log("ÿc4GemHunterÿc0: found a gem Shrine");
-          if ((Town.getGemsInInv().length === 0) && (Town.getGemsInStash().length > 0)) {
-            console.log("ÿc4GemHunterÿc0: Getting a new Gem in Town.");
-            Town.visitTown(); // Go to Town and do chores. Will throw an error if it fails to return from Town.
-            Town.getGem();
+    /** @param {number} area */
+    const findGemShrines = function (area) {
+      const shrineLocs = [];
+      const units = Game.getPresetObjects(area)
+        .filter(function (preset) {
+          return sdk.shrines.Presets.includes(preset.id);
+        });
+
+      if (units.length) {
+        for (let shrine of units) {
+          shrineLocs.push(shrine.realCoords());
+        }
+      }
+
+      try {
+        NodeAction.shrinesToIgnore.push(sdk.shrines.Gem);
+
+        while (shrineLocs.length > 0) {
+          shrineLocs.sort(Sort.units);
+          let coords = shrineLocs.shift();
+
+          Pather.move(coords, { minDist: Skill.haveTK ? 20 : 5, callback: () => {
+            let shrine = Game.getObject("shrine");
+            return !!shrine && shrine.x === coords.x && shrine.y === coords.y;
+          } });
+
+          let shrine = Game.getObject("shrine");
+
+          if (shrine) {
+            do {
+              if (shrine.objtype === sdk.shrines.Gem && shrine.mode === sdk.objects.mode.Inactive) {
+                (!Skill.haveTK || !use) && Pather.moveTo(shrine.x - 2, shrine.y - 2);
+
+                console.log("ÿc4GemHunterÿc0: found a gem Shrine");
+                if (Misc.getShrine(shrine)) {
+                  Pickit.pickItems();
+
+                  if (!Town.prepareForGemShrine()) {
+                    console.error("ÿc4GemHunterÿc0: failed to prepare for next shrine - aborting.");
+                    return false;
+                  }
+                }
+              }
+            } while (shrine.getNext());
           }
         }
+
+        return true;
+      } finally {
+        NodeAction.shrinesToIgnore.remove(sdk.shrines.Gem);
+      }
+    };
+
+    for (let area of Config.GemHunter.AreaList) {
+      console.log("ÿc4GemHunterÿc0: Moving to " + getAreaName(area));
+      Pather.journeyTo(area);
+      Precast.doPrecast(false);
+      
+      if (!findGemShrines(area)) {
+        console.debug("ending early");
+        break;
       }
     }
     return true;
   },
   {
-    preAction: null
+    preAction: function (ctx) {
+      ctx.preGidList = new Set(Town.dontStashGids);
+    },
+    cleanup: function (ctx) {
+      for (let gid of Town.dontStashGids) {
+        if (!ctx.preGidList.has(gid)) {
+          Town.dontStashGids.delete(gid);
+        }
+      }
+    }
   }
 );
