@@ -478,6 +478,7 @@ declare global {
     readonly poisonRes: number;
     resPenalty: number;
     readonly size: number;
+    readonly isEnchantable: boolean;
 
     getEnchant(type: number): boolean;
     hasEnchant(...enchants: number): boolean

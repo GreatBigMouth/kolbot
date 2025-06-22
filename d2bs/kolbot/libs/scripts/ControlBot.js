@@ -37,12 +37,12 @@ const ControlBot = new Runnable(
     ];
 
     const voteRequestMessages = [
-      "{players} please cast your vote. Voting ends in {time}s",
-      "Still waiting on votes from {players}. {time} seconds remaining",
-      "Don't forget to vote {players}! Time remaining: {time}s",
-      "{players}, we need your vote! {time} seconds left to decide",
-      "Hey {players}, make your voice heard! {time}s left to vote",
-      "{time} seconds left and we're still waiting on {players} to vote"
+      "{players} please cast your vote for ng. Voting ends in {time}s",
+      "Still waiting on ng votes from {players}. {time} seconds remaining",
+      "Don't forget to vote for ng {players}! Time remaining: {time}s",
+      "{players}, we need your vote for ng! {time} seconds left to decide",
+      "Hey {players}, make your voice heard! {time}s left to vote for ng",
+      "{time} seconds left and we're still waiting on {players} to vote for ng"
     ];
 
     const queuePositionMessages = [
@@ -706,7 +706,7 @@ const ControlBot = new Runnable(
 
         if (monster) {
           do {
-            if (monster.isDruidVine) {
+            if (!monster.isEnchantable) {
               continue;
             }
             // merc or any other owned unit
@@ -834,7 +834,7 @@ const ControlBot = new Runnable(
         do {
           try {
             if (monster.getParent()
-              && !monster.isDruidVine
+              && monster.isEnchantable
               && Misc.inMyParty(monster.getParent().name)
               && playerTracker.has(monster.getParent().name)
               && !monster.getState(sdk.states.Enchant)
@@ -993,11 +993,31 @@ const ControlBot = new Runnable(
       let tome = getTome();
       if (!tome) return false;
 
-      if (!Town.openStash()
-        || !Cubing.emptyCube()
-        || !Storage.Cube.MoveTo(leg)
-        || !Storage.Cube.MoveTo(tome)
-        || !Cubing.openCube()) {
+      if (!Town.openStash()) {
+        log("Failed to open stash");
+        return false;
+      }
+
+      const cubeItems = me.getItemsEx(-1, sdk.items.mode.inStorage).filter(function (item) {
+        return (
+          item.isInCube
+          && item.classid !== sdk.items.quest.WirtsLeg
+          && item.classid !== sdk.items.TomeofTownPortal
+        );
+      });
+
+      if (cubeItems.length > 0 && !Cubing.emptyCube()) {
+        log("Failed to empty cube");
+        return false;
+      }
+
+      if (!Storage.Cube.MoveTo(leg) || !Storage.Cube.MoveTo(tome)) {
+        log("Failed to move items to cube");
+        return false;
+      }
+
+      if (!Cubing.openCube()) {
+        log("Failed to open cube");
         return false;
       }
 
@@ -1489,6 +1509,12 @@ const ControlBot = new Runnable(
       const denRegex = /^\b(den|den ?of ?evil)\b/;
       const forgeRegex = /^\b(forge|hell ?forge)\b/;
       let chatCmd = full;
+
+      if (chatCmd === "givewp") {
+        Chat.say("givewp must be used with an area, i.e givewp cold plains");
+
+        return;
+      }
       
       if (chatCmd.match(/^rush /gi)) {
         chatCmd = chatCmd.split(" ")[1];
@@ -1538,17 +1564,11 @@ const ControlBot = new Runnable(
         return;
       }
 
-      if (chatCmd === "givewp") {
-        Chat.say("givewp must be used with an area, i.e givewp cold plains");
-
-        return;
-      }
-
       if (commandAliases.has(chatCmd)) {
         chatCmd = commandAliases.get(chatCmd);
       }
 
-      if (chatCmd.match(/^drop /gi) && !Config.ControlBot.DropGold) {
+      if ((chatCmd.match(/^drop/gi) || chatCmd.match(/^give ?gold$/)) && !Config.ControlBot.DropGold) {
         chatCmd = "troll";
       }
 

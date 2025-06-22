@@ -1877,6 +1877,7 @@ declare global {
         const DeathMauler: 57;
         const PutridDefiler: 58;
       }
+      const Raven: 419;
       const PoisonCreeper: 425;
       const CarrionVine: 426;
       const SolarCreeper: 427;

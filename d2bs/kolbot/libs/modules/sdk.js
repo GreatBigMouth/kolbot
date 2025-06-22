@@ -1955,6 +1955,7 @@
         DeathMauler: 57,
         PutridDefiler: 58,
       },
+      Raven: 419,
       PoisonCreeper: 425,
       CarrionVine: 426,
       SolarCreeper: 427,

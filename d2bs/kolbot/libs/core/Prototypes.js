@@ -81,8 +81,14 @@ Object.defineProperties(Unit.prototype, {
     },
   },
   isNPC: {
+    /** @this {Monster | NPCUnit} */
     get: function () {
-      return this.type === sdk.unittype.Monster && this.getStat(sdk.stats.Alignment) === 2;
+      const mercClassids = [sdk.mercs.Rogue, sdk.mercs.Guard, sdk.mercs.IronWolf, sdk.mercs.A5Barb];
+      return (
+        this.type === sdk.unittype.Monster
+        && !mercClassids.includes(this.classid)
+        && this.getStat(sdk.stats.Alignment) === 2
+      );
     },
   },
   // todo - monster types
@@ -190,11 +196,21 @@ Object.defineProperties(Unit.prototype, {
     },
   },
   isDruidVine: {
+    /** @this {Unit} */
     get: function () {
       return [
         sdk.monsters.PoisonCreeper, sdk.monsters.CarrionVine, sdk.monsters.SolarCreeper,
       ].includes(this.classid);
     }
+  },
+  isEnchantable: {
+    /** @this {Monster} */
+    get: function () {
+      if (this.type > sdk.unittype.Monster) {
+        throw new Error("Unit.isEnchantable: Must be used with monster units.");
+      }
+      return (this.isMonster && !this.isNPC && !this.isDruidVine && this.classid !== sdk.monsters.Raven);
+    },
   },
   isWalking: {
     get: function () {
