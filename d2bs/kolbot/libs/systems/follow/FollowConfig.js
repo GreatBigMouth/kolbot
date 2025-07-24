@@ -28,6 +28,16 @@
       "Wakka.Follow5",
       "Wakka.Follow6",
     ],
+    "Baal.Leader": [
+      "Baal.Helper1",
+      "Baal.Helper2",
+      "Baal.Helper3",
+      "Baal.BOBarb",
+      "Baal.Follow1",
+      "Baal.Follow2",
+      "Baal.Follow3",
+      "Baal.Follow4",
+    ],
     "LS.CH.Leader": [
       "LS.CH.Follow1",
       "LS.CH.Follow2",

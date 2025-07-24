@@ -4,6 +4,12 @@ const CustomConfig = {
   
 		  Multiple entries are separated by commas
 	  */
+
+  /*
+  * *************************************************************************
+  * ****************************** RUSH SERVICE *****************************
+  * *************************************************************************
+  */
   
   "RS.Normal.Master": ["RS.N.Master"],
   "RS.Normal.Helper1": ["RS.N.Helper1"],
@@ -19,17 +25,14 @@ const CustomConfig = {
     "(R)RS.H.B1", "(R)RS.H.B2", "(R)RS.H.B3", "(R)RS.H.B4", "(R)RS.H.B5", "(R)RS.H.B6",
     "(R)RS.Q.B1", "(R)RS.Q.B2", "(R)RS.Q.B3", "(R)RS.Q.B4", "(R)RS.Q.B5", "(R)RS.Q.B6",
   ],
-  
-  "Follower.config": [
-    "runs_follower1",
-    "runs_follower2",
-    "runs_follower3",
-    "runs_follower4",
-    "runs_follower5",
-    "runs_follower6",
-    "runs_follower7",
-  ],
-  
+
+
+  /*
+  * *************************************************************************
+  * ****************************** WAKKA ************************************  
+  * *************************************************************************
+  */
+
   "Wakka.Leader.Paladin": ["Wakka.Leader"],
   "Wakka.Helper.Paladin": ["Wakka.Helper"],
   "Wakka.Follower": [
@@ -38,8 +41,38 @@ const CustomConfig = {
     "Wakka.Follow3",
     "Wakka.Follow4",
     "Wakka.Follow5",
-    "Wakka.Follow6",
+    "Wakka.Follow6"
   ],
+
+
+  /*
+  * *************************************************************************
+  * ****************************** BAALRUNS ********************************* 
+  * *************************************************************************
+  */
+
+  "Baal.Leader": [ "Baal.Leader" ],
+  "Baal.Helper.Paladin": [
+    "Baal.Helper1",
+  ],
+  "Baal.Helper.Sorceress": [
+    "Baal.Helper2",
+    "Baal.Helper3"
+  ],
+  "Baal.Helper.BOBarb": [ "Baal.BOBarb" ],
+  "Baal.Follower": [
+    "Baal.Follow1",
+    "Baal.Follow2",
+    "Baal.Follow3",
+    "Baal.Follow4",
+  ],
+
+
+  /*
+  * *************************************************************************
+  * ************************* LEVEL SERVICE FARMING *************************
+  * *************************************************************************
+  */
 
   "LS.CharmHunter.Normal.Leader": ["LS.CH.Leader"],
   "LS.CharmHunter.Normal.Follower": [
