@@ -4,20 +4,21 @@
   ],
   "editor.tabSize": 2,
   "editor.detectIndentation": false,
-  "javascript.validate.enable": false,
-  "eslint.format.enable": true,
   "[javascript]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
   },
-  /* "[javascript]": {
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
-  }, */
-  "editor.formatOnType": false, // required
-  "editor.formatOnPaste": false, // optional
-  "editor.formatOnSave": false, // optional
-  "editor.formatOnSaveMode": "file",
-  "eslint.debug": false,
-  "javascript.suggest.paths": false,
-  "typescript.suggest.paths": false, // required to format on save
-  /* "files.autoSave": "onFocusChange", */ // optional but recommended
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.biome": "explicit",
+      "source.removeUnusedImports": "always",
+      "quickfix.biome": "explicit",
+      "source.fixAll.ts": "explicit",
+      "source.fixAll.eslint": "never",
+      "source.fixAll.biome": "explicit",
+    }
+  }
 }

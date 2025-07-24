@@ -7,6 +7,7 @@
 */
 
 (function (module) {
+  /** @type {Record<string, Partial<StarterConfig>>} */
   module.exports = {
     /* Features:
     Override channel for each profile, Override join delay for each profile

@@ -213,16 +213,19 @@ Object.defineProperties(Unit.prototype, {
     },
   },
   isWalking: {
+    /** @this {Monster} */
     get: function () {
       return (this.mode === sdk.monsters.mode.Walking && (this.targetx !== this.x || this.targety !== this.y));
     }
   },
   isRunning: {
+    /** @this {Monster} */
     get: function () {
       return (this.mode === sdk.monsters.mode.Running && (this.targetx !== this.x || this.targety !== this.y));
     }
   },
   isMoving: {
+    /** @this {Monster} */
     get: function () {
       return (this.isWalking || this.isRunning);
     },

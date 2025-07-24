@@ -7,8 +7,6 @@
 
 const Cows = new Runnable(
   function Cows () {
-    include("core/Common/Cows.js");
-    
     const getLeg = function () {
       if (me.wirtsleg) return me.wirtsleg;
 

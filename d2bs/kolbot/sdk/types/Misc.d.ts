@@ -1,13 +1,23 @@
-
-export{};
+export {};
 declare global {
   namespace Misc {
-    const screenshotErrors: any;
-    const errorConsolePrint: any;
+    const _diabloSpawned: boolean;
+    const screenshotErrors: boolean;
+    const errorConsolePrint: boolean;
     const useItemLog: boolean;
-    
-    function click(button: number, shift: number, unit: Unit): void;
-    function click(button: number, shift: number, x: Unit, y: undefined): void;
+    let shrineStates: number[] | null;
+    const _shrinerIgnore: Set<number>;
+    const lastShrine: {
+      tick: number;
+      duration: number;
+      type: number;
+      state: number;
+      update(unit: ObjectUnit): void;
+      remaining(): number;
+      isMyCurrentState(): boolean;
+    };
+
+    function click(button: number, shift: number, x?: number | Unit, y?: number): boolean;
     function inMyParty(name: string): boolean;
     function findPlayer(name: string): Party | false;
     function getPlayerUnit(name: string): Player | false;
@@ -16,29 +26,28 @@ declare global {
     function getPlayerCount(): number;
     function getPartyCount(): number;
     function getPartyMembers(): Party[];
-    function checkPartyLevel(levelCheck: number, exclude: string | string[]): boolean;
+    function checkPartyLevel(levelCheck?: number, exclude?: string | string[]): boolean;
     function getPlayerArea(player: Party | string): number | false;
-
-    type AutoLeaderDetectSettings = {
-      destination: number | number[],
-      quitIf: (area: number) => boolean,
-      timeout: number,
-    };
-    function autoLeaderDetect(givenSettings: AutoLeaderDetectSettings): string | false;
-    function openChest(unit: any): boolean;
-    function openChestsInArea(area?: any, chestIds?: any): void;
-    function openChests(range: any): void;
-    function scanShrines(range: any): void;
-    function getShrine(unit: any): void;
-    function getShrinesInArea(area: any, type: any, use: any): void;
+    function autoLeaderDetect(givenSettings?: {
+      destination?: number | number[];
+      quitIf?: (area: number) => boolean;
+      timeout?: number;
+    }): string | false;
+    function openChest(unit: Unit | number): boolean;
+    function openChestsInArea(area?: number, chestIds?: number[]): boolean;
+    function openChests(range?: number): boolean;
+    function shriner(ignore: number[]): boolean;
+    function scanShrines(range: number, ignore: number[]): boolean;
+    function getShrine(unit: ObjectUnit): boolean;
+    function getShrinesInArea(area: number, type: number, use: boolean): boolean;
     /** @deprecated */
-    function townCheck(boolean?: boolean): void;
-    function spy(name: any): void;
+    function townCheck(): boolean;
+    function spy(name: string): boolean;
     function errorReport(error: Error | string, script?: string): void;
-    function debugLog(msg: any): void;
-    function useMenu(id: number): void;
-    function poll<T>(check: () => T, timeout?: number, sleep?: number): T;
-    function getUIFlags(excluded?: []): number[] | null;
+    function debugLog(msg: string): void;
+    function useMenu(id: number): boolean;
+    function poll<T>(check: () => T, timeout?: number, sleep?: number): T | false;
+    function getUIFlags(excluded?: number[]): number[] | null;
     function getQuestStates(questId: number): number[];
   }
 }

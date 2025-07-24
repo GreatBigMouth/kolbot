@@ -11,7 +11,6 @@
 
 const Diablo = new Runnable(
   function Diablo () {
-    include("core/Common/Diablo.js");
     Pather._teleport = Pather.teleport;
     Common.Diablo.clearRadius = Config.Diablo.ClearRadius;
 

@@ -8,14 +8,11 @@
 
 include("critical.js"); // required
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// D2BotFollow specific settings - for global settings see libs/starter/StarterConfig.js
-Starter.Config.JoinRetryDelay = 5; // Time in seconds to wait before next join attempt
 const {
-  JoinSettings
+  JoinSettings,
+  StarterConfig
 } = require("./libs/systems/follow/FollowConfig");
-
-// Override default values for StarterConfig under here by following format
-// Starter.Config.ValueToChange = value; // Example: Starter.Config.MinGameTime = 500; // changes MinGameTime to 500 seconds
+Object.assign(Starter.Config, StarterConfig);
 
 // the only things we really need from these are their oog checks
 includeSystemLibs();

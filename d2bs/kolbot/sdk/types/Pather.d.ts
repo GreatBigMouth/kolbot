@@ -1,5 +1,14 @@
 export {};
 declare global {
+  interface PathDebug {
+    enableHooks: boolean;
+    paths: Map<number, Line[]>;
+    drawPath(id: number, path: PathNode[]): void;
+    removeHooks(id: number): void;
+    coordsInPath(path: PathNode[], x: number, y: number): boolean;
+  }
+  const PathDebug: PathDebug;
+
   interface PathSettings {
     allowNodeActions?: boolean;
     allowTeleport?: boolean;
@@ -30,14 +39,42 @@ declare global {
     let lastPortalTick: 0;
     let allowBroadcast: boolean;
 
-    function getWalkDistance(x: number, y: number, area?: number, xx?: number, yy?: number, reductionType?: 0 | 1 | 2, radius?: number): number;
+    function getWalkDistance(
+      x: number,
+      y: number,
+      area?: number,
+      xx?: number,
+      yy?: number,
+      reductionType?: 0 | 1 | 2,
+      radius?: number,
+    ): number;
     function useTeleport(): boolean;
-    function moveTo(x: number, y: number, retry?: number | undefined, clearPath?: boolean | undefined, pop?: boolean | undefined): boolean;
+    function moveTo(
+      x: number,
+      y: number,
+      retry?: number | undefined,
+      clearPath?: boolean | undefined,
+      pop?: boolean | undefined,
+    ): boolean;
     function teleportTo(x: any, y: any, maxRange?: any): void;
     function walkTo(x: any, y: any, minDist?: number | undefined): boolean;
     function openDoors(x: any, y: any): boolean;
-    function moveToUnit(unit: PathNode, offX?: undefined, offY?: undefined, clearPath?: undefined, pop?: undefined): boolean;
-    function moveToPreset(area: any, unitType: any, unitId: any, offX?: any, offY?: any, clearPath?: any, pop?: any): boolean;
+    function moveToUnit(
+      unit: PathNode,
+      offX?: undefined,
+      offY?: undefined,
+      clearPath?: undefined,
+      pop?: undefined,
+    ): boolean;
+    function moveToPreset(
+      area: any,
+      unitType: any,
+      unitId: any,
+      offX?: any,
+      offY?: any,
+      clearPath?: any,
+      pop?: any,
+    ): boolean;
     function moveToPresetObject(area: number, unitId: number, givenSettings?: PathSettings): boolean;
     function moveToPresetMonster(area: number, unitId: number, givenSettings?: PathSettings): boolean;
     function moveToExit(targetArea: any, use?: any, givenSettings?: PathSettings): boolean;
@@ -53,16 +90,19 @@ declare global {
     function usePortal(targetArea?: number | null, owner?: string | undefined, unit?: undefined): boolean;
     function getPortal(targetArea: number, owner?: any): ObjectUnit | false;
     function getNearestWalkable(
-      x: number, y: number, range: number, step: number, coll: number, size?: number
+      x: number,
+      y: number,
+      range: number,
+      step: number,
+      coll: number,
+      size?: number,
     ): [number, number] | false;
-    function checkSpot(
-      x: number, y: number, coll: number, cacheOnly: boolean, size: number
-    ): boolean;
+    function checkSpot(x: number, y: number, coll: number, cacheOnly: boolean, size: number): boolean;
     /** @deprecated use `me.accessToAct(act)` instead */
     function accessToAct(act: number): boolean;
     function getWP(area: number, clearPath?: boolean): boolean;
     function journeyTo(area: number): boolean;
-    function plotCourse(dest: number, src: number): false | { course: number[], useWP: boolean };
+    function plotCourse(dest: number, src: number): false | { course: number[]; useWP: boolean };
     function areasConnected(src: number, dest: number): void;
   }
 }

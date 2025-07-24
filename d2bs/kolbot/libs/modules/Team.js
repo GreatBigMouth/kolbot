@@ -41,7 +41,7 @@
 
   
   if (threadType === "thread") {
-    print("ÿc2Kolbotÿc0 :: Team thread started");
+    console.log("ÿc2Kolbotÿc0 :: Team thread started");
 
     /* let parentScriptId,
       parentScriptName;
@@ -92,7 +92,7 @@
             newContent = FileTools.readText("data/" + filename);
             if (!newContent) return; // no content
           } catch (e) {
-            print("Can't read: `" + "data/" + filename + "`");
+            console.log("Can't read: `" + "data/" + filename + "`");
           }
 
 

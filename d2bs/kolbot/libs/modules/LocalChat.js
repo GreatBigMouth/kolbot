@@ -52,7 +52,7 @@
       if (!Config.LocalChat.Enabled) return;
 
       Config.LocalChat.Mode = (Config.LocalChat.Mode + cycle) % 3;
-      print("ÿc2LocalChat enabled. Mode: " + Config.LocalChat.Mode);
+      console.log("ÿc2LocalChat enabled. Mode: " + Config.LocalChat.Mode);
 
       switch (Config.LocalChat.Mode) {
       case 2:

@@ -7,18 +7,8 @@
 *  @typedef {import("../../../sdk/globals")}
 */
 
+/** @type {import("./MuleLogger").MuleLoggerType} */
 const MuleLogger = {
-  // ~~~ DON'T TOUCH, configuration file loaded at bottom. Use LoggerConfig.js ~~~ //
-  LogGame: ["", ""], // ["gamename", "password"]
-  LogNames: true, // Put account/character name on the picture
-  LogItemLevel: true, // Add item level to the picture
-  LogEquipped: true, // include equipped items
-  LogMerc: true, // include items merc has equipped (if alive)
-  SaveScreenShot: false, // Save pictures in jpg format (saved in 'Images' folder)
-  AutoPerm: true, // override InGameTime to perm character
-  IngameTime: 0, // (180, 210) to avoid RD, increase it to (7230, 7290) for mule perming
-  LogAccounts: {},
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
   inGameCheck: function () {
     if (getScript("D2BotMuleLog.dbj") && this.LogGame[0] && me.gamename.match(this.LogGame[0], "i")) {
       console.log("ÿc4MuleLoggerÿc0: Logging items on " + me.account + " - " + me.name + ".");

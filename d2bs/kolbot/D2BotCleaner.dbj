@@ -19,8 +19,6 @@ const {
   AdvancedCleanerConfig,
 } = require("./libs/systems/cleaner/CleanerConfig");
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Override default values for StarterConfig under here by following format
-// Starter.Config.ValueToChange = value; // Example: Starter.Config.MinGameTime = 500; // changes MinGameTime to 500 seconds
 
 let Controls = require("./libs/modules/Control");
 
@@ -80,10 +78,10 @@ function dataCleaner () {
 
     // Filepaths
     const dataFP = "data/" + profile + ".json";
-    const gameTimeFP = "libs/SoloPlay/Data/" + profile + "/" + profile + "-GameTime" + ".json";
-    const charDataFP = "libs/SoloPlay/Data/" + profile + "/" + profile + "-CharData" + ".json";
-    const lvlPerfFP = "libs/SoloPlay/Data/" + profile + "/" + profile + "-LevelingPerformance" + ".csv";
-    const scrPerfFP = "libs/SoloPlay/Data/" + profile + "/" + profile + "-ScriptPerformance" + ".csv";
+    const gameTimeFP = "libs/SoloPlay/.soloplay/" + profile + "/" + profile + "-GameTime" + ".json";
+    const charDataFP = "libs/SoloPlay/.soloplay/" + profile + "/" + profile + "-CharData" + ".json";
+    const lvlPerfFP = "libs/SoloPlay/.soloplay/" + profile + "/" + profile + "-LevelingPerformance" + ".csv";
+    const scrPerfFP = "libs/SoloPlay/.soloplay/" + profile + "/" + profile + "-ScriptPerformance" + ".csv";
     let savePath = "logs/"; // default value in case something goes wrong with assigning actual savePath
 
     if (CleanerConfig.SaveFiles && soloplayProfile) {
@@ -93,31 +91,31 @@ function dataCleaner () {
         || FileTools.exists(lvlPerfFP)
         || FileTools.exists(scrPerfFP)) {
         // Create folder to copy files to
-        if (!FileTools.exists("libs/SoloPlay/Data/" + charType)) {
-          folder = dopen("libs/SoloPlay/Data");
+        if (!FileTools.exists("libs/SoloPlay/.soloplay/" + charType)) {
+          folder = dopen("libs/SoloPlay/.soloplay");
           folder.create(charType);
         }
 
-        if (!FileTools.exists("libs/SoloPlay/Data/" + charType + "/" + charClass)) {
-          folder = dopen("libs/SoloPlay/Data/" + charType);
+        if (!FileTools.exists("libs/SoloPlay/.soloplay/" + charType + "/" + charClass)) {
+          folder = dopen("libs/SoloPlay/.soloplay/" + charType);
           folder.create(charClass);
         }
 
-        let files = dopen("libs/SoloPlay/Data/" + charType + "/" + charClass + "/").getFolders();
+        let files = dopen("libs/SoloPlay/.soloplay/" + charType + "/" + charClass + "/").getFolders();
         j = files.length + 1;
 
         // make sure folder doesn't already exist.
-        while (FileTools.exists("libs/SoloPlay/Data/" + charType + "/" + charClass + "/" + j.toString())) {
+        while (FileTools.exists("libs/SoloPlay/.soloplay/" + charType + "/" + charClass + "/" + j.toString())) {
           j++;
           delay(100);
         }
 
-        if (!FileTools.exists("libs/SoloPlay/Data/" + charType + "/" + charClass + "/" + j.toString())) {
-          folder = dopen("libs/SoloPlay/Data/" + charType + "/" + charClass);
+        if (!FileTools.exists("libs/SoloPlay/.soloplay/" + charType + "/" + charClass + "/" + j.toString())) {
+          folder = dopen("libs/SoloPlay/.soloplay/" + charType + "/" + charClass);
           folder.create(j.toString());
         }
 
-        savePath = "libs/SoloPlay/Data/" + charType + "/" + charClass + "/" + j.toString() + "/" + profile;
+        savePath = "libs/SoloPlay/.soloplay/" + charType + "/" + charClass + "/" + j.toString() + "/" + profile;
         profileExists = true;
       }
     }
@@ -149,7 +147,7 @@ function dataCleaner () {
     }
     
     if (CleanerConfig.SaveFiles && profileExists && soloplayProfile) {
-      D2Bot.printToConsole("D2BotCleaner: Files saved to -> libs/SoloPlay/Data/" + charType + "/" + charClass + "/" + j, sdk.colors.D2Bot.Gold);
+      D2Bot.printToConsole("D2BotCleaner: Files saved to -> libs/SoloPlay/.soloplay/" + charType + "/" + charClass + "/" + j, sdk.colors.D2Bot.Gold);
     }
 
     if (profileExists) {

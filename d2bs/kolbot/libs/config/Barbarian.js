@@ -208,6 +208,7 @@ function LoadConfig () {
     Config.BaalHelper.Wait = 5; // minutes to wait for a runner to be in Throne
     Config.BaalHelper.KillNihlathak = false; // Kill Nihlathak before going to Throne
     Config.BaalHelper.FastChaos = false; // Kill Diablo before going to Throne
+    Config.BaalHelper.SoulQuit = false; // End script if Souls are found
     Config.BaalHelper.DollQuit = false; // End script if Dolls (Undead Soul Killers) are found.
     Config.BaalHelper.KillBaal = true; // Kill Baal. If set to false, you must configure Config.QuitList or the bot will wait indefinitely.
     Config.BaalHelper.SkipTP = false; // Don't wait for a TP, go to WSK3 and wait for someone to go to throne. Anti PK measure.
@@ -580,11 +581,12 @@ function LoadConfig () {
   };
 
   /**
-   * @type {{ check: (unit: Monster) => boolean, attack: [number, number] }[]}
+   * @type {{ check: (unit: Monster) => boolean, attack?: [number, number], preAttack?: number }[]}
    * Advanced Attack config. Allows custom skills to be used on custom conditions.
    * Each entry in the array should be an object with a `check` function and an `attack` array.
    * The `check` function determines whether the custom attack should be used on a given monster.
    * The `attack` array specifies the skills to use: [timed skill id, untimed skill id].
+   * The `preAttack` property can be used to specify a skill to cast before the main attack.
    * Multiple entries are separated by commas.
    */
   Config.AdvancedCustomAttack = [];

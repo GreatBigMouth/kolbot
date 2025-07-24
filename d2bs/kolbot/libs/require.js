@@ -59,9 +59,6 @@ global.require = (function (include, isIncluded, print, notify) {
     if (fullpath.startsWith("lib")) {
       fullpath = fullpath.substr(4);
     }
-
-    //console.debug("filename: " + filename + " | | | fullpath: " + fullpath + " | | | directory: " + directory );
-
     const packageName = fullpath;
 
     const asNew = this.__proto__.constructor === require && ((...args) => new (Function.prototype.bind.apply(modules[packageName].exports, args)));
@@ -81,8 +78,8 @@ global.require = (function (include, isIncluded, print, notify) {
 
     if (!isIncluded(fullpath + ".js") && !modules.hasOwnProperty(moduleNameShort)) {
       if (debug) {
-        depth && notify && print("ÿc2Kolbotÿc0 ::    - loading dependency of " + filename + ": " + moduleNameShort);
-        !depth && notify && print("ÿc2Kolbotÿc0 :: Loading module: " + moduleNameShort);
+        depth && notify && console.log("ÿc2Kolbotÿc0 ::    - loading dependency of " + filename + ": " + moduleNameShort);
+        !depth && notify && console.log("ÿc2Kolbotÿc0 :: Loading module: " + moduleNameShort);
       }
 
       let oldModule = Object.create(global["module"]);
@@ -134,38 +131,15 @@ global.require = (function (include, isIncluded, print, notify) {
 getScript.startAsThread = function () {
   let stack = new Error().stack.match(/[^\r\n]+/g),
     filename = stack[1].match(/.*?@.*?d2bs\\kolbot\\(.*):/)[1];
-    //mainScript = stack[stack.length - 1].match(/.*?d2bs\\kolbot\\(.*):/)[0].slice(1, -1);
 
   if (getScript(true).name.toLowerCase() === filename.toLowerCase()) {
-    
-    /* console.log("THREAD: current script name: " + getScript(true).name + ", filename: " + filename + ", filename id: " + getScript(filename).threadid + ", current script id: " + getScript(true).threadid);
-    return {
-      type: "thread",
-      threadid: getScript(true).threadid // This is actually not used in the thread, but the id passed by scriptmsg below
-    }; */
     return "thread";
   }
 
   if (!getScript(filename)) {
-    //console.debug("Loading Team thread");
     load(filename);
     return "started";
-    /* while (!getScript(filename).running) delay(5);
-    delay(200);
-    getScript(filename).send(JSON.stringify({ parentScriptId: getScript(true).threadid }));
-
-    console.log("STARTED: current script name: " + getScript(true).name + ", filename: " + filename + ", filename id: " + getScript(filename).threadid + ", current script id: " + getScript(true).threadid);
-    return {
-      type: "started",
-      threadid: getScript(filename).threadid // Pass newly created thread id
-    }; */
   }
 
   return "loaded";
-  /* console.log("LOADED: current script name: " + getScript(true).name + ", filename: " + filename + ", filename id: " + getScript(filename).threadid + ", current script id: " + getScript(true).threadid);
-  return {
-    type: "loaded",
-    //threadid: 0
-    threadid: getScript(filename).threadid
-  }; */
 };

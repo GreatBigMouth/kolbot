@@ -7,7 +7,6 @@
 
 const Wakka = new Runnable(
   function Wakka () {
-    include("core/Common/Diablo.js");
     const timeout = Config.Wakka.Wait;
     const [minDist, maxDist] = [50, 80];
     const internals = {

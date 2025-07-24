@@ -43,12 +43,10 @@ const Questing = new Runnable(
 
     const smith = function () {
       log("starting smith");
-      include("core/Common/Smith.js");
       Common.Smith();
     };
 
     const cain = function () {
-      include("core/Common/Cain.js");
       log("starting cain");
 
       Town.doChores();
@@ -297,7 +295,6 @@ const Questing = new Runnable(
 
     // @theBGuy
     const ancients = function () {
-      include("core/Common/Ancients.js");
       log("starting ancients");
       Town.doChores();
 

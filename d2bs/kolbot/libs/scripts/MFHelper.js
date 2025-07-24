@@ -177,7 +177,6 @@ const MFHelper = new Runnable(
               Town.goToTown(1) && Pather.usePortal(sdk.areas.MooMooFarm);
               return me.inArea(sdk.areas.MooMooFarm);
             }, Time.minutes(1), 500 + me.ping)) {
-              include("core/Common/Cows.js");
               Precast.doPrecast(false);
               Common.Cows.clearCowLevel();
               delay(1000);

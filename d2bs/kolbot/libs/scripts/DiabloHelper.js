@@ -7,7 +7,6 @@
 
 const DiabloHelper = new Runnable(
   function DiabloHelper () {
-    include("core/Common/Diablo.js");
     this.Leader = Config.Leader;
     Common.Diablo.waitForGlow = true;
     Common.Diablo.clearRadius = Config.DiabloHelper.ClearRadius;

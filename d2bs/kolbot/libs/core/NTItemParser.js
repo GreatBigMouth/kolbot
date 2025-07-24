@@ -122,7 +122,7 @@ NTIP.CheckQuantityOwned = function (item_type, item_stats) {
   let items = me.getItemsEx();
 
   if (!items.length) {
-    print("I can't find my items!");
+    console.log("I can't find my items!");
 
     return 0;
   }
@@ -145,7 +145,7 @@ NTIP.CheckQuantityOwned = function (item_type, item_stats) {
     }
   }
 
-  //print("I have "+num+" of these.");
+  //console.log("I have "+num+" of these.");
 
   return num;
 };

@@ -10,6 +10,7 @@
    * @todo Fill out more, items for quests, npcs, etc
    */
   const QuestData = (function () {
+    const CACHE_TIME = Time.minutes(5);
     let _lastRefresh = 0;
 
     /** @type {Set<number>} */
@@ -19,10 +20,12 @@
       sdk.quest.id.SpokeToJerhyn, sdk.quest.id.AbleToGotoActIII,
       sdk.quest.id.SpokeToHratli, sdk.quest.id.AbleToGotoActIV,
       sdk.quest.id.SpokeToTyrael, sdk.quest.id.AbleToGotoActV,
-    ].forEach(questId => _specials.add(questId));
+    ].forEach(function (questId) {
+      _specials.add(questId);
+    });
 
     const refresh = function () {
-      if (getTickCount() - _lastRefresh > 500) {
+      if (getTickCount() - _lastRefresh > CACHE_TIME) {
         Packet.questRefresh();
         _lastRefresh = getTickCount();
       }
@@ -136,7 +139,7 @@
         sdk.quest.id.RescueonMountArreat, sdk.quest.id.PrisonofIce,
         sdk.quest.id.BetrayalofHarrogath, sdk.quest.id.RiteofPassage, sdk.quest.id.EyeofDestruction,
       ]
-    ].forEach((questIds, act) => {
+    ].forEach(function (questIds, act) {
       for (let questId of questIds) {
         questMap.set(questId, new Quest(questId, act + 1));
       }

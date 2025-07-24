@@ -1219,7 +1219,9 @@ const Town = {
 
     let name = "";
     let quantity = 0;
-    let chugs = me.getItemsEx(type).filter(pot => pot.isInInventory);
+    let chugs = me.getItemsEx(type).filter(function (pot) {
+      return pot.isInInventory;
+    });
 
     if (chugs.length > 0) {
       name = chugs.first().name;

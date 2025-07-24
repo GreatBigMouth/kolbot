@@ -41,10 +41,23 @@ declare global {
       y: number;
     }): Monster[];
     function clearList(mainArg: Function | Unit[], sortFunc?: Function, refresh?: boolean): boolean;
-    function securePosition(x: number, y: number, range?: number, timer?: number, skipBlocked?: boolean, special?: boolean, skipClassIds?: any[]): void;
-    function markRoom(room: Room, color: number): void;
+    
+    interface SecurePositionOptions {
+      range?: number;
+      timer?: number;
+      skipBlocked?: boolean;
+      useRedemption?: boolean;
+      skipIds?: number[];
+      /**
+       * @default 300000 (5 minutes)
+       * @description Timeout in milliseconds for attempting to secure area.
+       */
+      timeout?: number;
+    }
+    function securePosition(x: number, y: number, options: SecurePositionOptions): boolean;
     function countUniques(): void;
     function storeStatistics(area: number): void;
+    function clearRoom(room: Room, spectype?: number): boolean;
     function clearLevel(spectype?: number): boolean;
     function sortMonsters(unitA: Unit, unitB: Unit): boolean;
     function validSpot(x: number, y: number, skill?: number, unitid?: number): boolean;

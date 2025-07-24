@@ -6,6 +6,16 @@
 */
 
 (function (module) {
+  // D2BotPubJoin specific settings - for global settings see libs/starter/StarterConfig.js
+  const StarterConfig = {
+    MinGameTime: 0, // Minimum game length in seconds. If a game is ended too soon, the rest of the time is waited in the lobby
+    ResetCount: 0, // Reset game count back to 1 every X games.
+    JoinDelay: 10, // Seconds to wait between join attempts
+    AttemptNextGame: true, // after joining a game, attempt incrementing game count and joining next game rather than looking for it in game list
+    AttemptNextGameRetrys: 5,
+    MinPlayers: 1, // Minimum players in game to join
+  };
+  
   /**
    * @description includeFilter format
    * @example <caption>Multiple entries in the same array mean AND</caption>
@@ -55,5 +65,6 @@
     includeFilter: includeFilter,
     excludeFilter: excludeFilter,
     profileOverides: profileOverides,
+    StarterConfig: StarterConfig
   };
 })(module);

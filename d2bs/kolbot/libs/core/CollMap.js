@@ -8,7 +8,7 @@
 const CollMap = new function () {
   this.rooms = [];
   this.maps = [];
-  /** @type {Line[]} */
+  /** @type {{ room: Room, lines: Line[]}[]} */
   this.hooks = [];
   this.colors = {
     green: 0x84,
@@ -44,17 +44,26 @@ const CollMap = new function () {
     this.hooks.push({ room: room, lines: lines });
   };
 
-  /** @param {Room} room */
+  /** @param {Hook} hook */
+  const clearHook = function (hook) {
+    hook && hook.remove();
+  };
+
+  /**
+   * @this {CollMap}
+   * @param {Room} room 
+   */
   this.removeHookForRoom = function (room) {
     let index = this.hooks.findIndex(h => h.room.x === room.x && h.room.y === room.y);
     if (index !== -1) {
-      this.hooks[index].lines.forEach(l => l.remove());
+      this.hooks[index].lines.forEach(clearHook);
       this.hooks.splice(index, 1);
     }
   };
 
+  /** @this {CollMap} */
   this.removeHooks = function () {
-    this.hooks.forEach(hook => hook.lines.forEach(l => l.remove()));
+    this.hooks.forEach(hook => hook.lines.forEach(clearHook));
     this.hooks = [];
   };
 

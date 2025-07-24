@@ -5,6 +5,8 @@
 *
 */
 
+includeIfNotIncluded("manualplay/hooks/ShrineHooks.js");
+
 /**
  * @constructor
  * @param {number} x 
@@ -14,6 +16,25 @@ function PathNode (x, y) {
   this.x = x;
   this.y = y;
 }
+
+/**
+ * Distance from unit to node
+ * @param {Unit} unit 
+ * @returns {number}
+ */
+PathNode.prototype.distanceTo = function (unit) {
+  return !me.gameReady ? NaN : (getDistance.apply(null, [unit, this]));
+};
+
+PathNode.prototype.getWalkDistance = function () {
+  return (getPath(me.area, me.x, me.y, this.x, this.y, 0, Pather.walkDistance) || [])
+    .map(function (e, i, s) {
+      return i && getDistance(s[i - 1], e) || 0;
+    })
+    .reduce(function (acc, cur) {
+      return acc + cur;
+    }, 0) || Infinity;
+};
 
 /**
  * Perform certain actions after moving to each node
@@ -98,7 +119,7 @@ const NodeAction = {
    */
   getShrines: function () {
     if (Config.AutoShriner) {
-      Misc.shriner();
+      Misc.shriner(this.shrinesToIgnore);
     } else if (Config.ScanShrines.length > 0) {
       Misc.scanShrines(null, this.shrinesToIgnore);
     }
@@ -106,33 +127,40 @@ const NodeAction = {
 };
 
 const PathDebug = {
-  /** @type {Line[]} */
-  hooks: [],
   enableHooks: false,
+  /** @type {Map<number, Line[]} */
+  paths: new Map(),
 
   /**
    * Draw our path on the screen
+   * @param {number} id
    * @param {PathNode[]} path
    * @returns {void}
    */
-  drawPath: function (path) {
+  drawPath: function (id, path) {
     if (!this.enableHooks) return;
-
-    this.removeHooks();
-
+    this.removeHooks(id);
     if (path.length < 2) return;
+    const color = Pather.recursion ? 0x84 : 0x9B;
+    const pathHooks = [];
 
     for (let i = 0; i < path.length - 1; i += 1) {
-      this.hooks.push(new Line(path[i].x, path[i].y, path[i + 1].x, path[i + 1].y, 0x84, true));
+      pathHooks.push(new Line(path[i].x, path[i].y, path[i + 1].x, path[i + 1].y, color, true));
     }
+    this.paths.set(id, pathHooks);
   },
 
-  removeHooks: function () {
-    for (let i = 0; i < this.hooks.length; i += 1) {
-      PathDebug.hooks[i].remove();
+  /**
+   * @param {number} id 
+   */
+  removeHooks: function (id) {
+    const pathHooks = this.paths.get(id);
+    if (!pathHooks || !pathHooks.length) return;
+    
+    for (let hook of pathHooks) {
+      hook.remove();
     }
-
-    PathDebug.hooks = [];
+    this.paths.delete(id);
   },
 
   /**
@@ -199,6 +227,8 @@ const Pather = {
     sdk.areas.FrozenTundra, sdk.areas.AncientsWay, sdk.areas.WorldstoneLvl2
   ],
   nextAreas: {},
+  /** @type {PathNode[]} */
+  currentWalkingPath: [],
 
   /** @param {{ type: string, data: number[] }} msg */
   cacheListener: function (msg) {
@@ -370,6 +400,7 @@ const Pather = {
     const whirled = new PathAction();
     const cleared = new PathAction();
     const primarySlot = Attack.getPrimarySlot(); // for tele-switch
+    const PATH_DEBUG_ID = Date.now() + Math.floor(Math.random() * 1000);
 
     for (let i = 0; i < this.cancelFlags.length; i += 1) {
       getUIFlag(this.cancelFlags[i]) && me.cancel();
@@ -396,13 +427,36 @@ const Pather = {
     );
     if (!path) throw new Error("move: Failed to generate path.");
 
+    // Failed to generate path, maybe coords are invalid? Lets try to find a walkable node
+    // if (!path.length && getDistance(me, node.x, node.y) > 5) {
+    //   console.debug(path, "move: Failed to generate path, trying to find a walkable node. Current distance: " + getDistance(me, node.x, node.y), " node: ", node);
+    //   let adjustedNode = Pather.getNearestWalkable(node.x, node.y, 5, 1, sdk.collision.BlockWalk);
+    //   if (!adjustedNode) {
+    //     throw new Error("move: Failed to generate path.");
+    //   }
+    //   let [tmpX, tmpY] = adjustedNode;
+    //   path = getPath(
+    //     me.area,
+    //     tmpX, tmpY,
+    //     me.x, me.y,
+    //     useTeleport ? 1 : 0,
+    //     useTeleport ? (annoyingArea ? 30 : this.teleDistance) : this.walkDistance
+    //   );
+      
+    //   if (!path || !path.length) {
+    //     throw new Error("move: Failed to generate path.");
+    //   }
+    //   node.x = tmpX;
+    //   node.y = tmpY;
+    // }
+
     if (settings.retry <= 3 && target.distance > useTeleport ? 120 : 60) {
       settings.retry = 10;
     }
 
     path.reverse();
     settings.pop && path.pop();
-    PathDebug.drawPath(path);
+    PathDebug.drawPath(PATH_DEBUG_ID, path);
     useTeleport && Config.TeleSwitch && path.length > 5 && me.switchWeapons(primarySlot ^ 1);
 
     while (path.length > 0) {
@@ -415,12 +469,14 @@ const Pather = {
         if (getUIFlag(this.cancelFlags[i])) me.cancel();
       }
 
+      Config.DebugMode.Shrines && ShrineHooks.check();
+      
       node = path.shift();
 
       if (typeof settings.callback === "function" && settings.callback()) {
         console.debug("Callback function passed. Ending path.");
         useTeleport && Config.TeleSwitch && me.switchWeapons(primarySlot);
-        PathDebug.removeHooks();
+        PathDebug.removeHooks(PATH_DEBUG_ID);
         return true;
       }
 
@@ -531,7 +587,7 @@ const Pather = {
           if (!path) throw new Error("move: Failed to generate path.");
 
           path.reverse();
-          PathDebug.drawPath(path);
+          PathDebug.drawPath(PATH_DEBUG_ID, path);
           settings.pop && path.pop();
 
           if (fail > 0) {
@@ -551,7 +607,8 @@ const Pather = {
     }
 
     useTeleport && Config.TeleSwitch && me.switchWeapons(primarySlot);
-    PathDebug.removeHooks();
+    PathDebug.removeHooks(PATH_DEBUG_ID);
+    Config.DebugMode.Shrines && ShrineHooks.flush();
 
     return getDistance(me, node.x, node.y) < 5;
   },

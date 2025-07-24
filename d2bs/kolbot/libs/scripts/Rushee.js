@@ -14,7 +14,7 @@ new Overrides.Override(Town, Town.goToTown, function(orignal, act, wpmenu) {
 
     return true;
   } catch (e) {
-    print(e);
+    console.log(e);
     
     return Pather.useWaypoint(sdk.areas.townOf(me.area));
   }
@@ -75,7 +75,7 @@ function Rushee() {
   let actions = [];
 
   this.log = function (msg = "", sayMsg = false) {
-    print(msg);
+    console.log(msg);
     sayMsg && say(msg);
   };
 
@@ -83,7 +83,7 @@ function Rushee() {
     let scroll = me.scrollofresistance;
     if (scroll) {
       clickItem(sdk.clicktypes.click.item.Right, scroll);
-      print("Using scroll of resistance");
+      console.log("Using scroll of resistance");
     }
   };
 
@@ -185,7 +185,7 @@ function Rushee() {
     Storage.Cube.MoveTo(amulet);
     Storage.Cube.MoveTo(shaft);
     Cubing.openCube();
-    print("making staff");
+    console.log("making staff");
     transmute();
     delay(750 + me.ping);
 
@@ -414,7 +414,7 @@ function Rushee() {
               target = me.getItem(sdk.quest.item.BookofSkill);
 
               if (target) {
-                print("Using book of skill");
+                console.log("Using book of skill");
                 clickItem(sdk.clicktypes.click.item.Right, target);
 
                 break;

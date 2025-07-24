@@ -7,6 +7,7 @@
 */
 
 (function (module) {
+  /** @type {Partial<StarterConfig>} */
   module.exports = {
     MinGameTime: 360, // Minimum game length in seconds. If a game is ended too soon, the rest of the time is waited in the lobby
     PingQuitDelay: 30, // Time in seconds to wait in lobby after quitting due to high ping

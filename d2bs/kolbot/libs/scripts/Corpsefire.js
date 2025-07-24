@@ -1,6 +1,6 @@
 /**
 *  @filename    Corpsefire.js
-*  @author      kolton
+*  @author      kolton, theBGuy
 *  @desc        kill Corpsefire and optionally clear Den of Evil
 *
 */
@@ -11,7 +11,8 @@ const Corpsefire = new Runnable(
     Precast.doPrecast(true);
 
     if (!Pather.moveToExit([sdk.areas.BloodMoor, sdk.areas.DenofEvil], true)
-      || !Pather.moveToPreset(me.area, sdk.unittype.Monster, sdk.monsters.preset.Corpsefire, 0, 0, false, true)) {
+      || !Pather.moveToPresetMonster(sdk.areas.DenofEvil, sdk.monsters.preset.Corpsefire, { pop: true })
+    ) {
       throw new Error("Failed to move to Corpsefire");
     }
 

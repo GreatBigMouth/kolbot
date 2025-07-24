@@ -750,15 +750,11 @@
         }
       }
     },
-  };
 
-  Object.defineProperties(Skill, {
-    haveTK: {
-      get: function () {
-        return Skill.canUse(sdk.skills.Telekinesis);
-      },
-    },
-  });
+    get haveTK () {
+      return Skill.canUse(sdk.skills.Telekinesis);
+    }
+  };
 
   // export to the global scope
   global.Skill = Skill;

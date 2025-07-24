@@ -1,36 +1,30 @@
-/**
-*  @filename    Config.js
-*  @author      kolton
-*  @desc        config loading and default config values storage
-*
-*/
+export type DiabloSeal = "vizier" | "seis" | "infector";
 
 declare global {
   // interface Scripts { [data: string]: Partial<Config> | boolean }
-  type ExtendedCubingOpts = { Ethereal: number, MaxQuantity: number, condition: () => boolean };
-  type CubingRecipe =
-    | [number, string]
-    | [number, string, number]
-    | [number, string, ExtendedCubingOpts];
+  type ExtendedCubingOpts = { Ethereal: number; MaxQuantity: number; condition: () => boolean };
+  type CubingRecipe = [number, string] | [number, string, number] | [number, string, ExtendedCubingOpts];
 
   interface Config {
-    init(notify: any): void;
+    init(notify: boolean): void;
     Loaded: boolean;
     DebugMode: {
-      Path: boolean,
-      Stack: boolean,
-      Memory: boolean,
-      Skill: boolean,
-      Town: boolean,
+      Path: boolean;
+      Stack: boolean;
+      Memory: boolean;
+      Skill: boolean;
+      Town: boolean;
+      Shrines: boolean;
     };
 
     // Experimental
     FastParty: boolean;
     AutoEquip: boolean;
     UseExperimentalAvoid: boolean;
-
-    Experimental: {
-    }
+    /**
+     * Enables experimental walk clear level feature for non-teleporters
+     */
+    UseExperimentalClearLevel: boolean;
 
     StartDelay: number;
     PickDelay: number;
@@ -89,15 +83,15 @@ declare global {
     };
     Inventory: number[][];
     SortSettings: {
-      SortInventory: boolean,
-      SortStash: boolean,
-      PlugYStash: boolean,
-      ItemsSortedFromLeft: number[],
-      ItemsSortedFromRight: number[],
-      PrioritySorting: boolean,
-      ItemsSortedFromLeftPriority: number[],
-      ItemsSortedFromRightPriority: number[],
-    },
+      SortInventory: boolean;
+      SortStash: boolean;
+      PlugYStash: boolean;
+      ItemsSortedFromLeft: number[];
+      ItemsSortedFromRight: number[];
+      PrioritySorting: boolean;
+      ItemsSortedFromLeftPriority: number[];
+      ItemsSortedFromRightPriority: number[];
+    };
     LocalChat: {
       Enabled: boolean;
       Toggle: boolean;
@@ -139,7 +133,8 @@ declare global {
     SkipAura: string[];
     SkipException: (number | string)[];
     ImmunityException: DamageType[];
-    ScanShrines: any[];
+    ScanShrines: number[];
+    AutoShriner: boolean;
     Debug: boolean;
     AutoMule: {
       Trigger: (number | string | ((item: ItemUnit) => boolean))[];
@@ -164,6 +159,7 @@ declare global {
     MakeRunewords: boolean;
     Runewords: any[][];
     KeepRunewords: any[];
+    LadderOverride: boolean;
     Gamble: boolean;
     GambleItems: any[];
     GambleGoldStart: number;
@@ -203,8 +199,8 @@ declare global {
     AttackSkill: any[];
     LowManaSkill: any[];
     CustomAttack: Record<string | number, [number, number]>;
-    CustomPreAttack: Record<string | number, [number, number]>,
-    AdvancedCustomAttack: { check: (unit: Monster) => boolean, attack: [number, number], preAttack: number }[],
+    CustomPreAttack: Record<string | number, [number, number]>;
+    AdvancedCustomAttack: { check: (unit: Monster) => boolean; attack: [number, number]; preAttack: number }[];
     TeleStomp: boolean;
     NoTele: boolean;
     ClearType: boolean;
@@ -371,7 +367,7 @@ declare global {
       StarTP: string;
       DiabloMsg: string;
       ClearRadius: number;
-      SealOrder: string[];
+      SealOrder: DiabloSeal[];
     };
     DiabloHelper: {
       Wait: number;
@@ -381,7 +377,7 @@ declare global {
       OpenSeals: boolean;
       SafePrecast: boolean;
       ClearRadius: number;
-      SealOrder: string[];
+      SealOrder: DiabloSeal[];
       RecheckSeals: boolean;
     };
     MFHelper: {
@@ -589,4 +585,3 @@ declare global {
   }
   const Config: Config;
 }
-export {};

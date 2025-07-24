@@ -44,7 +44,7 @@
 
 
     if (this.__proto__.constructor !== Promise) {
-      print((new Error).stack);
+      console.log((new Error).stack);
       throw new Error("Promise must be called with 'new' operator!");
     }
 

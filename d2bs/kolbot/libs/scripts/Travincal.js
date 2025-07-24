@@ -19,9 +19,9 @@ const Travincal = new Runnable(
 
     if (Config.Travincal.PortalLeech) {
       Pather.moveTo(orgX + 85, orgY - 139);
-      Attack.securePosition(orgX + 70, orgY - 139, 25, 2000);
-      Attack.securePosition(orgX + 100, orgY - 139, 25, 2000);
-      Attack.securePosition(orgX + 85, orgY - 139, 25, 5000);
+      Attack.securePosition(orgX + 70, orgY - 139, { range: 25, duration: 2000 });
+      Attack.securePosition(orgX + 100, orgY - 139, { range: 25, duration: 2000 });
+      Attack.securePosition(orgX + 85, orgY - 139, { range: 25, duration: 5000 });
       Pather.moveTo(orgX + 85, orgY - 139);
       Pather.makePortal();
       delay(1000);

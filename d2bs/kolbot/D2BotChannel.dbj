@@ -8,15 +8,9 @@
 
 include("critical.js"); // required
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// D2BotChannel specific settings - for global settings see libs/starter/StarterConfig.js
 const {
   ChannelConfig,
 } = require("./libs/systems/channel/ChannelConfig");
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-// Override default values for StarterConfig under here by following format
-// Starter.Config.ValueToChange = value; // Example: Starter.Config.MinGameTime = 500; // changes MinGameTime to 500 seconds 
-// Starter.Config.JoinChannel = ""; // Default channel.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
 // the only things we really need from these are their oog checks
 includeSystemLibs();

@@ -43,7 +43,7 @@
           throw error;
         } // keep on throwing
 
-        print("[ÿc9Warningÿc0] Too much recursion");
+        console.log("[ÿc9Warningÿc0] Too much recursion");
       }
     };
 

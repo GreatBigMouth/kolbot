@@ -36,7 +36,7 @@ const Crafting = new Runnable(
             switch (obj.name) {
             case "GetGame":
               if (info.Collectors.includes(obj.profile)) {
-                print("GetGame: " + obj.profile);
+                console.log("GetGame: " + obj.profile);
                 sendCopyData(null, obj.profile, 4, me.gamename + "/" + me.gamepassword);
 
                 gameRequest = true;
@@ -45,7 +45,7 @@ const Crafting = new Runnable(
               break;
             case "GetSetInfo":
               if (info.Collectors.includes(obj.profile)) {
-                print("GetSetInfo: " + obj.profile);
+                console.log("GetSetInfo: " + obj.profile);
 
                 rval = [];
 
@@ -53,7 +53,7 @@ const Crafting = new Runnable(
                   rval.push(info.Sets[i].Enabled ? 1 : 0);
                 }
 
-                print(rval);
+                console.log(rval);
 
                 sendCopyData(null, obj.profile, 4, JSON.stringify({ name: "SetInfo", value: rval }));
               }
@@ -180,7 +180,7 @@ function updateInfo () {
         for (let j = 0; j < items.length; j += 1) {
           if (info.Sets[i].BaseItems.includes(items[j].classid) // Item is on the bases list
               && AutoMule.cubingIngredient(items[j])) { // Item is a valid Cubing ingredient
-            print("Base found: " + items[j].classid);
+            console.log("Base found: " + items[j].classid);
 
             info.Sets[i].Enabled = true;
 
@@ -201,7 +201,7 @@ function updateInfo () {
         for (let j = 0; j < items.length; j += 1) {
           if (info.Sets[i].BaseItems.includes(items[j].classid) // Item is on the bases list
               && runewordIngredient(items[j])) { // Item is a valid Runeword ingredient
-            print("Base found: " + items[j].classid);
+            console.log("Base found: " + items[j].classid);
 
             info.Sets[i].Enabled = true;
 
@@ -292,7 +292,7 @@ function checkItem (item) {
 }
 
 function shopStuff (npcId, classids, amount) {
-  print("shopStuff: " + npcId + " " + amount);
+  console.log("shopStuff: " + npcId + " " + amount);
 
   let wpArea, town, path, menuId, npc;
   let leadTimeout = 30;
@@ -360,7 +360,7 @@ function shopStuff (npcId, classids, amount) {
               && me.gold >= items[i].getItemCost(sdk.items.cost.ToBuy)
               && classids.includes(items[i].classid)) {
 
-            //print("Bought " + items[i].name);
+            //console.log("Bought " + items[i].name);
             items[i].buy();
 
             let num = countItems(classids, sdk.items.quality.Magic);

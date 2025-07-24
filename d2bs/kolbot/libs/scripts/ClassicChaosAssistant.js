@@ -9,7 +9,6 @@
 
 const ClassicChaosAssistant = new Runnable(
   function ClassicChaosAssistant () {
-    include("core/Common/Diablo.js");
     let stargo, infgo, seisgo, vizgo, infseal, seisseal, vizseal, diablopickup, normalpickup = false;
 
     addEventListener("keyup",

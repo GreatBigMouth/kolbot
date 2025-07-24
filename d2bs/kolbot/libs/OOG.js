@@ -240,7 +240,12 @@ includeIfNotIncluded("core/Me.js");
      * @returns {Control | false}
      */
     findCharacter: function (info, startFromTop = true) {
-      const singlePlayer = ![sdk.game.gametype.OpenBattlenet, sdk.game.gametype.BattleNet].includes(Profile().type);
+      const ladderString = getLocaleString(sdk.locale.text.Ladder);
+      /** @param {string} text */
+      const matchLadderString = function (text) {
+        return text.includes(ladderString);
+      };
+      const singlePlayer = ![sdk.game.profiletype.OpenBattlenet, sdk.game.profiletype.Battlenet].includes(Profile().type);
       // offline doesn't have a character limit cap
       const cap = singlePlayer ? 999 : 24;
       let count = 0;
@@ -253,6 +258,24 @@ includeIfNotIncluded("core/Me.js");
         }
 
         delay(25);
+      }
+
+      // Wrong char select screen fix
+      if ([sdk.game.locations.CharSelect, sdk.game.locations.CharSelectNoChars].includes(getLocation())) {
+        hideConsole(); // seems to fix odd crash with single-player characters if the console is open to type in
+        let spCheck = Profile().type === sdk.game.profiletype.Battlenet;
+        let realmControl = !!Controls.CharSelectCurrentRealm.control;
+        if ((spCheck && !realmControl) || ((!spCheck && realmControl))) {
+          Controls.BottomLeftExit.click();
+          return false; // what about a recursive call to loginCharacter?
+        }
+      }
+
+      if (getLocation() === sdk.game.locations.CharSelectConnecting) {
+        if (!Starter.LocationEvents.charSelectConnecting()) {
+          D2Bot.printToConsole("Stuck at connecting screen");
+          D2Bot.restart();
+        }
       }
 
       // start from beginning of the char list
@@ -270,7 +293,7 @@ includeIfNotIncluded("core/Me.js");
               count++;
 
               if (String.isEqual(text[1], info.charName)) {
-                if (info.ladder && !text.some(el => el.includes("LADDER"))) continue;
+                if (!singlePlayer && info.ladder && !text.some(matchLadderString)) continue;
                 // how to check hardcore?
                 return control;
               }
@@ -768,7 +791,7 @@ includeIfNotIncluded("core/Me.js");
 
           break MainLoop; // break if we're sure we're on empty char screen
         default:
-          print(getLocation());
+          console.log(getLocation());
 
           me.blockMouse = false;
 
@@ -957,7 +980,7 @@ includeIfNotIncluded("core/Me.js");
             try {
               login(me.profile);
             } catch (e) {
-              print(e);
+              console.log(e);
             }
 
             break;
@@ -1286,14 +1309,18 @@ includeIfNotIncluded("core/Me.js");
       return rval;
     },
 
+    /**
+     * @param {number} [len] 
+     * @returns {string}
+     */
     randomNumberString: function (len) {
       !len && (len = rand(2, 5));
 
       let rval = "";
-      let vals = "0123456789";
+      const vals = "0123456789".split("");
 
       for (let i = 0; i < len; i += 1) {
-        rval += vals[rand(0, vals.length - 1)];
+        rval += vals.random();
       }
 
       return rval;
@@ -1565,7 +1592,7 @@ includeIfNotIncluded("core/Me.js");
               // If stuck here for too long, game creation likely failed. Exit to char selection and try again.
               if (queue < 10) {
                 if (!Starter.locationTimeout(Starter.Config.WaitInLineTimeout * 1e3, currentLoc)) {
-                  print("Failed to create game");
+                  console.log("Failed to create game");
                   Controls.CancelCreateGame.click();
                   Controls.LobbyQuit.click();
                   delay(1000);
@@ -1577,7 +1604,7 @@ includeIfNotIncluded("core/Me.js");
               if (Starter.Config.WaitOutQueueRestriction) {
                 D2Bot.updateStatus("Waiting out Queue restriction: " + queue);
               } else {
-                print("Restricted... Queue: " + queue);
+                console.log("Restricted... Queue: " + queue);
                 D2Bot.printToConsole("Restricted... Queue: " + queue, sdk.colors.D2Bot.Red);
                 Controls.CancelCreateGame.click();
 
@@ -1797,6 +1824,19 @@ includeIfNotIncluded("core/Me.js");
             Controls.OpenBattleNet.click();
           } else {
             Controls.OtherMultiplayerCancel.click();
+          }
+        },
+
+        charSelectConnecting: function () {
+          if (getLocation() === sdk.game.locations.CharSelectConnecting) {
+            // bugged? lets see if we can unbug it
+            // Click create char button on infinite "connecting" screen
+            Controls.CharSelectCreate.click() && delay(1000);
+            Controls.BottomLeftExit.click() && delay(1000);
+        
+            return (getLocation() !== sdk.game.locations.CharSelectConnecting);
+          } else {
+            return true;
           }
         }
       };

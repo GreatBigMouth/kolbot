@@ -48,7 +48,7 @@ const TorchSystem = {
 
     for (let i = 0; i < farmers.length; i += 1) {
       if (farmers[i].FarmGame.length > 0 && me.gamename.toLowerCase().match(farmers[i].FarmGame.toLowerCase())) {
-        print("ÿc4Torch Systemÿc0: In Farm game.");
+        console.log("ÿc4Torch Systemÿc0: In Farm game.");
         D2Bot.printToConsole("Torch System: Transfering keys.", sdk.colors.D2Bot.DarkGold);
         D2Bot.updateStatus("Torch System: In game.");
         Town.goToTown(1);
@@ -282,7 +282,7 @@ const TorchSystem = {
               }
 
               if (farmer.KeyFinderProfiles.includes(obj.profile)) {
-                print("Got game request from: " + obj.profile);
+                console.log("Got game request from: " + obj.profile);
                 sendCopyData(
                   null, obj.profile, 6,
                   JSON.stringify({ name: "gameName", value: { gameName: me.gamename, password: me.gamepassword } })
@@ -295,7 +295,7 @@ const TorchSystem = {
               break;
             case "keyCheck":
               if (farmer.KeyFinderProfiles.includes(obj.profile)) {
-                print("Got key count request from: " + obj.profile);
+                console.log("Got key count request from: " + obj.profile);
 
                 // Get the number of needed keys
                 neededItems = { pk1: 3 - tkeys, pk2: 3 - hkeys, pk3: 3 - dkeys, rv: juvCheck() };

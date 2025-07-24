@@ -84,7 +84,7 @@
       // not ladder restricted or we are on ladder
       if (!this._ladder || ladder) return false;
       // ladder restricted and we have enabled ladder override
-      if (Config.LadderOveride) return false;
+      if (Config.LadderOverride) return false;
       // ladder restricted
       return true;
     };

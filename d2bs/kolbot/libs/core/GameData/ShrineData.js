@@ -9,38 +9,40 @@
   const ShrineData = (function () {
     /**
      * @constructor
+     * @param {string} name
      * @param {number} state 
      * @param {number} duration 
      * @param {number} regen 
      */
-    function Shrine (state, duration, regen) {
+    function Shrine (name, state, duration, regen) {
+      this.name = name || "Unknown Shrine";
       this.state = state || 0;
       this.duration = duration || 0;
       this.regenTime = Time.minutes(regen) || Infinity;
     }
     const _shrines = new Map([
-      [sdk.shrines.Refilling, new Shrine(sdk.shrines.None, 0, 2)],
-      [sdk.shrines.Health, new Shrine(sdk.shrines.None, 0, 5)],
-      [sdk.shrines.Mana, new Shrine(sdk.shrines.None, 0, 5)],
+      [sdk.shrines.Refilling, new Shrine("Refilling", sdk.shrines.None, 0, 2)],
+      [sdk.shrines.Health, new Shrine("Health", sdk.shrines.None, 0, 5)],
+      [sdk.shrines.Mana, new Shrine("Mana", sdk.shrines.None, 0, 5)],
       [sdk.shrines.HealthExchange, new Shrine()],
       [sdk.shrines.ManaExchange, new Shrine()],
-      [sdk.shrines.Armor, new Shrine(sdk.states.ShrineArmor, 2400, 5)],
-      [sdk.shrines.Combat, new Shrine(sdk.states.ShrineCombat, 2400, 5)],
-      [sdk.shrines.ResistFire, new Shrine(sdk.states.ShrineResFire, 3600, 5)],
-      [sdk.shrines.ResistCold, new Shrine(sdk.states.ShrineResCold, 3600, 5)],
-      [sdk.shrines.ResistLightning, new Shrine(sdk.states.ShrineResLighting, 3600, 5)],
-      [sdk.shrines.ResistPoison, new Shrine(sdk.states.ShrineResPoison, 3600, 5)],
-      [sdk.shrines.Skill, new Shrine(sdk.states.ShrineSkill, 2400, 5)],
-      [sdk.shrines.ManaRecharge, new Shrine(sdk.states.ShrineManaRegen, 2400, 5)],
-      [sdk.shrines.Stamina, new Shrine(sdk.states.ShrineStamina, 4800, 5)],
-      [sdk.shrines.Experience, new Shrine(sdk.states.ShrineResCold, 3600)],
+      [sdk.shrines.Armor, new Shrine("Armor", sdk.states.ShrineArmor, 2400, 5)],
+      [sdk.shrines.Combat, new Shrine("Combat", sdk.states.ShrineCombat, 2400, 5)],
+      [sdk.shrines.ResistFire, new Shrine("Resist Fire", sdk.states.ShrineResFire, 3600, 5)],
+      [sdk.shrines.ResistCold, new Shrine("Resist Cold", sdk.states.ShrineResCold, 3600, 5)],
+      [sdk.shrines.ResistLightning, new Shrine("Resist Lightning", sdk.states.ShrineResLighting, 3600, 5)],
+      [sdk.shrines.ResistPoison, new Shrine("Resist Poison", sdk.states.ShrineResPoison, 3600, 5)],
+      [sdk.shrines.Skill, new Shrine("Skill", sdk.states.ShrineSkill, 2400, 5)],
+      [sdk.shrines.ManaRecharge, new Shrine("Mana Recharge", sdk.states.ShrineManaRegen, 2400, 5)],
+      [sdk.shrines.Stamina, new Shrine("Stamina", sdk.states.ShrineStamina, 4800, 5)],
+      [sdk.shrines.Experience, new Shrine("Experience", sdk.states.ShrineExperience, 3600)],
       [sdk.shrines.Enirhs, new Shrine()],
-      [sdk.shrines.Portal, new Shrine()],
-      [sdk.shrines.Gem, new Shrine()],
-      [sdk.shrines.Fire, new Shrine()],
-      [sdk.shrines.Monster, new Shrine()],
-      [sdk.shrines.Exploding, new Shrine()],
-      [sdk.shrines.Poison, new Shrine()],
+      [sdk.shrines.Portal, new Shrine("Portal")],
+      [sdk.shrines.Gem, new Shrine("Gem")],
+      [sdk.shrines.Fire, new Shrine("Fire")],
+      [sdk.shrines.Monster, new Shrine("Monster")],
+      [sdk.shrines.Exploding, new Shrine("Exploding")],
+      [sdk.shrines.Poison, new Shrine("Poison")],
     ]);
     
     return {

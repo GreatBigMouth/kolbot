@@ -7,19 +7,15 @@
 */
 include("systems/mulelogger/MuleLogger.js");
 
+/** @type {import("./GameAction").GameActionType} */
 const GameAction = {
-  // keeping with the general structure changes this section should probably be in its own config file
-  // but its not a lot so does it really need to be?
-  LogNames: true, // Put account/character name on the picture
-  LogItemLevel: true, // Add item level to the picture
-  LogEquipped: false, // include equipped items
-  LogMerc: false, // include items merc has equipped (if alive)
-  SaveScreenShot: false, // Save pictures in jpg format (saved in 'Images' folder)
-  IngameTime: 60, // Time to wait before leaving game
-
   /** @type {{ action: string, data: any } | null} */
   task: null,
-  // don't edit
+  
+  /**
+   * @param {string} task - JSON string containing task information
+   * @returns {boolean}
+   */
   init: function (task) {
     try {
       GameAction.task = JSON.parse(task);
@@ -277,3 +273,8 @@ const GameAction = {
     D2Bot.stop(me.profile, true);
   },
 };
+
+// load configuration file and apply settings to GameAction, has to be after the namespace is created
+(function () {
+  Object.assign(GameAction, require("./GameActionConfig", null, false));
+})();

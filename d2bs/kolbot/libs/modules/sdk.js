@@ -4479,6 +4479,7 @@
       },
 
       text: {
+        Ladder: 719,
         RepairCost: 3330,
         SellValue: 3331,
         IdentifyCost: 3332,

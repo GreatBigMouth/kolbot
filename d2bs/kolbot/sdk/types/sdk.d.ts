@@ -4402,6 +4402,7 @@ declare global {
       }
 
       namespace text {
+        const Ladder: 719;
         const RepairCost: 3330;
         const SellValue: 3331;
         const IdentifyCost: 3332;

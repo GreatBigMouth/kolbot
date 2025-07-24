@@ -7,7 +7,6 @@
 
 const TristramLeech = new Runnable(
   function TristramLeech () {
-    include("core/Common/Leecher.js");
     let done = false;
     let whereisleader, leader;
     

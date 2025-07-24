@@ -55,6 +55,7 @@
     [sdk.game.locations.TcpIpEnterIp,
       function () {
         Controls.PopupNo.click();
+        // Controls.TcpIpCancel.click();
       }
     ],
     [sdk.game.locations.MainMenu,
@@ -350,6 +351,13 @@
         Starter.LocationEvents.openCreateGameWindow();
       }
     ],
+    [
+      sdk.game.locations.ServerDown,
+      function () {
+        ControlAction.timeoutDelay("Server Down", Time.minutes(5));
+        Controls.OkCentered.click();
+      }
+    ],
   ]);
   addLocations([sdk.game.locations.PreSplash, sdk.game.locations.SplashScreen],
     function (location) {
@@ -395,9 +403,8 @@
     }
   );
   addLocations([sdk.game.locations.Disconnected, sdk.game.locations.LobbyLostConnection],
-    function () {
-      D2Bot.updateStatus("Disconnected/LostConnection");
-      delay(1000);
+    function (loc) {
+      ControlAction.timeoutDelay(loc === sdk.game.locations.Disconnected ? "Disconnected" : "Lost Connection", 3000);
       Controls.OkCentered.click();
     }
   );

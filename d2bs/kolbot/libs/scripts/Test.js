@@ -6,7 +6,7 @@
 */
 
 function Test() {
-  print("ÿc8TESTING");
+  console.log("ÿc8TESTING");
 
   let c;
 
@@ -21,8 +21,8 @@ function Test() {
       try {
         doTest();
       } catch (qq) {
-        print("failed");
-        print(qq + " " + qq.fileName + " " + qq.lineNumber);
+        console.log("failed");
+        console.log(qq + " " + qq.fileName + " " + qq.lineNumber);
       }
 
       c = false;
@@ -33,6 +33,6 @@ function Test() {
 }
 
 function doTest() {
-  print("test");
-  print("done");
+  console.log("test");
+  console.log("done");
 }

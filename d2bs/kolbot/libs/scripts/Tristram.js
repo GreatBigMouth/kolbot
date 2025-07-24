@@ -12,7 +12,6 @@ const Tristram = new Runnable(
     // complete quest if its not complete
     if (!me.getQuest(sdk.quest.id.TheSearchForCain, 4)
       && !me.getQuest(sdk.quest.id.TheSearchForCain, sdk.quest.states.Completed)) {
-      include("core/Common/Cain.js");
       Common.Cain.run();
     }
 
@@ -42,7 +41,7 @@ const Tristram = new Runnable(
         }
 
         while (!Pather.usePortal(sdk.areas.Tristram)) {
-          Attack.securePosition(me.x, me.y, 10, 1000);
+          Attack.securePosition(me.x, me.y, { range: 10, duration: 1000 });
         }
 
         break;

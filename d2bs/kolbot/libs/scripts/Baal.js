@@ -7,7 +7,6 @@
 
 const Baal = new Runnable(
   function Baal () {
-    include("core/Common/Baal.js");
     const announce = function () {
       let count, string, souls, dolls;
       let monster = Game.getMonster();

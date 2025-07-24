@@ -12,6 +12,7 @@ declare global {
     startArea?: number;
   }
 
+  // @ts-ignore
   class Runnable {
     constructor(action: () => boolean, options: Partial<RunnableOptions>);
 
@@ -47,7 +48,7 @@ declare global {
   }
 
   type Scripts = {
-    [key: string]: boolean;
+    [key in KolbotScript]: boolean;
   };
 
   const Scripts: Scripts;

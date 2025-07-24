@@ -5,7 +5,7 @@
 *
 */
 
-/** @type {Record<string, boolean | Object>} */
+/** @type {Record<KolbotScript, boolean | Object>} */
 const Scripts = {};
 
 let Config = {
@@ -118,12 +118,14 @@ let Config = {
     Memory: false,
     Skill: false,
     Town: false,
+    Shrines: false,
   },
 
   // Experimental
   FastParty: false,
   AutoEquip: false,
   UseExperimentalAvoid: false,
+  UseExperimentalClearLevel: false,
 
   // Time
   StartDelay: 0,
@@ -312,7 +314,7 @@ let Config = {
    */
   Runewords: [],
   KeepRunewords: [],
-  LadderOveride: false,
+  LadderOverride: false,
   Gamble: false,
   GambleItems: [],
   GambleGoldStart: 0,
@@ -540,6 +542,7 @@ let Config = {
     KillNihlathak: false,
     FastChaos: false,
     DollQuit: false,
+    SoulQuit: false,
     KillBaal: false,
     SkipTP: false
   },
@@ -561,6 +564,7 @@ let Config = {
     StarTP: "Star TP up",
     DiabloMsg: "Diablo",
     ClearRadius: 30,
+    /** @type {import("sdk/types/Config").DiabloSeal[]} */
     SealOrder: ["vizier", "seis", "infector"]
   },
   DiabloHelper: {
@@ -571,6 +575,7 @@ let Config = {
     OpenSeals: false,
     SafePrecast: true,
     ClearRadius: 30,
+    /** @type {import("sdk/types/Config").DiabloSeal[]} */
     SealOrder: ["vizier", "seis", "infector"],
     RecheckSeals: false
   },

@@ -11,8 +11,11 @@ const Rakanishu = new Runnable(
     Precast.doPrecast(true);
 
     if (!Attack.haveKilled(getLocaleString(sdk.locale.monsters.Rakanishu))) {
-      if (!Pather.moveToPreset(me.area, sdk.unittype.Monster, sdk.monsters.preset.Rakanishu, 0, 0, false, true)) {
-        throw new Error("Failed to move to Rakanishu");
+      if (!Pather.moveToPresetMonster(sdk.areas.StonyField, sdk.monsters.preset.Rakanishu, { pop: true })) {
+        // sometime bad map seed will not allow us to find Rakanishu to use stone preset
+        if (!Pather.moveToPresetObject(sdk.areas.StonyField, sdk.quest.chest.StoneAlpha)) {
+          throw new Error("Failed to move to Rakanishu");
+        }
       }
       Attack.kill(getLocaleString(sdk.locale.monsters.Rakanishu));
     }

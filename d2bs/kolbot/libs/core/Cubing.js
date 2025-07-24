@@ -263,6 +263,7 @@ const Recipe = {
       case sdk.items.runes.Tal:
       case sdk.items.runes.Ral:
       case sdk.items.runes.Ort:
+      case sdk.items.runes.Thul:
         return [keyItem - 1, keyItem - 1, keyItem - 1];
       case sdk.items.runes.Amn: // thul->amn
         return [sdk.items.runes.Thul, sdk.items.runes.Thul, sdk.items.runes.Thul, sdk.items.gems.Chipped.Topaz];
@@ -594,7 +595,8 @@ const Cubing = {
         break;
       case Recipe.Unique.Weapon.ToElite: // Ladder only
       case Recipe.Unique.Armor.ToElite: // Ladder only
-        if (!me.ladder) continue;
+        // not ladder and online - we can do these recipes on single player
+        if (!me.ladder && me.realm) continue;
         break;
       case Recipe.Reroll.HighRare:
         recipeObj.Enabled = false;
@@ -631,7 +633,7 @@ const Cubing = {
 
       if (recipe.hasOwnProperty("condition") && typeof recipe.condition === "function") {
         if (!recipe.condition()) {
-          console.debug("Skipping recipe due to condition cb");
+          console.debug("Skipping recipe " + recipe.Index + " due to condition cb");
           continue;
         }
       }
@@ -644,7 +646,7 @@ const Cubing = {
 
         if (itemCount >= recipe.MaxQuantity) {
           console.debug(
-            "Skipping recipe due to item count exceeding MaxQuantity."
+            "Skipping recipe " + recipe.Index + " due to item count exceeding MaxQuantity."
             + " Have: " + itemCount
             + ", Wanted: " + recipe.MaxQuantity
           );
