@@ -6,6 +6,11 @@
 */
 
 (function (module) {
+  // D2BotFollow specific settings - for global settings see libs/starter/StarterConfig.js
+  const StarterConfig = {
+    JoinRetryDelay: 5, // Time in seconds to wait before next join attempt
+  };
+
   /**
    * @description Join game settings
    * - Format: "leader's profile": ["leecher 1 profile", "leecher 2 profile", ...]
@@ -19,47 +24,11 @@
    *  };
    */
   const JoinSettings = {
-    "Wakka.Leader": [
-      "Wakka.Helper",
-      "Wakka.Follow1",
-      "Wakka.Follow2",
-      "Wakka.Follow3",
-      "Wakka.Follow4",
-      "Wakka.Follow5",
-      "Wakka.Follow6",
-    ],
-    "Baal.Leader": [
-      "Baal.Helper1",
-      "Baal.Helper2",
-      "Baal.Helper3",
-      "Baal.BOBarb",
-      "Baal.Follow1",
-      "Baal.Follow2",
-      "Baal.Follow3",
-      "Baal.Follow4",
-    ],
-    "LS.CH.Leader": [
-      "LS.CH.Follow1",
-      "LS.CH.Follow2",
-      "LS.CH.Follow3",
-      "LS.CH.Follow4",
-      "LS.CH.Follow5",
-      "LS.CH.Follow6",
-      "LS.CH.Follow7",
-      "LS.CH.Follow8",
-    ],
-    "LS.CH.MFLeader": [
-      "LS.CH.MFHelp1",
-      "LS.CH.MFHelp2",
-      "LS.CH.MFHelp3",
-      "LS.CH.MFHelp4",
-      "LS.CH.MFHelp5",
-      "LS.CH.MFHelp6",
-      "LS.CH.MFHelp7"
-    ]
+    "Leader": ["Leecher"],
   };
 
   module.exports = {
     JoinSettings: JoinSettings,
+    StarterConfig: StarterConfig,
   };
 })(module);
