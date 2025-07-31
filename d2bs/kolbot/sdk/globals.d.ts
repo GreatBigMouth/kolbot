@@ -766,6 +766,7 @@ declare global {
     readonly IAS: number;
     readonly shapeshifted: boolean;
     readonly attacking: boolean;
+    readonly size: number;
     /**
      * @description max gold capacity (cLvl * 10000)
      */

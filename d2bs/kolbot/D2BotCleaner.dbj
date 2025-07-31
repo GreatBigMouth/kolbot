@@ -190,7 +190,7 @@ function deleteAllCharacters () {
     let info = { charName: character };
     if (CharactersToExclude.includes(character)) continue;
     if (!ControlAction.deleteCharacter(info)) {
-      print("failed to delete character " + character);
+      console.error("failed to delete character " + character);
       return false;
     }
     delay(500);

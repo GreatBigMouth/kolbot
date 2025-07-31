@@ -171,18 +171,21 @@ const ShopBot = new Runnable(
       validItems += items.length;
       overlayText.frequency.text = "Valid base items / cycle: " + ((validItems / totalCycles).toFixed(2).toString());
 
-      for (let i = 0; i < items.length; i += 1) {
-        if (Storage.Inventory.CanFit(items[i]) && Pickit.canPick(items[i]) &&
-            me.gold >= items[i].getItemCost(sdk.items.cost.ToBuy) &&
-            NTIP.CheckItem(items[i], pickEntries)
+      for (let item of items) {
+        const rval = NTIP.CheckItem(item, pickEntries, true);
+        if (!rval.result) continue;
+        
+        if (Storage.Inventory.CanFit(item)
+          && Pickit.canPick(item)
+          && me.gold >= item.getItemCost(sdk.items.cost.ToBuy)
         ) {
           beep();
           D2Bot.printToConsole("Match found!", sdk.colors.D2Bot.DarkGold);
           delay(1000);
 
           if (npc.startTrade(menuId)) {
-            Item.logItem("Shopped", items[i]);
-            items[i].buy();
+            Item.logItem("Shopped", item, rval.line);
+            item.buy();
             bought = true;
           }
 

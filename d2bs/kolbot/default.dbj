@@ -187,7 +187,7 @@ function main () {
   }
 
   if (Config.FastPick) {
-    print("ÿc2Fast pickit active.");
+    console.log("ÿc2Fast pickit active.");
     addEventListener("itemaction", Pickit.itemEvent);
   }
 
@@ -199,7 +199,7 @@ function main () {
     // main checks
     Cubing.cursorCheck();
     Town.getCorpse();
-    Town.clearBelt();
+    me.clearBelt();
     Pather.init(); // initialize wp data
     
     let { x, y } = me;
@@ -220,7 +220,7 @@ function main () {
     }
   }
 
-  me.automap = Config.AutoMap;
+  me.automap = Config.AutoMap || Config.DebugMode.Path;
 
   // Next game = drop keys
   TorchSystem.keyCheck() && scriptBroadcast("torch");

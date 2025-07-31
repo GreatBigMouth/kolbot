@@ -227,9 +227,11 @@ NTIP.GetMercTier = NTIP.generateTierFunc("Merctier");
  * @param {ItemUnit} item 
  * @param {[(item) => Boolean, (item) => Boolean, (item) => Boolean]} entryList 
  * @param {boolean} verbose 
+ * @returns {number|{line: string, result: number}}
  */
 NTIP.CheckItem = function (item, entryList, verbose) {
   let i, num;
+  /** @type {{ line: string, result: number }} */
   let rval = {};
   let result = 0;
 

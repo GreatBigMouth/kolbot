@@ -13,7 +13,7 @@
     this._kingCoords = null;
 
     this.buildCowRooms = function () {
-      /** @type {Partial<Room>[]} */
+      /** @type {[number, number, Room][]} */
       const finalRooms = [];
       /** @type {Set<string>} */
       const indexes = new Set();
@@ -22,16 +22,27 @@
       this._kingCoords = kingPreset.realCoords();
       /** @type {Room[]} */
       const badRooms = getRoom(this._kingCoords.x, this._kingCoords.y).getNearby();
+      /**
+       * @param {Room} room 
+       * @returns {string}
+       */
+      const roomKey = function (room) {
+        return room.x + ":" + room.y;
+      };
 
-      for (let i = 0; i < badRooms.length; i += 1) {
-        this._badRooms.push(badRooms[i]);
-        CollMap.drawRoom(badRooms[i], "red");
-        let badRooms2 = badRooms[i].getNearby();
+      for (let room of badRooms) {
+        this._badRooms.push(room);
+        if (Config.DebugMode.Path) {
+          CollMap.drawRoom(room, "red");
+        }
+        const badRooms2 = room.getNearby();
 
-        for (let j = 0; j < badRooms2.length; j += 1) {
-          if (!indexes.has(badRooms2[j].x + "" + badRooms2[j].y)) {
-            CollMap.drawRoom(badRooms2[j], "white");
-            indexes.add(badRooms2[j].x + "" + badRooms2[j].y);
+        for (let badRoom of badRooms2) {
+          if (!indexes.has(roomKey(badRoom))) {
+            if (Config.DebugMode.Path) {
+              CollMap.drawRoom(badRoom, "white");
+            }
+            indexes.add(roomKey(badRoom));
           }
         }
       }
@@ -39,8 +50,8 @@
       let room = getRoom();
 
       do {
-        if (!indexes.has(room.x + "" + room.y)) {
-          finalRooms.push([room.x * 5 + room.xsize / 2, room.y * 5 + room.ysize / 2]);
+        if (!indexes.has(roomKey(room))) {
+          finalRooms.push([room.x * 5 + room.xsize / 2, room.y * 5 + room.ysize / 2, copyObj(room)]);
         }
       } while (room.getNext());
 
@@ -49,6 +60,11 @@
 
     // add soloplays kingTracker?
     this.clearCowLevel = function () {
+      /**
+       * @param {Room} a 
+       * @param {Room} b 
+       * @returns {number}
+       */
       function roomSort(a, b) {
         const aSeen = seen.has(JSON.stringify(a));
         const bSeen = seen.has(JSON.stringify(b));
@@ -64,10 +80,22 @@
 
       Config.MFLeader && Pather.makePortal() && say("cows");
 
+      let count = 0;
+      /** @type {[number, number]} */
       let myRoom;
+      /** @type {Partial<Room>} */
+      let room;
       /** @type {Set<string>} */
       const seen = new Set();
-      let rooms = this.buildCowRooms();
+      const rooms = this.buildCowRooms();
+
+      /** @type {Text[]} */
+      const hooks = [];
+
+      /** @param {Text} hook */
+      const clearHook = function (hook) {
+        hook && hook.remove();
+      };
 
       // Check if the starting room is in badRooms
       if (!Pather.useTeleport()) {
@@ -117,9 +145,9 @@
         }
 
         rooms.sort(roomSort);
-        let room = rooms.shift();
+        room = rooms.shift();
         seen.add(JSON.stringify(room));
-        let result = Pather.getNearestWalkable(room[0], room[1], 10, 2);
+        const result = Pather.getNearestWalkable(room[0], room[1], 10, 2);
 
         if (result) {
           if (!Pather.useTeleport()) {
@@ -148,10 +176,17 @@
               }
             }
           }
+          if (Config.DebugMode.Path) {
+            CollMap.drawRoom(room[2], "green");
+            hooks.push(new Text((++count).toString(), room[0], room[1], 2, 1, null, true));
+          }
           Pather.moveTo(result[0], result[1], 3);
           if (!Attack.clear(30)) return false;
         }
       }
+
+      CollMap.removeHooks();
+      hooks.forEach(clearHook);
 
       return true;
     };

@@ -599,7 +599,18 @@
       }
     },
 
-    // Cast a skill on self, Unit or coords
+    /**
+     * Cast a skill on self, Unit or coords
+     * @param {number} skillId 
+     * @param {number} hand 
+     * @param {number | Unit | PathNode} x 
+     * @param {number} [y] 
+     * @param {ItemUnit} [item] 
+     * @param {number} [weaponSlot] 
+     * @returns {boolean}
+     *
+     * @todo Track skills cast so we can determine most used, skills, mana expenditure, etc.
+     */
     cast: function (skillId, hand, x, y, item, weaponSlot = -1) {
       if (skillId === undefined) throw new Error("Unit.cast: Must supply a skill ID");
       const switchWeapons = weaponSlot > -1;

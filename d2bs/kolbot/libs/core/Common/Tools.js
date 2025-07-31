@@ -206,7 +206,7 @@
         break;
       }
 
-      let pottype = (() => {
+      const pottype = (() => {
         switch (type) {
         case this.pots.Health:
         case this.pots.MercHealth:
@@ -218,14 +218,14 @@
         }
       })();
 
-      let potion = this.getPotion(pottype, type);
+      const potion = this.getPotion(pottype, type);
 
       if (potion) {
         if (me.dead) return false;
 
         if (me.mode === sdk.player.mode.SkillActionSequence) {
           while (me.mode === sdk.player.mode.SkillActionSequence) {
-            delay (25);
+            delay(3);
           }
         }
 
