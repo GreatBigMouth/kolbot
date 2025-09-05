@@ -15,13 +15,6 @@
     this.update = function () {
       if (!workBench.length) return true;
 
-      /* let work = workBench.splice(0, workBench.length);
-      work.filter(data => typeof data === "object" && data)
-        .forEach(function (data) {
-          Object.keys(data).forEach(function (item) {
-            myEvents.emit(item, data[item]); // Trigger those events
-          });
-        }); */
       let work = workBench.splice(0, workBench.length);
       work.filter(data => typeof data === "string" && data)
         .forEach(function (data) {
@@ -41,10 +34,9 @@
     once: myEvents.once,
     send: (scriptName, what) => {
       let script = getScript(scriptName);
-      return script && script.running && script.send(what);
+      return script && script.running && script.send(JSON.stringify(what));
     },
     broadcast: what => scriptBroadcast(JSON.stringify(what))
-    //send: what => scriptBroadcast(what)
   };
 
 })(module, require);
