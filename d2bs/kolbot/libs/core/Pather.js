@@ -2247,7 +2247,7 @@ const Pather = {
     yMax === undefined && (yMax = 4);
     factor === undefined && (factor = 1);
     /** @type {PathNode} */
-    const coord = CollMap.getRandCoordinate(me.x, -4, 4, me.y, -4, 4, factor);
+    const coord = CollMap.getRandCoordinate(me.x, xMin, xMax, me.y, yMin, yMax, factor);
     return Pather.move(coord, { retry: 3, allowClearing: false });
   },
 
