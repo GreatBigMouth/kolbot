@@ -312,6 +312,43 @@ const Pather = {
   },
 
   /**
+   * @param {PathNode} node
+   * @param {number} distance - desired distance from node
+   * @param {number} [maxAttempts=16] - number of angles to try
+   * @returns {PathNode | false}
+   */
+  findSpotAtDistance: function (node, distance, maxAttempts = 16) {
+    if (!node) return false;
+  
+    const angleStep = 360 / maxAttempts;
+  
+    for (let i = 0; i < maxAttempts; i++) {
+      let angle = (i * angleStep) * Math.PI / 180;
+      let x = Math.round(node.x + Math.cos(angle) * distance);
+      let y = Math.round(node.y + Math.sin(angle) * distance);
+    
+      if (Pather.checkSpot(x, y, sdk.collision.BlockWalk)) {
+        return new PathNode(x, y);
+      }
+    }
+  
+    // If no exact distance spot found, try to find nearest walkable spot around the target distance
+    for (let radius = distance - 2; radius <= distance + 2; radius++) {
+      for (let i = 0; i < maxAttempts; i++) {
+        let angle = (i * angleStep) * Math.PI / 180;
+        let x = Math.round(node.x + Math.cos(angle) * radius);
+        let y = Math.round(node.y + Math.sin(angle) * radius);
+      
+        if (Pather.checkSpot(x, y, sdk.collision.BlockWalk)) {
+          return new PathNode(x, y);
+        }
+      }
+    }
+  
+    return false;
+  },
+
+  /**
    * @typedef {object} pathSettings
    * @property {boolean} [allowNodeActions]
    * @property {boolean} [allowTeleport]
@@ -1346,6 +1383,12 @@ const Pather = {
         + " MyArea: " + getAreaName(me.area)
         + (!!targetArea ? " TargetArea: " + getAreaName(targetArea) : "")
       );
+    }
+
+    // There might be multiple stairs with the same class id nearby.
+    // Given we've walked to the stairs, pick the closest one.
+    if (type === sdk.unittype.Stairs) {
+      unit = getUnits(type, id).sort(Sort.units).first() || unit;
     }
 
     return unit.useUnit(targetArea);

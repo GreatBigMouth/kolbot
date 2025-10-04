@@ -134,7 +134,7 @@ const MuleLogger = {
       + unit.itemType + ":"
       + unit.quality + ":"
       + unit.itemclass + ":"
-      + sock.length + ":"
+      + unit.sockets + ":"
       + unit.gfx + ":"
       + color + ":"
     );

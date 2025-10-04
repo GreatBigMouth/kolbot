@@ -5,18 +5,12 @@
 *
 */
 js_strict(true);
-
-include("json2.js");     // required?
-include("polyfill.js");  // required
-include("oog/D2Bot.js"); // required
+include("critical.js");
 
 // globals needed for core gameplay
-// todo - figure out what here is actually needed for mapmode vs what is only required for bot mode
-include("core/NTItemParser.js");
-include("core/Util");
 includeCoreLibs();
 
-// system libs - same for here
+// system libs
 includeSystemLibs();
 include("systems/mulelogger/MuleLogger.js");
 

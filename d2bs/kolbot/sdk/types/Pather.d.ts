@@ -39,6 +39,7 @@ declare global {
     let lastPortalTick: 0;
     let allowBroadcast: boolean;
 
+    function findSpotAtDistance(node: PathNode, distance: number, maxAttempts?: number): PathNode | false;
     function getWalkDistance(
       x: number,
       y: number,

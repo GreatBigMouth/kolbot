@@ -589,7 +589,15 @@ const Precast = (function () {
       try {
         // Only do this is you are a barb or actually have a cta. Otherwise its just a waste of time and you can precast in town
         if (Precast.needOutOfTownCast()) {
-          Pather.useWaypoint("random") && Precast.doPrecast(force);
+          if (Pather.useWaypoint("random")) {
+            let wp = Game.getObject("waypoint");
+            let spot = Pather.findSpotAtDistance(wp, 8);
+
+            if (spot) {
+              Pather.move(spot);
+            }
+            Precast.doPrecast(force);
+          }
         } else {
           Precast.doPrecast(force);
         }
