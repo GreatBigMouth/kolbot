@@ -214,6 +214,7 @@ const Town = {
    */
   npcInteract: function (name = "", cancel = true) {
     // what about finding the closest name in case someone mispells it?
+    /* 
     const npcKey = Object.keys(NPC).find(function (key) {
       return String.isEqual(key, name);
     });
@@ -222,7 +223,16 @@ const Town = {
       console.warn("Couldn't find " + name + " in NPC object");
       return false;
     }
-    const npcName = NPC[npcKey];
+    const npcName = NPC[npcKey]; 
+    */
+
+    const key = NPC.resolve(name);
+    if (!key) {
+      console.warn("Couldn't resolve " + name + " in NPC object");
+      return false;
+    }
+
+    const npcName = NPC[key];
 
     !me.inTown && Town.goToTown();
     
