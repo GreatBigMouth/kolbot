@@ -15,6 +15,9 @@
 !.vscode/settings.json
 !.vscode/extensions.json
 
+# Do not track workspace settings
+*.code-workspace
+
 # Do not track install packages
 node_modules/
 
@@ -22,7 +25,9 @@ node_modules/
 **/__*
 
 # Do not track user generated data
+data/*.txt
 data/*.json
+data/*.dat
 images/
 logs/*.rtf
 logs/*.log
