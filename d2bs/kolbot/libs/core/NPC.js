@@ -38,6 +38,27 @@ const NPC = (new function NPC () {
 
   this.Cain = getLocaleString(sdk.locale.npcs.DeckardCain).toLowerCase();
 
+  const lookup = new Map();
+  Object.entries(this).forEach(function ([key, value]) {
+    if (typeof value === "string") {
+      lookup.set(key.toLowerCase(), key);
+      lookup.set(value.toLowerCase(), key);
+    }
+  });
+
+  /**
+   * Resolve an NPC identifier (string or NPC value) to a canonical key.
+   * @param {string} name - The name of the NPC.
+   * @returns {string|null} Canonical key or null if not found.
+   */
+  this.resolve = function (name) {
+    if (!name) return null;
+    return lookup.get(name.toLowerCase()) || null;
+  };
+  Object.defineProperty(this, "resolve", {
+    enumerable: false,
+  });
+
   /**
    * Returns the act(s) where the given NPC can be found.
    * @param {string} name - The name of the NPC.
