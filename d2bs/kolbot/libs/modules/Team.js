@@ -17,7 +17,7 @@
     on: myEvents.on,
     off: myEvents.off,
     once: myEvents.once,
-    send: function (who, what, mode = defaultCopyDataMode) {
+    send: function (who, what, mode) {
       what.profile = me.windowtitle;
       //console.debug("Sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
       return sendCopyData(null, who, mode || defaultCopyDataMode, JSON.stringify(what));
@@ -27,7 +27,7 @@
       return others.forEach(other => sendCopyData(null, other.profile, mode || defaultCopyDataMode, JSON.stringify(what)));
     },
     broadcastInGame: (what, mode) => {
-      //console.debug("Broadcasting " + JSON.stringify(what));
+      //console.debug("(3) Broadcasting " + JSON.stringify(what));
       what.profile = me.windowtitle;
       others.forEach(function (other) {
         for (const party = getParty(); party && party.getNext();) {
@@ -42,7 +42,7 @@
     console.log("ÿc2Kolbotÿc0 :: Team thread started");
 
     Messaging.on("Team", data => {
-      //console.debug("Received: " + JSON.stringify(data));
+      //console.debug("(2) Received: " + JSON.stringify(data));
       if (typeof data === "string") data = JSON.parse(data);
       data.hasOwnProperty("call") && Team[data.call].apply(Team, data.hasOwnProperty("args") && data.args || []);
     });
@@ -146,6 +146,8 @@
       Object.keys(Team)
         .filter(key => !myEvents.hasOwnProperty(key) && typeof Team[key] === "function")
         .forEach(key => module.exports[key] = (...args) => {
+          //console.trace();
+          //console.debug("(1) Broadcasting: " + JSON.stringify({ call: key, args: args }));
           Messaging.broadcast({
             Team: {
               call: key,
