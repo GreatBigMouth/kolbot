@@ -29,7 +29,8 @@ function main () {
     const {
       locations,
       addLocations,
-      parseControlText
+      parseControlText,
+      run
     } = require("./libs/oog/Locations");
 
     locations.set(sdk.game.locations.OtherMultiplayer,
@@ -372,19 +373,7 @@ function main () {
     );
 
     return {
-      /** @param {number} loc */
-      run: function (loc) {
-        try {
-          let func = locations.get(loc);
-          if (typeof func === "function") {
-            func(loc);
-          } else if (loc !== undefined && loc !== null) {
-            console.log("Unhandled location: " + loc);
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      },
+      run: run,
     };
   })();
 

@@ -78,15 +78,21 @@ const AutoBaal = new Runnable(
     const longRangeSupport = function () {
       switch (me.classid) {
       case sdk.player.class.Necromancer:
-        ClassAttack.raiseArmy(50);
+        ClassAttack[me.classid].raiseArmy(50);
 
         if (Config.Curse[1] > 0) {
           let monster = Game.getMonster();
 
           if (monster) {
             do {
-              if (monster.attackable && monster.distance < 50 && !checkCollision(me, monster, sdk.collision.Ranged)
-                && monster.curseable && !monster.isSpecial && ClassAttack.canCurse(monster, Config.Curse[1])) {
+              if (
+                monster.attackable
+                && monster.distance < 50
+                && !checkCollision(me, monster, sdk.collision.Ranged)
+                && monster.curseable
+                && !monster.isSpecial
+                && ClassAttack[me.classid].canCurse(monster, Config.Curse[1])
+              ) {
                 Skill.cast(Config.Curse[1], sdk.skills.hand.Right, monster);
               }
             } while (monster.getNext());
@@ -95,8 +101,8 @@ const AutoBaal = new Runnable(
 
         break;
       case sdk.player.class.Assassin:
-        if (Config.UseTraps && ClassAttack.checkTraps({ x: 15095, y: 5037 })) {
-          ClassAttack.placeTraps({ x: 15095, y: 5037 }, 5);
+        if (Config.UseTraps && ClassAttack[me.classid].checkTraps({ x: 15095, y: 5037 })) {
+          ClassAttack[me.classid].placeTraps({ x: 15095, y: 5037 }, 5);
         }
 
         break;
@@ -141,7 +147,7 @@ const AutoBaal = new Runnable(
 
             if (Config.AttackSkill[index] > -1
               && Attack.checkResist(monster, Attack.getSkillElement(Config.AttackSkill[index]))) {
-              ClassAttack.doCast(monster, Config.AttackSkill[index], Config.AttackSkill[index + 1]);
+              ClassAttack[me.classid].doCast(monster, Config.AttackSkill[index], Config.AttackSkill[index + 1]);
             } else {
               monList.shift();
             }

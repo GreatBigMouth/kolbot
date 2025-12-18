@@ -1189,7 +1189,7 @@
       range: 1,
       state: sdk.states.BurstofSpeed,
       duration: () => (108 + (12 * me.getSkill(sdk.skills.BurstofSpeed, sdk.skills.subindex.SoftPoints))),
-      condition: () => !Config.UseBoS && !me.inTown,
+      condition: () => Config.UseBoS || me.inTown,
     });
     skillMap.set(sdk.skills.FistsofFire, {
       hand: sdk.skills.hand.Left,

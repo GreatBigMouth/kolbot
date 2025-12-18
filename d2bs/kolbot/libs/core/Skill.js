@@ -595,6 +595,9 @@
 
         return me.inTown || (me.mpPercent > 25);
       } catch (e) {
+        if ((e instanceof ScriptError)) {
+          throw e;
+        }
         return false;
       }
     },
@@ -748,6 +751,9 @@
       try {
         return item.castChargedSkill(skillId, unit.x, unit.y);
       } catch (e) {
+        if ((e instanceof ScriptError)) {
+          throw e;
+        }
         console.error(e);
         // maybe rebuild list?
         // Skill.getCharges();

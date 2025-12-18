@@ -6,7 +6,7 @@
  */
 
 const TextHooks = (function () {
-  const Events = new (require("../../modules/Events"));
+  const Events = new (require("../../modules/AsyncEvents"));
   const HookFactory = require("../modules/HookFactory");
 
   const Y_POS_MODIFIER = 16

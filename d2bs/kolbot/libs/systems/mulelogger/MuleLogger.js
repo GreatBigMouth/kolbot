@@ -102,6 +102,88 @@ const MuleLogger = {
   },
 
   /**
+   * @param {ItemUnit} item
+   * @returns {Record<string, number|string>}
+   */
+  dumpItemStats: function (item) {
+    const stats = item.getStat(-2);
+    const dump = {};
+
+    for (let i = 0; i < stats.length; i += 1) {
+      if (stats[i]) {
+        for (let n in NTIPAliasStat) {
+          let val;
+          
+          if (NTIPAliasStat.hasOwnProperty(n)) {
+            switch (typeof NTIPAliasStat[n]) {
+            case "number":
+              if (NTIPAliasStat[n] === i) {
+                switch (NTIPAliasStat[n]) {
+                case sdk.stats.ToBlock:
+                case sdk.stats.MinDamage:
+                case sdk.stats.MaxDamage:
+                case sdk.stats.SecondaryMinDamage:
+                case sdk.stats.SecondaryMaxDamage:
+                case sdk.stats.Defense:
+                case sdk.stats.AddClassSkills:
+                case sdk.stats.AddSkillTab:
+                case sdk.stats.ThrowMinDamage:
+                case sdk.stats.ThrowMaxDamage:
+                  val = item.getStatEx(NTIPAliasStat[n]);
+
+                  if (val) {
+                    dump[n] = val;
+                  }
+
+                  break;
+                // poison damage stuff
+                case sdk.stats.PoisonMinDamage:
+                case sdk.stats.PoisonMaxDamage:
+                case sdk.stats.PoisonLength:
+                case sdk.stats.PoisonCount:
+                  if (!dump.hasOwnProperty("poisondamage")) {
+                    val = item.getStatEx(sdk.stats.PoisonMinDamage, 1);
+
+                    if (val) {
+                      dump.poisondamage = val;
+                    }
+                  }
+
+                  break;
+                case sdk.stats.SkillOnAttack:
+                case sdk.stats.SkillOnStrike:
+                case sdk.stats.ChargedSkill:
+                  if (stats[i]) {
+                    dump[n] = stats[i].skill;
+                  }
+
+                  break;
+                default:
+                  if (stats[i][0]) {
+                    dump[n] = stats[i][0];
+                  }
+
+                  break;
+                }
+              }
+
+              break;
+            case "object":
+              val = item.getStatEx(NTIPAliasStat[n][0], NTIPAliasStat[n][1]);
+              if (val) {
+                dump[n] = val;
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return dump;
+  },
+
+  /**
    * Log kept item stats in the manager.
    * @param {ItemUnit} unit 
    * @param {boolean} [logIlvl] 
@@ -122,6 +204,35 @@ const MuleLogger = {
     const color = unit.getColor();
     const code = Item.getItemCode(unit);
     const sock = unit.getItemsEx();
+    const { btoa } = require("../../modules/external/base64");
+    const itemInfo = {
+      id: unit.classid,
+      code: unit.code,
+      name: name,
+      prefix: unit.prefix,
+      suffix: unit.suffix,
+      prefixes: unit.prefixes,
+      suffixes: unit.suffixes,
+      prefixnum: unit.prefixnum,
+      suffixnum: unit.suffixnum,
+      prefixnums: unit.prefixnums,
+      suffixnums: unit.suffixnums,
+      itemType: unit.itemType,
+      itemClass: unit.itemclass,
+      quality: unit.quality,
+      sockets: unit.sockets,
+      gfx: unit.gfx,
+      color: color,
+      ilvl: unit.ilvl,
+      lvlreq: unit.lvlreq,
+      strreq: unit.strreq,
+      dexreq: unit.dexreq,
+      flags: unit.getFlags(),
+      ethereal: unit.getFlag(sdk.items.flags.Ethereal),
+      runeword: unit.getFlag(sdk.items.flags.Runeword),
+      stats: MuleLogger.dumpItemStats(unit)
+    };
+    
     let desc = (
       Item.getItemDesc(unit, logIlvl) + "$"
       + unit.gid + ":"
@@ -129,14 +240,7 @@ const MuleLogger = {
       + unit.location + ":"
       + unit.x + ":"
       + unit.y + ":"
-      + (unit.getFlag(sdk.items.flags.Ethereal) ? "1" : "0") + ":"
-      + (unit.getFlag(sdk.items.flags.Runeword) ? "1" : "0") + ":"
-      + unit.itemType + ":"
-      + unit.quality + ":"
-      + unit.itemclass + ":"
-      + unit.sockets + ":"
-      + unit.gfx + ":"
-      + color + ":"
+      + btoa(JSON.stringify(itemInfo)) + ":"
     );
 
     if (sock.length) {

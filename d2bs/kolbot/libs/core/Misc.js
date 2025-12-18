@@ -83,6 +83,9 @@ const Misc = (function () {
           return true;
         }
       } catch (e) {
+        if ((e instanceof ScriptError)) {
+          throw e;
+        }
         player = getParty();
 
         if (player) {
@@ -440,9 +443,11 @@ const Misc = (function () {
 
     /**
      * @param {number} range 
+     * @param {number} [x=me.x]
+     * @param {number} [y=me.y]
      * @returns {boolean}
      */
-    openChests: function (range = 15) {
+    openChests: function (range = 15, x = me.x, y = me.y) {
       if (!Config.OpenChests.Enabled) return true;
 
       let containers = [];
@@ -479,8 +484,9 @@ const Misc = (function () {
           do {
             if (unit.name && unit.mode === sdk.objects.mode.Inactive
               && !seenGids.has(unit.gid)
-              && getDistance(me.x, me.y, unit.x, unit.y) <= range
-              && containers.includes(unit.name.toLowerCase())) {
+              && getDistance(x, y, unit.x, unit.y) <= range
+              && containers.includes(unit.name.toLowerCase())
+            ) {
               seenGids.add(unit.gid);
               unitList.push(copyUnit(unit));
             }
@@ -489,7 +495,7 @@ const Misc = (function () {
         return unitList;
       };
       
-      const startPos = new PathNode(me.x, me.y);
+      const startPos = new PathNode(x, y);
       let unitList = buildChestList(range);
 
       while (unitList.length > 0) {
@@ -596,8 +602,23 @@ const Misc = (function () {
         case sdk.shrines.Experience:
           return me.charlvl < 99;
         case sdk.shrines.Skill:
+          if (Config.DebugMode.Shrines) {
+            console.debug(
+              "Skill shrine. Dist: " + walkDistance
+              + " Last shrine state: " + Misc.lastShrine.state
+              + " isMyCurrentState: " + Misc.lastShrine.isMyCurrentState()
+            );
+          }
           return !me.getState(sdk.states.ShrineExperience);
         case sdk.shrines.ManaRecharge:
+          if (Config.DebugMode.Shrines) {
+            console.debug(
+              "Mana recharge shrine. Dist: " + walkDistance
+              + " Mana: " + me.mpPercent + "%"
+              + " Last shrine state: " + Misc.lastShrine.state
+              + " isMyCurrentState: " + Misc.lastShrine.isMyCurrentState()
+            );
+          }
           // we only want if its close to us if we can't teleport
           if (!Pather.useTeleport() && walkDistance > 15) {
             return false;
@@ -605,6 +626,15 @@ const Misc = (function () {
           // for now, only grab if we have nothing else active
           return !Misc.lastShrine.state || !me.getState(Misc.lastShrine.state);
         case sdk.shrines.Stamina:
+          if (Config.DebugMode.Shrines) {
+            console.debug(
+              "Staima shrine. Dist: " + walkDistance
+              + " Stamina: " + me.staminaPercent
+              + "% Max: " + me.staminamax
+              + " Last shrine state: " + Misc.lastShrine.state
+              + " isMyCurrentState: " + Misc.lastShrine.isMyCurrentState()
+            );
+          }
           // we only want if its close to us if we can't teleport
           if (
             !Pather.useTeleport()
@@ -665,6 +695,14 @@ const Misc = (function () {
         // TODO: handle armor and combat shrines
         case sdk.shrines.Armor:
         case sdk.shrines.Combat:
+          if (Config.DebugMode.Shrines) {
+            console.debug(
+              "Armor/Combat. Last shrine state: " + Misc.lastShrine.state
+              + " isMyCurrentState: " + Misc.lastShrine.isMyCurrentState()
+              + " Distance: " + walkDistance
+            );
+          }
+
           // we only want if its close to us if we can't teleport
           if (!Pather.useTeleport() && walkDistance > 15) {
             return false;
@@ -983,6 +1021,9 @@ const Misc = (function () {
             check = true;
           }
         } catch (e) {
+          if ((e instanceof ScriptError)) {
+            throw e;
+          }
           return false;
         }
 

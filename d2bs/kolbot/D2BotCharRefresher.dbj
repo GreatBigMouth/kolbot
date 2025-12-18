@@ -50,7 +50,8 @@ const locationAction = (function () {
   const Controls = require("./libs/modules/Control");
   const {
     locations,
-    addLocations
+    addLocations,
+    run
   } = require("./libs/oog/Locations");
 
   const getLobbyTime = function() {
@@ -234,19 +235,7 @@ const locationAction = (function () {
   );
 
   return {
-    /** @param {number} loc */
-    run: function (loc) {
-      try {
-        let func = locations.get(loc);
-        if (typeof func === "function") {
-          func(loc);
-        } else if (loc !== undefined && loc !== null) {
-          console.log("Unhandled location: " + loc);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
+    run: run,
   };
 })();
 

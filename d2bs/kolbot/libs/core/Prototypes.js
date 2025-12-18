@@ -386,10 +386,19 @@ Object.defineProperties(Unit.prototype, {
   },
   idle: {
     get: function () {
-      if (this.type > sdk.unittype.Player) throw new Error("Unit.idle: Must be used with player units.");
-      // Dead is pretty idle too
-      return (this.mode === sdk.player.mode.StandingOutsideTown
-        || this.mode === sdk.player.mode.StandingInTown || this.mode === sdk.player.mode.Dead);
+      if (this.type > sdk.unittype.Monster) {
+        throw new Error("Unit.idle: Must be used with Player or Monster units.");
+      }
+      switch (this.type) {
+      case sdk.unittype.Player:
+        // Dead is pretty idle too
+        return (this.mode === sdk.player.mode.StandingOutsideTown
+          || this.mode === sdk.player.mode.StandingInTown || this.mode === sdk.player.mode.Idle);
+      case sdk.unittype.Monster:
+        return (this.mode === sdk.monsters.mode.Standing);
+      default:
+        return false;
+      }
     }
   },
   gold: {
@@ -977,6 +986,9 @@ Unit.prototype.toCursor = function (usePacket = false) {
         clickItem(sdk.clicktypes.click.item.Left, this);
       }
     } catch (e) {
+      if ((e instanceof ScriptError)) {
+        throw e;
+      }
       return false;
     }
 

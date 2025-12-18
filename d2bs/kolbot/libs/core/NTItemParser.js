@@ -72,6 +72,9 @@ NTIP.OpenFile = function (filepath, notify) {
   try {
     nipfile = File.open(filepath, 0);
   } catch (fileError) {
+    if ((e instanceof ScriptError)) {
+      throw e;
+    }
     if (notify) {
       Misc.errorReport("ÿc1Failed to load NIP: ÿc0" + filename);
     }
@@ -199,6 +202,9 @@ NTIP.generateTierFunc = function (tierType) {
             }
           }
         } catch (e) {
+          if ((e instanceof ScriptError)) {
+            throw e;
+          }
           const info = stringArray[i];
           Misc.errorReport("ÿc1Pickit Tier (" + tierType + ") error! Line # ÿc2" + info.line + " ÿc1Entry: ÿc0" + info.string + " (" + info.file + ") Error message: " + e.message);
         }
@@ -324,6 +330,9 @@ NTIP.CheckItem = function (item, entryList, verbose) {
         }
       }
     } catch (pickError) {
+      if ((e instanceof ScriptError)) {
+        throw e;
+      }
       showConsole();
 
       if (!entryList) {
@@ -622,6 +631,9 @@ NTIP.ParseLineInt = function (input, info) {
             // p_result[2].Tier = function(item) { return value };
             p_result[2][keyword.charAt(0).toUpperCase() + keyword.slice(1)] = (new Function("return function(item) { return " + p_section[i].split("==")[1] + ";}")).call(null); // generate function out of
           } catch (e) {
+            if ((e instanceof ScriptError)) {
+              throw e;
+            }
             throw new Error("ÿc1Pickit Tier (" + keyword + ") error! Line # ÿc2" + info.line + " ÿc1Entry: ÿc0" + info.string + " (" + info.file + ") Error message: " + e.message);
           }
           break;
@@ -631,6 +643,9 @@ NTIP.ParseLineInt = function (input, info) {
       }
     }
   } catch (e) {
+    if ((e instanceof ScriptError)) {
+      throw e;
+    }
     Misc.errorReport(e);
 
     return false;
@@ -642,6 +657,9 @@ NTIP.ParseLineInt = function (input, info) {
       try {
         p_result[i] = (new Function("return function(item) { return " + p_result[i] + ";}")).call(null); // generate function out of
       } catch (e) {
+        if ((e instanceof ScriptError)) {
+          throw e;
+        }
         Misc.errorReport("ÿc1Pickit error! Line # ÿc2" + info.line + " ÿc1Entry: ÿc0" + info.string + " (" + info.file + ") Error message: " + e.message);
 
         return null; // failed load this line so return false

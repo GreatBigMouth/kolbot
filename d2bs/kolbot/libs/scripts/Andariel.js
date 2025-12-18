@@ -14,7 +14,7 @@ const Andariel = new Runnable(
       Config.MFLeader && Pather.makePortal() && say("kill " + sdk.monsters.Andariel);
 
       for (let i = 0; i < 300 && target.attackable; i += 1) {
-        ClassAttack.doAttack(target);
+        ClassAttack[me.classid].doAttack(target);
         target.distance <= 10 && Pather.moveTo(me.x > 22548 ? 22535 : 22560, 9520);
       }
 

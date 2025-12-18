@@ -1068,6 +1068,8 @@ includeIfNotIncluded("core/Me.js");
     gameInfo: {},
     joinInfo: {},
     profileInfo: {},
+    /** @type {number[]} */
+    lastLocation: [],
 
     sayMsg: function (string) {
       if (!this.useChat) return;
@@ -1735,6 +1737,10 @@ includeIfNotIncluded("core/Me.js");
         openJoinGameWindow: function () {
           let currentLoc = getLocation();
 
+          if (Starter.inGame) {
+            ControlAction.timeoutDelay("Open join game delay", 5000);
+          }
+
           if (!Controls.JoinGameWindow.click()) {
             return;
           }
@@ -1752,7 +1758,9 @@ includeIfNotIncluded("core/Me.js");
         },
 
         login: function (otherMultiCheck = false) {
-          Starter.inGame && (Starter.inGame = false);
+          if (!Starter.lastLocation.includes(sdk.game.locations.LobbyLostConnection)) {
+            Starter.inGame && (Starter.inGame = false);
+          }
           let currLocation = getLocation();
           
           if (otherMultiCheck && currLocation === sdk.game.locations.OtherMultiplayer) {

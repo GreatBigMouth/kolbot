@@ -36,10 +36,21 @@ const AutoMule = {
   getInfo: function () {
     let info;
 
+    /** @param {muleObj} muleObj */
+    const handleLadderCheck = function (muleObj) {
+      if (muleObj.ladder) {
+        return me.ladder;
+      }
+      return !me.ladder;
+    };
+
     for (let i in this.Mules) {
       if (this.Mules.hasOwnProperty(i)) {
         for (let profile of this.Mules[i].enabledProfiles) {
-          if (String.isEqual(profile, "all") || String.isEqual(profile, me.profile)) {
+          if (
+            String.isEqual(profile, me.profile)
+            || (String.isEqual(profile, "all") && handleLadderCheck(this.Mules[i]))
+          ) {
             !info && (info = {});
             info.muleInfo = this.Mules[i];
 
@@ -52,7 +63,10 @@ const AutoMule = {
     for (let i in this.TorchAnniMules) {
       if (this.TorchAnniMules.hasOwnProperty(i)) {
         for (let profile of this.TorchAnniMules[i].enabledProfiles) {
-          if (String.isEqual(profile, "all") || String.isEqual(profile, me.profile)) {
+          if (
+            String.isEqual(profile, me.profile)
+            || (String.isEqual(profile, "all") && handleLadderCheck(this.TorchAnniMules[i]))
+          ) {
             !info && (info = {});
             info.torchMuleInfo = this.TorchAnniMules[i];
 
@@ -66,14 +80,29 @@ const AutoMule = {
   },
 
   muleCheck: function () {
-    let info = this.getInfo();
+    const info = this.getInfo();
 
-    if (info && info.hasOwnProperty("muleInfo")) {
-      let items = this.getMuleItems();
+    /**
+     * @param {unknown} info
+     * @returns {info is {muleInfo: muleObj}}
+     */
+    function hasMuleInfo(info) {
+      return info && info.hasOwnProperty("muleInfo");
+    }
 
-      if (info.muleInfo.hasOwnProperty("usedStashTrigger") && info.muleInfo.hasOwnProperty("usedInventoryTrigger")
-        && Storage.Inventory.UsedSpacePercent() >= info.muleInfo.usedInventoryTrigger
-        && Storage.Stash.UsedSpacePercent() >= info.muleInfo.usedStashTrigger && items.length > 0) {
+    if (hasMuleInfo(info)) {
+      const items = this.getMuleItems();
+      const { muleInfo } = info;
+
+      if (Object.hasOwn(muleInfo, "usedStashTrigger") && Object.hasOwn(muleInfo, "usedInventoryTrigger")
+        && Storage.Inventory.UsedSpacePercent() >= muleInfo.usedInventoryTrigger
+        && Storage.Stash.UsedSpacePercent() >= muleInfo.usedStashTrigger
+        && items.length > 0
+      ) {
+        console.debug(
+          "usedStashAmount: " + Storage.Stash.UsedSpacePercent() + "%"
+          + " usedInventoryAmount: " + Storage.Inventory.UsedSpacePercent() + "%"
+        );
         D2Bot.printToConsole("MuleCheck triggered!", sdk.colors.D2Bot.DarkGold);
 
         return true;
@@ -106,7 +135,9 @@ const AutoMule = {
   },
 
   outOfGameCheck: function () {
-    if (!this.check && !this.torchAnniCheck) return false;
+    if (!this.check && !this.torchAnniCheck) {
+      return false;
+    }
 
     let muleObj = this.getMule();
     if (!muleObj) return false;
@@ -126,7 +157,7 @@ const AutoMule = {
     }
 
     if (muleObj.continuousMule) {
-      D2Bot.printToConsole("Starting mule.", sdk.colors.D2Bot.DarkGold);
+      D2Bot.printToConsole("Starting mule profile " + muleObj.muleProfile, sdk.colors.D2Bot.DarkGold);
       D2Bot.start(muleObj.muleProfile);
     } else {
       D2Bot.printToConsole(
@@ -264,16 +295,21 @@ const AutoMule = {
     let status = "muling";
 
     // Single player
-    if (!me.gamename) return false;
+    if (!me.gamename) {
+      return false;
+    }
 
     let info = this.getInfo();
 
     // Profile is not a part of AutoMule
-    if (!info) return false;
+    if (!info) {
+      return false;
+    }
 
     // Profile is not in mule or torch mule game
     if (!((info.hasOwnProperty("muleInfo") && String.isEqual(me.gamename, info.muleInfo.muleGameName[0]))
-        || (info.hasOwnProperty("torchMuleInfo") && String.isEqual(me.gamename, info.torchMuleInfo.muleGameName[0])))) {
+        || (info.hasOwnProperty("torchMuleInfo") && String.isEqual(me.gamename, info.torchMuleInfo.muleGameName[0])))
+    ) {
       return false;
     }
 

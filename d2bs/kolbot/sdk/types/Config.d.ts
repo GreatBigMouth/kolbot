@@ -5,7 +5,7 @@ declare global {
   type ExtendedCubingOpts = { Ethereal: number; MaxQuantity: number; condition: () => boolean };
   type CubingRecipe = [number, string] | [number, string, number] | [number, string, ExtendedCubingOpts];
 
-  interface Config {
+  interface IConfig {
     init(notify: boolean): void;
     Loaded: boolean;
     DebugMode: {
@@ -258,6 +258,13 @@ declare global {
     MapMode: {
       UseOwnItemFilter: boolean;
     };
+
+    Advertise: {
+      Enabled: boolean;
+      Message: string | string[];
+      Interval: [number, number] | number;
+    };
+
     MFLeader: boolean;
     Mausoleum: {
       KillBishibosh: boolean;
@@ -379,6 +386,59 @@ declare global {
       ClearRadius: number;
       SealOrder: DiabloSeal[];
       RecheckSeals: boolean;
+    };
+    AutoChaos: {
+      Leader: string;
+      /**
+       * -1 = go to town during diablo, 0 = kill to death, x > 0 = kill to x%
+       */
+      Diablo: number;
+      Taxi: boolean;
+      /**
+       * set true to search for shrine only
+       */
+      FindShrine: boolean;
+      /**
+       * true = get shrine from act 1 (requires another character running FindShrine)
+       */
+      UseShrine: boolean;
+      /**
+       * set true for low level EXP glitcher (unimplemented)
+       */
+      Glitcher: boolean;
+      /**
+       * true = don't enter seals after boing at river, false = normal character that fights
+       */
+      BO: boolean;
+      /**
+       * true = hide during diablo, false = stay at star
+       */
+      Leech: boolean;
+      /**
+       * true = ranged character, false = melee character
+       */
+      Ranged: boolean;
+      /**
+       * Classes required to start the chaos run set to true to require that class
+       */
+      RequireClass: Record<keyof SDK["player"]["class"], boolean>;
+      /**
+       * true = does precast sequence at every seal, false = does not precast at seal
+       */
+      SealPrecast: boolean;
+      /**
+       * preattack count at each seal, useful for clearing tp's for safer entry,
+       * enter values in the following order: [/vizier/, /seis/, /infector/]
+       */
+      PreAttack: number[];
+      /**
+       * order in which the taxi will go through cs, 1: vizier, 2: seis, 3: infector
+       */
+      SealOrder: DiabloSeal[];
+      /**
+       * number of seconds to wait before entering hot tp
+       */
+      SealDelay: number;
     };
     MFHelper: {
       BreakClearLevel: boolean;
@@ -583,5 +643,5 @@ declare global {
       DebugMode: boolean;
     };
   }
-  const Config: Config;
+  const Config: IConfig;
 }

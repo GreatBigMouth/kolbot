@@ -368,6 +368,9 @@
    * @param {number} id
    */
   const rewriteStack = function (err, area, id) {
+    if ((err instanceof ScriptError)) {
+      throw err;
+    }
     let stack = err.stack.match(/[^\r\n]+/g);
     let fileNameAndLine = stack[1].substring(stack[1].lastIndexOf("\\") + 1);
     let [fileName, line] = fileNameAndLine.split(":");
@@ -616,6 +619,9 @@
           try {
             obj = JSON.parse(msg);
           } catch (e) {
+            if ((e instanceof ScriptError)) {
+              throw e;
+            }
             return false;
           }
 

@@ -61,7 +61,8 @@ const locationAction = (function () {
   const {
     locations,
     addLocations,
-    parseControlText
+    parseControlText,
+    run
   } = require("./libs/oog/Locations");
 
   const pollQueue = function (timeout = Time.seconds(30)) {
@@ -471,19 +472,7 @@ const locationAction = (function () {
   );
 
   return {
-    /** @param {number} loc */
-    run: function (loc) {
-      try {
-        let func = locations.get(loc);
-        if (typeof func === "function") {
-          func(loc);
-        } else if (loc !== undefined && loc !== null) {
-          console.log("Unhandled location: " + loc);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
+    run: run,
   };
 })();
 

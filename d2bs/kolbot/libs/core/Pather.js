@@ -37,6 +37,14 @@ PathNode.prototype.getWalkDistance = function () {
 };
 
 /**
+ * @param {{ x?: number, y?: number }} node
+ */
+PathNode.prototype.update = function (node) {
+  if (typeof node.x === "number") this.x = node.x;
+  if (typeof node.y === "number") this.y = node.y;
+};
+
+/**
  * Perform certain actions after moving to each node
  * @todo this needs to be re-worked
  */
@@ -105,6 +113,18 @@ const NodeAction = {
     }
   },
 
+  /**
+   * Pick items while pathing
+   * @param {Pick<clearSettings, "clearPath">} arg
+   */
+  pickItems: function (arg = {}) {
+    const pickSettings = Object.assign({}, {
+      allowPicking: true,
+    }, arg);
+    if (!pickSettings.allowPicking) return;
+    Pickit.pickItems(Config.PickRange / 2);
+  },
+  
   /**
    * Open chests while pathing
    */
@@ -366,6 +386,7 @@ const Pather = {
    * @property {boolean} [clearSettings.clearPath]
    * @property {number} [clearSettings.range]
    * @property {number} [clearSettings.specType]
+   * @property {boolean} [clearSettings.allowPicking]
    * @property {Function} [clearSettings.sort]
    *
    * @param {PathNode | Unit | PresetUnit} target
@@ -398,6 +419,7 @@ const Pather = {
       clearPath: false,
       range: 10,
       specType: 0,
+      allowPicking: settings.allowPicking,
       sort: Attack.sortMonsters,
     }, settings.clearSettings);
     // set settings.clearSettings equal to the now properly asssigned clearSettings
@@ -487,7 +509,7 @@ const Pather = {
     //   node.y = tmpY;
     // }
 
-    if (settings.retry <= 3 && target.distance > useTeleport ? 120 : 60) {
+    if (settings.retry <= 3 && target.distance > (useTeleport ? 120 : 60)) {
       settings.retry = 10;
     }
 
@@ -1562,16 +1584,16 @@ const Pather = {
 
           while (getTickCount() - tick < Math.max(Math.round((i + 1) * 1000 / (i / 5 + 1)), pingDelay * 2)) {
             if (me.area === targetArea) {
-              delay(1500);
+              nativeDelay(1500);
 
               break MainLoop;
             }
 
-            delay(20);
+            nativeDelay(20);
           }
 
           while (!me.gameReady) {
-            delay(1000);
+            nativeDelay(1000);
           }
 
           // In case lag causes the wp menu to stay open

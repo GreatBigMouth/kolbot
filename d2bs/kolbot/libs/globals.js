@@ -166,6 +166,37 @@ if (!global.hasOwnProperty("copyObj")) {
   });
 }
 
+if (!global.hasOwnProperty("hardDelay")) {
+  /**
+   * @description blocks the thread for specified milliseconds - use sparingly this does not yield to the other threads so it
+   * can potentially cause the heartbeat thread to crash
+   * @param {number} ms 
+   */
+  Object.defineProperty(global, "hardDelay", {
+    value: function (ms) {
+      let start = getTickCount();
+      while (getTickCount() - start < ms) {
+        //
+      }
+    },
+  });
+}
+
+if (!global.hasOwnProperty("nativeDelay")) {
+  /**
+   * @description Use sparingly, this calls the original delay function bypassing the background worker checks
+   * @param {number} ms 
+   */
+  Object.defineProperty(global, "nativeDelay", {
+    value: function (ms) {
+      if (global.hasOwnProperty("_delay")) {
+        return global._delay(ms);
+      }
+      return delay(ms);
+    },
+  });
+}
+
 /**
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Misc Utils ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

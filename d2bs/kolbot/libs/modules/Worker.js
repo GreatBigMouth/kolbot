@@ -115,6 +115,7 @@
     };
 
     global._delay = delay; // The original delay function
+    global.nativeSleep = delay;
 
     /**
      * Just makes it easier to peform a delay

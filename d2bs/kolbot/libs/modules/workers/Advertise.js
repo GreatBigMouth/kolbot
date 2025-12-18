@@ -29,8 +29,12 @@
     Worker.runInBackground.Advertise = function () {
       if (getTickCount() - waitTick < 0) return true;
       waitTick += Time.seconds(rand(min, max));
+
+      let message = Array.isArray(Config.Advertise.Message)
+        ? Config.Advertise.Message.random()
+        : Config.Advertise.Message;
       
-      say("!" + Config.Advertise.Message, true);
+      say("!" + message, true);
 
       return true;
     };

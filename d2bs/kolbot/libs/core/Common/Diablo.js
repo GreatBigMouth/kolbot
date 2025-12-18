@@ -6,7 +6,14 @@
 */
 
 (function (module) {
+  const Events = new (require("../../modules/Events"));
+  
   const _Diablo = {
+    on: Events.on,
+    off: Events.off,
+    once: Events.once,
+    emit: Events.emit,
+
     diabloSpawned: false,
     diaWaitTime: Time.seconds(30),
     clearRadius: 30,
@@ -54,15 +61,49 @@
 
     /** @param {number[]} bytes */
     diabloLightsEvent: function (bytes = []) {
-      if (me.inArea(sdk.areas.ChaosSanctuary)
-        && bytes
-        && bytes.length === 2
-        && bytes[0] === 0x89
-        && bytes[1] === 0x0C) {
+      if (!bytes || bytes.length !== 2) {
+        return;
+      }
+      if (me.act !== 4) {
+        return;
+      }
+      if (bytes[0] === 0x89 && bytes[1] === 0x0C) {
+        console.debug("Diablo lights event detected");
         _Diablo.diabloSpawned = true;
         Misc._diabloSpawned = true;
+        _Diablo.emit("diablospawned");
       }
     },
+
+    addLightsEventListener: function () {
+      addEventListener("gamepacket", _Diablo.diabloLightsEvent);
+    },
+
+    removeLightsEventListener: function () {
+      removeEventListener("gamepacket", _Diablo.diabloLightsEvent);
+    },
+
+    diaSpawnWatcher: (
+      /** @param {null | (() => void)} onSpawn */
+      function (onSpawn = null) {
+        let diaTick = 0;
+      
+        return function () {
+          if (Common.Diablo.done) return false;
+          // check every 1/4 second
+          if (getTickCount() - diaTick < 250) return true;
+          diaTick = getTickCount();
+
+          if (Common.Diablo.diabloSpawned) {
+            if (typeof onSpawn === "function") {
+              onSpawn();
+            }
+            throw new ScriptError("Diablo spawned");
+          }
+          return true;
+        };
+      }
+    ),
 
     /**
       * @param {Monster} a 
@@ -93,7 +134,7 @@
       */
     getLayout: function (seal, value) {
       let sealPreset = Game.getPresetObject(sdk.areas.ChaosSanctuary, seal);
-      if (!seal) throw new Error("Seal preset not found. Can't continue.");
+      if (!sealPreset) throw new Error("Seal preset not found. Can't continue.");
       let _seal = sealPreset.realCoords();
 
       if (_seal.y === value || _seal.x === value) {
@@ -115,6 +156,17 @@
       _Diablo.seisLayout = this.getLayout(sdk.objects.DiabloSealSeis, 7773);
       // 1 = "I", 2 = "J"
       _Diablo.infLayout = this.getLayout(sdk.objects.DiabloSealInfector, 7893);
+    },
+
+    /**
+     * @param {number} classid 
+     * @returns {number}
+     */
+    getSealDistance: function (classid) {
+      let sealPreset = Game.getPresetObject(sdk.areas.ChaosSanctuary, classid);
+      if (!sealPreset) throw new Error("Seal preset not found. Can't continue.");
+      let seal = sealPreset.realCoords();
+      return seal.distance;
     },
 
     /**
@@ -185,10 +237,10 @@
       * @param {number[] | string[]} sealOrder 
       * @param {boolean} openSeals 
       */
-    runSeals: function (sealOrder, openSeals = true, recheck = false) {
+    runSeals: function (sealOrder, openSeals = true) {
       console.log("seal order: " + sealOrder);
       _Diablo.sealOrder = sealOrder;
-      let seals = {
+      const seals = {
         1: () => this.vizierSeal(openSeals),
         2: () => this.seisSeal(openSeals),
         3: () => this.infectorSeal(openSeals),
@@ -196,19 +248,10 @@
         "seis": () => this.seisSeal(openSeals),
         "infector": () => this.infectorSeal(openSeals),
       };
-      try {
-        addEventListener("gamepacket", _Diablo.diabloLightsEvent);
-        sealOrder.forEach(seal => {
-          if (recheck && _Diablo.diabloSpawned) throw new ScriptError("Diablo spawned");
-          seals[seal]();
-        });
-      } catch (e) {
-        if (!(e instanceof ScriptError)) {
-          throw e; // it wasn't the custom error so throw it to the next handler
-        }
-      } finally {
-        removeEventListener("gamepacket", _Diablo.diabloLightsEvent);
-      }
+      sealOrder.forEach(function (seal) {
+        if (_Diablo.diabloSpawned) return;
+        seals[seal]();
+      });
     },
 
     /**
@@ -266,6 +309,7 @@
         }
 
         if (seal.mode) {
+          console.debug("Seal " + classid + " is already open.");
           warn && say(Config.Diablo.SealWarning);
           return true;
         }
@@ -283,9 +327,9 @@
           usetk && (usetk = false);
 
           if (classid === sdk.objects.DiabloSealInfector && me.assassin && this.infLayout === 1) {
-            if (Config.UseTraps) {
-              let check = ClassAttack.checkTraps({ x: 7899, y: 5293 });
-              check && ClassAttack.placeTraps({ x: 7899, y: 5293 }, check);
+            if (Config.UseTraps && me.classid === sdk.player.class.Assassin) {
+              let check = ClassAttack[me.classid].checkTraps({ x: 7899, y: 5293 });
+              check && ClassAttack[me.classid].placeTraps({ x: 7899, y: 5293 }, check);
             }
           }
 
@@ -326,8 +370,8 @@
         return true;
       }
       console.log("Viz layout " + _Diablo.vizLayout);
-      let path = (_Diablo.vizLayout === 1 ? this.starToVizA : this.starToVizB);
-      let distCheck = path.last();
+      const path = (_Diablo.vizLayout === 1 ? this.starToVizA : this.starToVizB);
+      const distCheck = path.last();
 
       if (Config.Diablo.SealLeader || Config.Diablo.Fast) {
         _Diablo.vizLayout === 1 ? Pather.moveTo(7708, 5269) : Pather.moveTo(7647, 5267);
@@ -335,15 +379,28 @@
         Config.Diablo.SealLeader && Pather.makePortal() && say("in");
       }
 
-      distCheck.distance > 30 && this.followPath(_Diablo.vizLayout === 1 ? this.starToVizA : this.starToVizB);
+      if (distCheck.distance > 30) {
+        this.followPath(path);
+      }
 
-      if (openSeal
-        && ![sdk.objects.DiabloSealVizier2, sdk.objects.DiabloSealVizier].every(s => _Diablo.openSeal(s))) {
+      const seals = [sdk.objects.DiabloSealVizier2, sdk.objects.DiabloSealVizier];
+      
+      const tryOpenSeals = function () {
+        if (!openSeal) return true;
+        for (let s of seals) {
+          if (!_Diablo.openSeal(s)) {
+            return false;
+          }
+        }
+        return true;
+      };
+      
+      if (!tryOpenSeals()) {
         throw new Error("Failed to open Vizier seals.");
       }
 
       delay(1 + me.ping);
-      let cb = () => {
+      const cb = function () {
         let viz = Game.getMonster(vizier);
         return viz && (viz.distance < Skill.getRange(Config.AttackSkill[1]) || viz.dead);
       };
@@ -355,8 +412,20 @@
         ? Pather.moveToEx(7691, 5292, { callback: cb })
         : Pather.moveToEx(7695, 5316, { callback: cb });
 
-      if (!_Diablo.getBoss(vizier)) {
-        throw new Error("Failed to kill Vizier");
+      
+      try {
+        if (!_Diablo.getBoss(vizier)) {
+          throw new Error("Failed to kill Vizier");
+        }
+      } catch (e) {
+        if (e instanceof ScriptError) {
+          throw e;
+        }
+        // sometimes we fail just because we aren't in range, move back towards star while checking
+        Pather.moveToEx(this.starCoords.x, this.starCoords.y, { minDist: 15, callback: cb });
+        if (!_Diablo.getBoss(vizier)) {
+          throw new Error("Failed to kill Vizier");
+        }
       }
 
       Config.Diablo.SealLeader && say("out");
@@ -374,8 +443,8 @@
         return true;
       }
       console.log("Seis layout " + _Diablo.seisLayout);
-      let path = (_Diablo.seisLayout === 1 ? this.starToSeisA : this.starToSeisB);
-      let distCheck = path.last();
+      const path = (_Diablo.seisLayout === 1 ? this.starToSeisA : this.starToSeisB);
+      const distCheck = path.last();
 
       if (Config.Diablo.SealLeader || Config.Diablo.Fast) {
         _Diablo.seisLayout === 1 ? Pather.moveTo(7767, 5147) : Pather.moveTo(7820, 5147);
@@ -384,29 +453,38 @@
       }
 
       if (distCheck.distance > 30) {
-        this.followPath(_Diablo.seisLayout === 1 ? this.starToSeisA : this.starToSeisB);
+        this.followPath(path);
       }
 
       if (openSeal && !_Diablo.openSeal(sdk.objects.DiabloSealSeis)) {
         throw new Error("Failed to open de Seis seal.");
       }
-      let cb = () => {
+
+      const cb = function () {
         let seis = Game.getMonster(deSeis);
         return seis && (seis.distance < Skill.getRange(Config.AttackSkill[1]) || seis.dead);
       };
+
       _Diablo.seisLayout === 1
         ? Pather.moveToEx(7798, 5194, { callback: cb })
         : Pather.moveToEx(7796, 5155, { callback: cb });
+      
       try {
         if (!_Diablo.getBoss(deSeis)) {
           throw new Error("Failed to kill de Seis");
         }
       } catch (e) {
+        if (e instanceof ScriptError) {
+          throw e;
+        }
         // sometimes we fail just because we aren't in range,
         Pather.moveToEx(this.starCoords.x, this.starCoords.y, { minDist: 15, callback: () => {
           let seis = Game.getMonster(deSeis);
           return seis && (seis.distance < 30 || seis.dead);
         } });
+        if (!_Diablo.getBoss(deSeis)) {
+          throw new Error("Failed to kill de Seis");
+        }
       }
 
       Config.Diablo.SealLeader && say("out");
@@ -425,8 +503,9 @@
       }
       Precast.doPrecast(true);
       console.log("Inf layout " + _Diablo.infLayout);
-      let path = (_Diablo.infLayout === 1 ? this.starToInfA : this.starToInfB);
-      let distCheck = path.last();
+      const path = (_Diablo.infLayout === 1 ? this.starToInfA : this.starToInfB);
+      const distCheck = path.last();
+      const seals = [sdk.objects.DiabloSealInfector2, sdk.objects.DiabloSealInfector];
 
       if (Config.Diablo.SealLeader || Config.Diablo.Fast) {
         _Diablo.infLayout === 1 ? Pather.moveTo(7860, 5314) : Pather.moveTo(7909, 5317);
@@ -434,16 +513,20 @@
         Config.Diablo.SealLeader && Pather.makePortal() && say("in");
       }
 
-      distCheck.distance > 70 && this.followPath(_Diablo.infLayout === 1 ? this.starToInfA : this.starToInfB);
+      if (distCheck.distance > 70) {
+        this.followPath(path);
+      }
       
-      let cb = () => {
+      const cb = function () {
         let inf = Game.getMonster(infector);
         return inf && (inf.distance < Skill.getRange(Config.AttackSkill[1]) || inf.dead);
       };
 
-      let moveToLoc = () => {
+      const moveToLoc = function () {
         if (_Diablo.infLayout === 1) {
-          (me.sorceress || me.assassin) && Pather.moveToEx(7876, 5296, { callback: cb });
+          if (me.sorceress || me.assassin) {
+            Pather.moveToEx(7876, 5296, { callback: cb });
+          }
           delay(1 + me.ping);
         } else {
           delay(1 + me.ping);
@@ -451,40 +534,66 @@
         }
       };
 
-      if (Config.Diablo.Fast) {
-        if (openSeal
-          && ![
-            sdk.objects.DiabloSealInfector2, sdk.objects.DiabloSealInfector
-          ].every(s => _Diablo.openSeal(s))) {
-          throw new Error("Failed to open Infector seals.");
-        }
-        moveToLoc();
-
-        if (!_Diablo.getBoss(infector)) {
-          throw new Error("Failed to kill Infector");
-        }
-      } else {
-        if (openSeal && !_Diablo.openSeal(sdk.objects.DiabloSealInfector)) {
-          throw new Error("Failed to open Infector seals.");
-        }
-        moveToLoc();
-
-        if (!_Diablo.getBoss(infector)) {
-          throw new Error("Failed to kill Infector");
-        }
-        if (openSeal && !_Diablo.openSeal(sdk.objects.DiabloSealInfector2)) {
-          throw new Error("Failed to open Infector seals.");
-        }
-        // wait until seal has been popped to avoid missing diablo due to wait time ending before he spawns, happens if leader does town chores after seal boss
-        !openSeal && [3, "infector"].includes(_Diablo.sealOrder.last()) && Misc.poll(() => {
-          if (_Diablo.diabloSpawned) return true;
-
-          let lastSeal = Game.getObject(sdk.objects.DiabloSealInfector2);
-          if (lastSeal && lastSeal.mode) {
-            return true;
+      const tryOpenSeals = function () {
+        if (!openSeal) return true;
+        for (let s of seals) {
+          if (!_Diablo.openSeal(s)) {
+            return false;
           }
-          return false;
-        }, Time.minutes(3), 1000);
+        }
+        return true;
+      };
+
+      try {
+        if (Config.Diablo.Fast) {
+          if (!tryOpenSeals()) {
+            throw new Error("Failed to open Infector seals.");
+          }
+          moveToLoc();
+
+          if (!_Diablo.getBoss(infector)) {
+            throw new Error("Failed to kill Infector");
+          }
+        } else {
+          if (openSeal && !_Diablo.openSeal(sdk.objects.DiabloSealInfector)) {
+            throw new Error("Failed to open Infector seals.");
+          }
+          moveToLoc();
+
+          if (!_Diablo.getBoss(infector)) {
+            throw new Error("Failed to kill Infector");
+          }
+          if (openSeal && !_Diablo.openSeal(sdk.objects.DiabloSealInfector2)) {
+            throw new Error("Failed to open Infector seals.");
+          }
+          // wait until seal has been popped to avoid missing diablo due to wait time ending before he spawns, happens if leader does town chores after seal boss
+          !openSeal && [3, "infector"].includes(_Diablo.sealOrder.last()) && Misc.poll(() => {
+            if (_Diablo.diabloSpawned) return true;
+
+            let lastSeal = Game.getObject(sdk.objects.DiabloSealInfector2);
+            if (lastSeal && lastSeal.mode) {
+              return true;
+            }
+            return false;
+          }, Time.minutes(3), 1000);
+        }
+      } catch (e) {
+        if (e instanceof ScriptError) {
+          throw e;
+        }
+        if (e instanceof Error && e.message === "Diablo not found") {
+          throw e;
+        }
+        if (e instanceof Error && e.message === "Failed to kill Infector") {
+          // sometimes we fail just because we aren't in range,
+          Pather.moveToEx(this.starCoords.x, this.starCoords.y, { minDist: 15, callback: () => {
+            let inf = Game.getMonster(infector);
+            return inf && (inf.distance < 30 || inf.dead);
+          } });
+          if (!_Diablo.getBoss(infector)) {
+            throw new Error("Failed to kill Infector");
+          }
+        }
       }
 
       Config.Diablo.SealLeader && say("out");
@@ -563,10 +672,10 @@
         return this.hammerdinPreAttack(id, 8);
       case sdk.player.class.Assassin:
         if (Config.UseTraps) {
-          let trapCheck = ClassAttack.checkTraps({ x: coords[0], y: coords[1] });
+          let trapCheck = ClassAttack[me.classid].checkTraps({ x: coords[0], y: coords[1] });
 
           if (trapCheck) {
-            ClassAttack.placeTraps({ x: coords[0], y: coords[1] }, 5);
+            ClassAttack[me.classid].placeTraps({ x: coords[0], y: coords[1] }, 5);
 
             return true;
           }
@@ -583,6 +692,9 @@
       * @returns {boolean}
       */
     getBoss: function (name) {
+      // reasonable timeout to find boss before assuming something went wrong
+      const timeout = getTickCount() + Time.minutes(3);
+      
       let glow = Game.getObject(sdk.objects.SealGlow);
 
       if (this.waitForGlow) {
@@ -595,6 +707,10 @@
 
           if (glow) {
             break;
+          }
+
+          if (getTickCount() > timeout) {
+            throw new Error(name + " not found");
           }
         }
       }
@@ -633,6 +749,30 @@
     },
 
     diabloPrep: function () {
+      if (!me.inArea(sdk.areas.ChaosSanctuary)) {
+        if (!me.inArea(sdk.areas.PandemoniumFortress)) {
+          Town.goToTown(4);
+        }
+
+        Town.move("portalspot");
+        
+        let tookPortalToChaos = getUnits(sdk.unittype.Object, "portal").filter(function (portal) {
+          return portal.objtype === sdk.areas.ChaosSanctuary;
+        }).sort(function (a, b) {
+          let aParent = a.getParent ? a.getParent() : null;
+          let bParent = b.getParent ? b.getParent() : null;
+          if (aParent === me.name) return -1;
+          if (bParent === me.name) return 1;
+          return getDistance(me, a) - getDistance(me, b);
+        }).some(function (portal) {
+          return Pather.usePortal(null, null, portal);
+        });
+
+        if (!tookPortalToChaos) {
+          throw new Error("Failed to go to Chaos Sanctuary");
+        }
+      }
+      
       if (Config.Diablo.SealLeader) {
         Pather.moveTo(7763, 5267);
         Pather.makePortal() && say("in");
@@ -648,8 +788,12 @@
           switch (me.classid) {
           case sdk.player.class.Sorceress:
             if ([
-              sdk.skills.Meteor, sdk.skills.Blizzard, sdk.skills.FrozenOrb, sdk.skills.FireWall
-            ].includes(Config.AttackSkill[1])) {
+              sdk.skills.Meteor,
+              sdk.skills.Blizzard,
+              sdk.skills.FrozenOrb,
+              sdk.skills.FireWall
+            ].includes(Config.AttackSkill[1])
+            ) {
               Skill.cast(Config.AttackSkill[1], sdk.skills.hand.Right, 7793 + rand(-1, 1), 5293);
             }
 
@@ -675,8 +819,10 @@
             break;
           case sdk.player.class.Assassin:
             if (Config.UseTraps) {
-              let trapCheck = ClassAttack.checkTraps({ x: 7793, y: 5293 });
-              trapCheck && ClassAttack.placeTraps({ x: 7793, y: 5293, classid: sdk.monsters.Diablo }, trapCheck);
+              let trapCheck = ClassAttack[me.classid].checkTraps({ x: 7793, y: 5293 });
+              if (trapCheck) {
+                ClassAttack[me.classid].placeTraps({ x: 7793, y: 5293, classid: sdk.monsters.Diablo }, trapCheck);
+              }
             }
 
             if (Config.AttackSkill[1] === sdk.skills.ShockWeb) {

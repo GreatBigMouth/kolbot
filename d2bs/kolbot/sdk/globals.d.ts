@@ -19,10 +19,12 @@
 /// <reference path="./types/Config.d.ts" />
 /// <reference path="./types/Common.d.ts" />
 /// <reference path="./types/CollMap.d.ts" />
+/// <reference path="./types/ClassAttack.d.ts" />
 
 declare global {
   type IncludePath = import("./types/include-paths").IncludePath;
   type KolbotScript = import("./types/kolbot-scripts").KolbotScript;
+  type EventsInstance = InstanceType<typeof import("libs/modules/Events")>;
 
   interface Error {
     fileName: string;
@@ -129,7 +131,9 @@ declare global {
     values(source: object): any[];
     entries(source: object): any[][];
     is(o1: any, o2: any): boolean;
-    hasOwn(obj: object, prop: string): boolean;
+    // hasOwn(obj: object, prop: string): boolean;
+    hasOwn<T extends object>(obj: T, prop: keyof T): boolean;
+    hasOwn<T extends object, K extends PropertyKey>(obj: T, prop: K): prop is keyof T;
   }
 
   interface Object {
@@ -366,7 +370,7 @@ declare global {
     readonly classid: number;
     readonly mode: number;
     readonly name: string;
-    readonly act: any;
+    readonly act: 1 | 2 | 3 | 4 | 5;
     readonly gid: number;
     readonly x: number;
     readonly y: number;
@@ -542,11 +546,13 @@ declare global {
     // todo define item modes
     public readonly type: ItemType;
     readonly code: string;
+    readonly prefix?: string;
+    readonly suffix?: string;
     readonly prefixes: string[];
     readonly suffixes: string[];
     readonly prefixnum: number;
     readonly suffixnum: number;
-    readonly prefixenums: number[];
+    readonly prefixnums: number[];
     readonly suffixnums: number[];
     readonly fname: string;
     readonly quality: number;
@@ -880,6 +886,7 @@ declare global {
      */
     getWalkDistanceTo(node: PathNode, area?: number): number;
     mobCount(givenSettings: { range?: number; coll?: number; type?: number; ignoreClassids?: number[] }): number;
+    update({ x, y }: { x?: number; y?: number }): void;
   }
 
   class PathNode {
@@ -1435,6 +1442,7 @@ declare global {
     joinInfo: {};
     profileInfo: ProfileInfo;
     ftjCount: number;
+    lastLocation: number[];
 
     sayMsg(string: string): void;
     /**
@@ -1602,7 +1610,14 @@ declare global {
    * This method sleeps the caller thread for the duration in ms passed to it
    * @note Use sparingly, this method stops the background workers on the callers thread
    */
-  function threadSleep(ms: number);
+  function nativeDelay(ms: number): void;
+
+  /**
+   * @description blocks the thread for specified milliseconds - use sparingly this does not yield to the other threads so it
+   * can potentially cause the heartbeat thread to crash
+   * @param ms
+   */
+  function hardDelay(ms: number): void;
 
   /**
    * Deep merge objects, handling nested properties properly

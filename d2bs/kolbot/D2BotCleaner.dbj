@@ -198,155 +198,148 @@ function deleteAllCharacters () {
   return true;
 }
 
-const {
-  locations,
-  addLocations
-} = require("./libs/oog/Locations");
-
-locations.set(sdk.game.locations.WaitingInLine,
-  function () {
-    Controls.CancelCreateGame.click();
-  }
-);
-addLocations(
-  [
-    sdk.game.locations.Lobby,
-    sdk.game.locations.LobbyChat,
-    sdk.game.locations.CreateGame,
-    sdk.game.locations.JoinGame,
-    sdk.game.locations.Ladder,
-    sdk.game.locations.ChannelList,
-    sdk.game.locations.GameNameExists,
-    sdk.game.locations.GameDoesNotExist,
-    sdk.game.locations.GameIsFull,
-  ],
-  function () {
-    Controls.LobbyQuit.click();
-  }
-);
-addLocations(
-  [
-    sdk.game.locations.MainMenu,
-    sdk.game.locations.Login,
-    sdk.game.locations.SplashScreen,
-  ],
-  function () {
-    if (!accounts.length) {
-      FileTools.remove("logs/D2BotCleaner.json");
-      D2Bot.printToConsole("D2BotCleaner: Done cleaning accounts!", sdk.colors.D2Bot.Gold);
-      D2Bot.stop(me.profile, true);
+const locationAction = (function () {
+  const {
+    run,
+    locations,
+    addLocations
+  } = require("./libs/oog/Locations");
+  
+  locations.set(sdk.game.locations.WaitingInLine,
+    function () {
+      Controls.CancelCreateGame.click();
     }
-    
-    if (!firstAccount) {
-      ControlAction.timeoutDelay("Waiting for next account in: ", Time.seconds(CleanerConfig.DelayBetweenAccounts));
+  );
+  addLocations(
+    [
+      sdk.game.locations.Lobby,
+      sdk.game.locations.LobbyChat,
+      sdk.game.locations.CreateGame,
+      sdk.game.locations.JoinGame,
+      sdk.game.locations.Ladder,
+      sdk.game.locations.ChannelList,
+      sdk.game.locations.GameNameExists,
+      sdk.game.locations.GameDoesNotExist,
+      sdk.game.locations.GameIsFull,
+    ],
+    function () {
+      Controls.LobbyQuit.click();
     }
-    
-    firstAccount = false;
-
-    if (FileTools.exists("logs/D2BotCleaner.json")) {
-      obj = JSON.parse(FileTools.readText("logs/D2BotCleaner.json"));
-
-      if (obj.currAcc) {
-        for (let i = 0; i < accounts.length; i += 1) {
-          if (accounts[i].split("/")[0] === obj.currAcc) {
-            accounts.splice(0, i);
-            chars.splice(0, i);
-
-            i -= 1;
-
-            break;
-          }
-        }
+  );
+  addLocations(
+    [
+      sdk.game.locations.MainMenu,
+      sdk.game.locations.Login,
+      sdk.game.locations.SplashScreen,
+    ],
+    function () {
+      if (!accounts.length) {
+        FileTools.remove("logs/D2BotCleaner.json");
+        D2Bot.printToConsole("D2BotCleaner: Done cleaning accounts!", sdk.colors.D2Bot.Gold);
+        D2Bot.stop(me.profile, true);
       }
-    }
-
-    let currAccInfo = accounts[0].split("/");
-    currAcc = currAccInfo[0];
-    obj.currAcc = currAccInfo[0];
-    charList = chars[0];
-
-    D2Bot.printToConsole("D2BotCleaner: Cleaning account:" + currAcc + " , Character list: " + charList, sdk.colors.D2Bot.Gold);
-    FileTools.writeText("logs/D2BotCleaner.json", JSON.stringify(obj));
-    
-    if (currAcc.toLowerCase() === "singleplayer") {
-      Controls.SinglePlayer.click();
-    } else if (currAccInfo.length === 3) {
-      realm = currAccInfo[2].toLowerCase();
-      ControlAction.loginAccount({ account: currAcc, password: currAccInfo[1], realm: realm });
-    }
-  }
-);
-addLocations(
-  [
-    sdk.game.locations.CharSelect,
-    sdk.game.locations.CharSelectNoChars,
-  ],
-  function () {
-    // Single Player screen fix
-    if (currAcc.toLowerCase() !== "singleplayer") {
-      if (getLocation() === sdk.game.locations.CharSelect && !Controls.CharSelectCurrentRealm.control) {
-        Controls.BottomLeftExit.click();
-
-        return;
+      
+      if (!firstAccount) {
+        ControlAction.timeoutDelay("Waiting for next account in: ", Time.seconds(CleanerConfig.DelayBetweenAccounts));
       }
-    }
-    
-    if (!charList.length) {
-      Controls.BottomLeftExit.click();
+      
+      firstAccount = false;
 
-      return;
-    }
-
-    if (charList[0] === "all") {
-      deleteAllCharacters();
-    } else {
       if (FileTools.exists("logs/D2BotCleaner.json")) {
         obj = JSON.parse(FileTools.readText("logs/D2BotCleaner.json"));
 
-        if (obj.currChar) {
-          for (let i = 0; i < charList.length; i += 1) {
-            if (charList[i] === obj.currChar) {
-              // Remove the previous currChar as well
-              charList.splice(0, i + 1);
+        if (obj.currAcc) {
+          for (let i = 0; i < accounts.length; i += 1) {
+            if (accounts[i].split("/")[0] === obj.currAcc) {
+              accounts.splice(0, i);
+              chars.splice(0, i);
+
+              i -= 1;
 
               break;
             }
           }
         }
       }
+
+      let currAccInfo = accounts[0].split("/");
+      currAcc = currAccInfo[0];
+      obj.currAcc = currAccInfo[0];
+      charList = chars[0];
+
+      D2Bot.printToConsole("D2BotCleaner: Cleaning account:" + currAcc + " , Character list: " + charList, sdk.colors.D2Bot.Gold);
+      FileTools.writeText("logs/D2BotCleaner.json", JSON.stringify(obj));
       
-      let charInfo = { charName: charList[0] };
-      CharactersToExclude.indexOf(charInfo) === -1 && ControlAction.deleteCharacter(charInfo);
-      delay(500);
+      if (currAcc.toLowerCase() === "singleplayer") {
+        Controls.SinglePlayer.click();
+      } else if (currAccInfo.length === 3) {
+        realm = currAccInfo[2].toLowerCase();
+        ControlAction.loginAccount({ account: currAcc, password: currAccInfo[1], realm: realm });
+      }
     }
+  );
+  addLocations(
+    [
+      sdk.game.locations.CharSelect,
+      sdk.game.locations.CharSelectNoChars,
+    ],
+    function () {
+      // Single Player screen fix
+      if (currAcc.toLowerCase() !== "singleplayer") {
+        if (getLocation() === sdk.game.locations.CharSelect && !Controls.CharSelectCurrentRealm.control) {
+          Controls.BottomLeftExit.click();
 
-    let currChar = charList.shift();
-    obj.currChar = currChar;
-    
-    // last char in acc = trigger next acc
-    if (!charList.length) {
-      accounts.shift();
-      chars.shift();
-      Controls.BottomLeftExit.click();
-    }
-    
-    FileTools.writeText("logs/D2BotCleaner.json", JSON.stringify(obj));
-  }
-);
+          return;
+        }
+      }
+      
+      if (!charList.length) {
+        Controls.BottomLeftExit.click();
 
-/** @param {number} loc */
-function locationAction (loc) {
-  try {
-    let func = locations.get(loc);
-    if (typeof func === "function") {
-      func(loc);
-    } else if (loc !== undefined && loc !== null) {
-      console.log("Unhandled location: " + loc);
+        return;
+      }
+
+      if (charList[0] === "all") {
+        deleteAllCharacters();
+      } else {
+        if (FileTools.exists("logs/D2BotCleaner.json")) {
+          obj = JSON.parse(FileTools.readText("logs/D2BotCleaner.json"));
+
+          if (obj.currChar) {
+            for (let i = 0; i < charList.length; i += 1) {
+              if (charList[i] === obj.currChar) {
+                // Remove the previous currChar as well
+                charList.splice(0, i + 1);
+
+                break;
+              }
+            }
+          }
+        }
+        
+        let charInfo = { charName: charList[0] };
+        CharactersToExclude.indexOf(charInfo) === -1 && ControlAction.deleteCharacter(charInfo);
+        delay(500);
+      }
+
+      let currChar = charList.shift();
+      obj.currChar = currChar;
+      
+      // last char in acc = trigger next acc
+      if (!charList.length) {
+        accounts.shift();
+        chars.shift();
+        Controls.BottomLeftExit.click();
+      }
+      
+      FileTools.writeText("logs/D2BotCleaner.json", JSON.stringify(obj));
     }
-  } catch (e) {
-    console.error(e);
-  }
-}
+  );
+
+  return {
+    run: run,
+  };
+})();
 
 function main () {
   addEventListener("copydata", Starter.receiveCopyData);
@@ -383,7 +376,7 @@ function main () {
   !accounts.length && parseInfo();
 
   while (true) {
-    locationAction(getLocation());
+    locationAction.run(getLocation());
     delay(1000);
   }
 }

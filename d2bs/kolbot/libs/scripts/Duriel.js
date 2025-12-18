@@ -18,7 +18,7 @@ const Duriel = new Runnable(
       }
 
       for (let i = 0; i < 300 && target.attackable; i += 1) {
-        ClassAttack.doAttack(target);
+        ClassAttack[me.classid].doAttack(target);
         target.distance <= 10 && Pather.moveTo(22638, me.y < target.y ? 15722 : 15693);
       }
 

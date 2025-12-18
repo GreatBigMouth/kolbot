@@ -127,6 +127,9 @@ const Packet = {
         }
       }
     } catch (e) {
+      if ((e instanceof ScriptError)) {
+        throw e;
+      }
       console.error(e);
     }
 
@@ -175,6 +178,9 @@ const Packet = {
         }
       }
     } catch (e) {
+      if ((e instanceof ScriptError)) {
+        throw e;
+      }
       console.error(e);
     }
 

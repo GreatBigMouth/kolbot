@@ -481,6 +481,12 @@
   Config.LocalChat.Toggle = false; // optional, set to KEY value to toggle through modes 0, 1, 2
   Config.LocalChat.Mode = 1; // 0 = disabled, 1 = chat from 'say' (recommended), 2 = all chat (for manual play)
 
+  // Advertise settings
+  Config.Advertise.Enabled = true;
+  Config.Advertise.Message = "Kolbot is super cool";
+  // Config.Advertise.Message = ["Kolbot is super cool", "Join op kolbot games!", "Kolbot FTW!"]; // Array of messages to randomly choose from
+  Config.Advertise.Interval = [30, 60]; // Send advert message every X to Y seconds
+
   // Anti-hostile config
   Config.AntiHostile = false; // Enable anti-hostile
   Config.HostileAction = 0; // 0 - quit immediately, 1 - quit when hostile player is sighted, 2 - attack hostile

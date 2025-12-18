@@ -299,10 +299,10 @@ function main() {
 
           while (!findPlayer() && hostiles.length > 0) {
             if (Config.UseTraps) {
-              check = ClassAttack.checkTraps({ x: 15099, y: 5242, classid: 544 });
+              check = ClassAttack[me.classid].checkTraps({ x: 15099, y: 5242, classid: 544 });
 
               if (check) {
-                ClassAttack.placeTraps({ x: 15099, y: 5242, classid: 544 }, 5);
+                ClassAttack[me.classid].placeTraps({ x: 15099, y: 5242, classid: 544 }, 5);
               }
             }
 
@@ -381,7 +381,7 @@ function main() {
             break;
           }
 
-          ClassAttack.doAttack(player, false);
+          ClassAttack[me.classid].doAttack(player, false);
 
           // Specific attack additions
           switch (me.classid) {

@@ -6,7 +6,7 @@
 
 (function (module, require, buildinSock) {
   const Worker = require("Worker");
-  const Events = require("Events");
+  const Events = require("./AsyncEvents");
 
   /** @constructor Socket*/
   function Socket(hostname, port) {

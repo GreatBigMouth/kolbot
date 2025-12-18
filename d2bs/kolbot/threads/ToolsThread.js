@@ -72,7 +72,7 @@ function main () {
   const keyEvent = function (key) {
     switch (key) {
     case sdk.keys.PauseBreak: // pause running threads
-      Common.Toolsthread.togglePause(townChicken);
+      Common.Toolsthread.togglePause();
 
       break;
     case sdk.keys.Delete: // quit current game

@@ -8,7 +8,7 @@
 (function (threadType, globalThis) {
   const others = [];
 
-  const myEvents = new (require("Events"));
+  const myEvents = new (require("./AsyncEvents"));
   const Worker = require("Worker");
   const Messaging = require("Messaging");
   const defaultCopyDataMode = 0xC0FFFEE;
@@ -17,7 +17,7 @@
     on: myEvents.on,
     off: myEvents.off,
     once: myEvents.once,
-    send: function (who, what, mode) {
+    send: function (who, what, mode = defaultCopyDataMode) {
       what.profile = me.windowtitle;
       //console.debug("Sending " + JSON.stringify(what) + " to " + JSON.stringify(who));
       return sendCopyData(null, who, mode || defaultCopyDataMode, JSON.stringify(what));
@@ -31,7 +31,9 @@
       what.profile = me.windowtitle;
       others.forEach(function (other) {
         for (const party = getParty(); party && party.getNext();) {
-          typeof party === "object" && party && party.hasOwnProperty("name") && party.name === other.name && sendCopyData(null, other.profile, mode || defaultCopyDataMode, JSON.stringify(what));
+          if (typeof party === "object" && party && party.hasOwnProperty("name") && party.name === other.name) {
+            sendCopyData(null, other.profile, mode || defaultCopyDataMode, JSON.stringify(what));
+          }
         }
       });
     }

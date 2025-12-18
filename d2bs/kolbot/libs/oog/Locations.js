@@ -395,7 +395,22 @@
       Starter.LocationEvents.unableToConnect();
     }
   );
-  addLocations([sdk.game.locations.CharSelectPleaseWait, sdk.game.locations.LobbyPleaseWait],
+  addLocations([sdk.game.locations.LobbyPleaseWait],
+    function (location) {
+      let startTick = getTickCount();
+      if (!Starter.locationTimeout(Starter.Config.PleaseWaitTimeout * 1e3, location)) {
+        Controls.OkCentered.click();
+      } else {
+        if (getTickCount() - startTick < Time.seconds(5)) {
+          ControlAction.timeoutDelay(
+            "After Game Delay",
+            Math.max((Time.seconds(5) - (getTickCount() - startTick), 1000))
+          );
+        }
+      }
+    }
+  );
+  addLocations([sdk.game.locations.CharSelectPleaseWait],
     function (location) {
       if (!Starter.locationTimeout(Starter.Config.PleaseWaitTimeout * 1e3, location)) {
         Controls.OkCentered.click();
@@ -435,10 +450,30 @@
       Starter.lastGameStatus = "ready";
     }
   );
+
+  /** @param {number} loc */
+  const run = function (loc) {
+    try {
+      let func = _loc.get(loc);
+      if (typeof func === "function") {
+        console.debug("Handling location: " + loc);
+        Starter.lastLocation.push(loc);
+        if (Starter.lastLocation.length > 5) {
+          Starter.lastLocation.shift();
+        }
+        func(loc);
+      } else if (loc !== undefined && loc !== null) {
+        console.log("Unhandled location: " + loc);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
   
   module.exports = {
     locations: _loc,
     addLocations: addLocations,
     parseControlText: parseControlText,
+    run: run,
   };
 })(module);

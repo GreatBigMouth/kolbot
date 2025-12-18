@@ -35,7 +35,7 @@ const Mephisto = new Runnable(
           }
         }
 
-        if (ClassAttack.doAttack(meph) < 2) {
+        if (ClassAttack[me.classid].doAttack(meph) < 2) {
           break;
         }
 
@@ -136,9 +136,9 @@ const Mephisto = new Runnable(
     Pickit.pickItems();
 
     if (Config.OpenChests.Enabled) {
-      Pather.moveTo(17572, 8011) && Attack.openChests(5);
-      Pather.moveTo(17572, 8125) && Attack.openChests(5);
-      Pather.moveTo(17515, 8061) && Attack.openChests(5);
+      Pather.moveTo(17572, 8011) && Misc.openChests(5);
+      Pather.moveTo(17572, 8125) && Misc.openChests(5);
+      Pather.moveTo(17515, 8061) && Misc.openChests(5);
     }
 
     if (Config.Mephisto.TakeRedPortal) {

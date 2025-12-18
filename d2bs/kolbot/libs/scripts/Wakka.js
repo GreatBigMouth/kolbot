@@ -210,6 +210,52 @@ const Wakka = new Runnable(
       console.log(msg);
     };
 
+    const levelTracker = (function () {
+      let levelTick = getTickCount();
+        
+      return function () {
+        if (Common.Diablo.done) return false;
+        // check every 3 seconds
+        if (getTickCount() - levelTick < 3000) return true;
+        levelTick = getTickCount();
+
+        // check again in another 3 seconds if game wasn't ready
+        if (!me.gameReady) return true;
+
+        if (me.charlvl >= Config.Wakka.StopAtLevel) {
+          Config.Wakka.StopProfile && D2Bot.stop();
+          throw new ScriptError("Reached wanted level");
+        }
+
+        return true;
+      };
+    })();
+
+    const leaderTracker = (function () {
+      let leadTick = getTickCount();
+          
+      return function () {
+        if (Common.Diablo.done) return false;
+        // check every 3 seconds
+        if (getTickCount() - leadTick < 3000) return true;
+        leadTick = getTickCount();
+
+        // check again in another 3 seconds if game wasn't ready
+        if (!me.gameReady) return true;
+        if (Misc.getPlayerCount() <= 1) {
+          throw new ScriptError("Empty game");
+        }
+
+        // Player is in Throne of Destruction or Worldstone Chamber
+        if ([sdk.areas.ThroneofDestruction, sdk.areas.WorldstoneChamber].includes(getLeaderUnitArea())) {
+          Common.Diablo.done = true;
+          throw new ScriptError("Party leader is running baal");
+        }
+
+        return true;
+      };
+    })();
+
     // START
     Town.goToTown(4);
     Town.move("portalspot");
@@ -228,88 +274,25 @@ const Wakka = new Runnable(
       timeout: timeout * 60e3
     }));
     Town.doChores();
-    if (!leader) throw new ScriptError("Wakka: Leader not found");
+    if (!leader) {
+      throw new ScriptError("Wakka: Leader not found");
+    }
 
-    addEventListener("gamepacket", Common.Diablo.diabloLightsEvent);
+    Common.Diablo.addLightsEventListener();
     const Worker = require("../modules/Worker");
 
     try {
       if (Config.Wakka.SkipIfBaal) {
-        let leadTick = getTickCount();
-        let killLeaderTracker = false;
-
-        Worker.runInBackground.leaderTracker = function () {
-          if (Common.Diablo.done || killLeaderTracker) return false;
-          // check every 3 seconds
-          if (getTickCount() - leadTick < 3000) return true;
-          leadTick = getTickCount();
-
-          // check again in another 3 seconds if game wasn't ready
-          if (!me.gameReady) return true;
-          if (Misc.getPlayerCount() <= 1) throw new Error("Empty game");
-
-          // Player is in Throne of Destruction or Worldstone Chamber
-          if ([sdk.areas.ThroneofDestruction, sdk.areas.WorldstoneChamber].includes(getLeaderUnitArea())) {
-            if (Loader.scriptName() === "Wakka") {
-              killLeaderTracker = true;
-              Common.Diablo.done = true;
-              throw new Error("Party leader is running baal");
-            } else {
-              // kill process
-              return false;
-            }
-          }
-
-          return true;
-        };
+        Worker.runInBackground.leaderTracker = leaderTracker;
       }
 
-      let levelTick = getTickCount();
-      let killLevelTracker = false;
+      Worker.runInBackground.levelTracker = levelTracker;
 
-      Worker.runInBackground.levelTracker = function () {
-        if (Common.Diablo.done || killLevelTracker) return false;
-        // check every 3 seconds
-        if (getTickCount() - levelTick < 3000) return true;
-        levelTick = getTickCount();
-
-        // check again in another 3 seconds if game wasn't ready
-        if (!me.gameReady) return true;
-
-        if (me.charlvl >= Config.Wakka.StopAtLevel) {
-          Config.Wakka.StopProfile && D2Bot.stop();
-
-          if (Loader.scriptName() === "Wakka") {
-            killLevelTracker = true;
-            throw new Error("Reached wanted level");
-          } else {
-            // kill process
-            return false;
-          }
-        }
-
-        return true;
-      };
-
-      let diaTick = getTickCount();
-
-      Worker.runInBackground.diaSpawned = function () {
-        if (Common.Diablo.done || (internals.vizClear && internals.seisClear && internals.infClear)) {
-          return false;
-        }
-        // check every 1/4 second
-        if (getTickCount() - diaTick < 250) return true;
-        diaTick = getTickCount();
-
-        if (Common.Diablo.diabloSpawned) {
-          internals.vizClear = true;
-          internals.seisClear = true;
-          internals.infClear = true;
-          throw new Error("Diablo spawned");
-        }
-
-        return true;
-      };
+      Worker.runInBackground.diaSpawned = Common.Diablo.diaSpawnWatcher(function () {
+        internals.vizClear = true;
+        internals.seisClear = true;
+        internals.infClear = true;
+      });
 
       while (Misc.inMyParty(leader)) {
         try {
@@ -445,10 +428,15 @@ const Wakka = new Runnable(
         }
       }
     } catch (e) {
-      // console.error(e);
+      if (!(e instanceof ScriptError)) {
+        console.error(e);
+      }
     } finally {
-      Common.Diablo.done;
-      removeEventListener("gamepacket", Common.Diablo.diabloLightsEvent);
+      delete Worker.runInBackground.leaderTracker;
+      delete Worker.runInBackground.levelTracker;
+      delete Worker.runInBackground.diaSpawned;
+      
+      Common.Diablo.removeLightsEventListener();
     }
 
     log("Wakka complete");

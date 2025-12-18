@@ -600,9 +600,9 @@ const Pickit = {
     };
 
     // why wait for idle?
-    while (!me.idle) {
-      delay(40);
-    }
+    // while (!me.idle) {
+    //   delay(40);
+    // }
 
     let item = Game.getItem();
 

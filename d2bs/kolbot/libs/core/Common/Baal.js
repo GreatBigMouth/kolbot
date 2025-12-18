@@ -165,10 +165,10 @@
         break;
       case sdk.player.class.Assassin:
         if (Config.UseTraps) {
-          let check = ClassAttack.checkTraps({ x: 15094, y: 5028 });
+          let check = ClassAttack[me.classid].checkTraps({ x: 15094, y: 5028 });
 
           if (check) {
-            return ClassAttack.placeTraps({ x: 15094, y: 5028 }, 5);
+            return ClassAttack[me.classid].placeTraps({ x: 15094, y: 5028 }, 5);
           }
         }
 

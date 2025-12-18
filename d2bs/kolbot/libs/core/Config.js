@@ -579,6 +579,31 @@ let Config = {
     SealOrder: ["vizier", "seis", "infector"],
     RecheckSeals: false
   },
+  /** @type {IConfig["AutoChaos"]} */
+  AutoChaos: {
+    Leader: "",
+    Diablo: 0,
+    Taxi: false,
+    FindShrine: false,
+    UseShrine: false,
+    Glitcher: false,
+    BO: false,
+    Leech: false,
+    Ranged: false,
+    RequireClass: {
+      Amazon: false,
+      Sorceress: false,
+      Necromancer: false,
+      Paladin: false,
+      Barbarian: false,
+      Druid: false,
+      Assassin: false,
+    },
+    SealPrecast: false,
+    PreAttack: [0, 0, 0],
+    SealOrder: [1, 2, 3],
+    SealDelay: 0
+  },
   MFHelper: {
     BreakClearLevel: false,
     BreakOnDiaBaal: true,

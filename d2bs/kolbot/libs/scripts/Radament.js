@@ -17,7 +17,7 @@ const Radament = new Runnable(
 
     Attack.kill(sdk.monsters.Radament);
     Pickit.pickItems();
-    Attack.openChests(20);
+    Misc.openChests(20);
 
     return true;
   },

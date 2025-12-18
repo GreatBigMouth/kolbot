@@ -5,7 +5,7 @@
 
 
 (function (module, require) {
-  const myEvents = new (require("Events"));
+  const myEvents = new (require("./AsyncEvents"));
   const Worker = require("Worker");
 
   Worker.runInBackground.messaging = (new function () {
