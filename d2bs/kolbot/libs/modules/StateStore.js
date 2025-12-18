@@ -1,24 +1,89 @@
-(function(module) {
-  // We have this in misc module for the restock system, 
-  // but will better copy it here since this is supposed to be a generic module
+(function (module) {
+  const getChangedKeys = (newObj, oldObj) => {
+    const isEqual = (a, b) => {
+      if (a === b) return true;
+      if (
+        a === null || b === null ||
+        typeof a !== "object" || typeof b !== "object"
+      ) {
+        return false;
+      }
+
+      const keysA = Object.keys(a);
+      const keysB = Object.keys(b);
+      if (keysA.length !== keysB.length) return false;
+
+      return keysA.every(key => isEqual(a[key], b[key]));
+    };
+
+    newObj = newObj || {};
+    oldObj = oldObj || {};
+
+    const allKeys = {};
+    Object.keys(oldObj).forEach(key => allKeys[key] = true);
+    Object.keys(newObj).forEach(key => allKeys[key] = true);
+
+    const changedKeys = [];
+    Object.keys(allKeys).forEach(key => {
+      if (
+        !oldObj.hasOwnProperty(key) ||
+        !newObj.hasOwnProperty(key) ||
+        !isEqual(oldObj[key], newObj[key])
+      ) {
+        changedKeys.push(key);
+      }
+    });
+
+    return changedKeys;
+
+    //return Object.keys(newObj).filter(key => !isEqual(oldObj[key], newObj[key]));
+  };
+
+  const getChangedPaths = (oldObj, newObj, basePath = "") => {
+    let changed = [];
+
+    const keys = new Set([...Object.keys(oldObj || {}), ...Object.keys(newObj || {})]);
+
+    keys.forEach((key) => {
+      const oldVal = oldObj[key];
+      const newVal = newObj[key];
+      const path = basePath ? [basePath, key].join(".") : key;
+  
+      if (
+        typeof oldVal === "object" &&
+        typeof newVal === "object" &&
+        oldVal !== null &&
+        newVal !== null
+      ) {
+        changed = changed.concat(getChangedPaths(oldVal, newVal, path));
+      } else if (oldVal !== newVal) {
+        changed.push(path);
+      }
+    });
+
+    return changed;
+  };
+
+  // === Utility: Readonly proxy wrapper ===
   const readonly = (() => {
     const cache = new WeakMap();
 
     const wrap = (obj) => {
-      if (obj === null || typeof obj !== "object") {
-        return obj;
-      }
-
-      if (cache.has(obj)) {
-        return cache.get(obj);
-      }
+      if (obj === null || typeof obj !== "object") return obj;
+      if (cache.has(obj)) return cache.get(obj);
 
       const proxy = new Proxy(obj, {
         get: (target, prop) => {
+          const desc = Object.getOwnPropertyDescriptor(target, prop);
+          if (desc && !desc.configurable && !desc.writable) {
+            return target[prop];
+          }
+
           const value = target[prop];
-          return (typeof value === "object" && value !== null)
-            ? wrap(value)
-            : value;
+          if (typeof value === "object" && value !== null) {
+            return wrap(value);
+          }
+          return value;
         },
         set: (target, prop, value) => {
           throw new Error("Attempt to mutate readonly object at property " + String(prop));
@@ -34,106 +99,131 @@
         }
       });
 
-      cache.set(obj, proxy); // store proxy for reuse
+      cache.set(obj, proxy);
       return proxy;
     };
 
     return wrap;
   })();
 
-  const StateStore = (params = {}) => {
-    const { initialState, reducer } = params;
+  // === Recursive State Store ===
+  const StateStore = (params) => {
+    params = params || {};
+    let initialState = params.initialState || {};
+    const reducer = params.reducer;
 
     const globalListeners = [];
     const sliceListeners = {};
-    let _state = Object.assign({}, initialState);
-    let _reducer = reducer;
 
-    const attachSubscribe = (store, state) => {
-      Object.defineProperty(state, "subscribe", {
-        value: store.subscribe,
-        writable: true,
-        //enumerable: false
+    let _state = clone(initialState);
+    const _reducer = reducer;
+
+    const attachSubscriptions = (state) => {
+      if (
+        !state ||
+        typeof state !== "object" ||
+        Array.isArray(state)
+      ) return;
+
+      if (!state.hasOwnProperty("subscribe")) {
+        Object.defineProperty(state, "subscribe", {
+          value: (listener) => {
+            if (typeof listener !== "function") throw new Error("Listener must be a function");
+            globalListeners.push(listener);
+          },
+          writable: true,
+          configurable: true
+        });
+      }
+
+      Object.keys(state).forEach((key) => {
+        const value = state[key];
+
+        if (
+          !value ||
+          typeof value !== "object" ||
+          Array.isArray(value)
+        ) return;
+
+        if (value.hasOwnProperty("subscribe")) return;
+
+        Object.defineProperty(value, "subscribe", {
+          value: (listener) => {
+            if (typeof listener !== "function") throw new Error("Listener must be a function");
+            if (!sliceListeners[key]) sliceListeners[key] = [];
+            sliceListeners[key].push(listener);
+          },
+          writable: true,
+          configurable: true
+        });
+
       });
+    };
 
-      Object.keys(state).forEach(slice => {
-        if (typeof state[slice] === "object") {
-          Object.defineProperty(state[slice], "subscribe", {
-            value: store.subscribeToSlice(slice),
-            writable: true,
-            //enumerable: false
+    const notifyGlobalListeners = (currValue, prevValue) => {
+      globalListeners.forEach((listener) => {
+        try {
+          listener({
+            newValue: readonly(currValue),
+            oldValue: readonly(prevValue),
+            changedKeys: getChangedKeys(currValue, prevValue),
+            changedPaths: getChangedPaths(currValue, prevValue),
           });
+        } catch (e) {
+          console.error("Error in global listener: " + e);
         }
       });
     };
+
+    const notifySliceListeners = (currValue, prevValue) => {
+      Object.keys(sliceListeners).forEach((key) => {
+        if (JSON.stringify(currValue[key]) === JSON.stringify(prevValue[key])) return;
+        
+        const listeners = sliceListeners[key];
+        listeners.forEach((listener) => {
+          try {
+            listener({
+              newState: readonly(currValue),
+              oldState: readonly(prevValue),
+              changedKeys: getChangedKeys(currValue[key], prevValue[key]),
+              changedPaths: getChangedPaths(currValue[key], prevValue[key]),
+              newValue: readonly(currValue)[key],
+              oldValue: readonly(prevValue)[key],
+            });
+          } catch (e) {
+            console.error("Error in listener for slice " + key + ": " + e);
+          }
+        });
+      });
+    };
+
 
     const store = {
       getState: () => readonly(_state),
 
       dispatch: (action) => {
-        // Clone the state since it's being directly mutated in the reducer
         let prevState = clone(_state);
-        _state = _reducer(_state, action);
+        _state = _reducer(_state, action);  // Mutate state directly for easier state handling
 
         if (JSON.stringify(_state) === JSON.stringify(prevState)) return;
 
-        attachSubscribe(store, _state);
+        attachSubscriptions(_state);
 
-        // Notify global listeners
-        globalListeners.forEach(listener => listener({
-          newState: _state,
-          prevState: prevState,
-          action: action
-        }));
-
-        // Notify slice listeners
-        Object.keys(_state).forEach(slice => {
-          if (JSON.stringify(_state[slice]) === JSON.stringify(prevState[slice])) return;
-          
-          if (sliceListeners.hasOwnProperty(slice)) {
-            sliceListeners[slice].forEach(listener => listener({
-              newState: _state,
-              prevState: prevState,
-              newSlice: _state[slice],
-              prevSlice: prevState[slice],
-              action: action,
-            }));
-          }
-        });
+        notifyGlobalListeners(_state, prevState);
+        notifySliceListeners(_state, prevState);
       },
 
       subscribe: (listener) => {
         if (typeof listener !== "function") throw new Error("Listener must be a function");
-        if (globalListeners.indexOf(listener) !== -1) throw new Error("Listener already subscribed");
+        if (globalListeners.indexOf(listener) !== -1) {
+          throw new Error("Listener already subscribed");
+        }
 
         globalListeners.push(listener);
 
         const unsubscribe = () => {
-          const index = globalListeners.indexOf(listener);
-          if (index > -1) {
-            globalListeners.splice(index, 1);
-          }
-        };
-
-        return unsubscribe;
-      },
-
-      subscribeToSlice: (slice) => (listener) => {
-        if (typeof listener !== "function") throw new Error("Listener must be a function");
-
-        if (!sliceListeners.hasOwnProperty(slice)) {
-          sliceListeners[slice] = [];
-        }
-        sliceListeners[slice].push(listener);
-
-        const unsubscribe = () => {
-          const index = sliceListeners[slice].indexOf(listener);
-          if (index > -1) {
-            sliceListeners[slice].splice(index, 1);
-          }
-          if (sliceListeners[slice].length === 0) {
-            delete sliceListeners[slice];
-          }
+          let idx = globalListeners.indexOf(listener);
+          if (idx >= 0) globalListeners.splice(idx, 1);
         };
 
         return unsubscribe;
@@ -141,13 +231,13 @@
 
       addReducer: (reducer) => {
         Object.assign(_reducer, reducer);
-      }
+      },
     };
 
-    attachSubscribe(store, _state);
+    attachSubscriptions(_state);
 
     return store;
   };
-  
+
   module.exports = StateStore;
-})(module, require);
+})(module);
