@@ -32,6 +32,7 @@ images/
 logs/*.rtf
 logs/*.log
 d2bs/d2bs.ini
+d2bs/kolbot/data/**.*
 d2bs/kolbot/data/secure/*.txt
 d2bs/kolbot/data/**/*.json
 d2bs/kolbot/logs/*.json
