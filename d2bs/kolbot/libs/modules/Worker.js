@@ -86,11 +86,10 @@
         return true;
       },
       deleteProperty: function (target, name) {
-        if (!target.processes.hasOwnProperty(name)) {
-          throw new Error("Process " + name + " does not exists.");
+        if (target.processes.hasOwnProperty(name)) {
+          target.processes[name].running = false;
+          delete target.processes[name];
         }
-        target.processes[name].running = false;
-        delete target.processes[name];
         return true;
       }
     });

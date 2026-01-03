@@ -4,6 +4,7 @@
 *  @desc        Entry script for AutoMule.js
 *
 *  @typedef {import("./sdk/globals")}
+*  @typedef {import("./libs/systems/mulelogger/MuleLogger")}
 */
 js_strict(true);
 include("critical.js"); // required

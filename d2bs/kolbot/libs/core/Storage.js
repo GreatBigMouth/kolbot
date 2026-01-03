@@ -94,6 +94,9 @@
         }
       }
     } catch (e2) {
+      if (e2 instanceof ScriptError) {
+        throw e2;
+      }
       throw new Error("Storage.IsLocked error! Item info: " + item.name + " " + item.y + " " + item.sizey + " " + item.x + " " + item.sizex + " " + item.mode + " " + item.location);
     }
 
@@ -547,6 +550,9 @@
 
       return this.MoveToSpot(item, nPos.y, nPos.x);
     } catch (e) {
+      if (e instanceof ScriptError) {
+        throw e;
+      }
       console.log("Storage.Container.MoveTo caught error : " + e + " - " + e.toSource());
 
       return false;
@@ -629,6 +635,9 @@
 
       return itemList;
     } catch (e) {
+      if (e instanceof ScriptError) {
+        throw e;
+      }
       return false;
     }
   };

@@ -6,7 +6,10 @@
 */
 
 (function (module) {
-  // D2BotMule specific settings - for global settings see libs/starter/StarterConfig.js
+  /**
+   * @description D2BotAutoMule specific settings - for global settings see libs/starter/StarterConfig.js
+   * @type {Partial<StarterConfig>}
+   */
   const StarterConfig = {
     MinGameTime: 30, // Minimum game length in seconds. If a game is ended too soon, the rest of the time is waited in the lobby
     MaxGameTime: 60, // Maximum game length in minutes, only for continuous muling

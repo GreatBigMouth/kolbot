@@ -6,7 +6,10 @@
 */
 
 (function (module) {
-  // D2BotPubJoin specific settings - for global settings see libs/starter/StarterConfig.js
+  /**
+   * @description D2BotPubJoin specific settings - for global settings see libs/starter/StarterConfig.js
+   * @type {Partial<StarterConfig>}
+   */
   const StarterConfig = {
     MinGameTime: 0, // Minimum game length in seconds. If a game is ended too soon, the rest of the time is waited in the lobby
     ResetCount: 0, // Reset game count back to 1 every X games.

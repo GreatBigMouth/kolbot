@@ -991,6 +991,9 @@ const Pather = {
             }
           }
         } catch (e) {
+          if (e instanceof ScriptError) {
+            throw e;
+          }
           continue;
         }
       }

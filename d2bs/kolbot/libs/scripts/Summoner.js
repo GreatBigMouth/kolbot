@@ -19,8 +19,11 @@ const Summoner = new Runnable(
       }
     }
 
-    if (me.inArea(sdk.areas.PalaceCellarLvl3) && !Pather.usePortal(null)) {
-      throw new Error("Failed to move back to arcane");
+    if (me.inArea(sdk.areas.PalaceCellarLvl3)) {
+      let portal = Game.getObject(sdk.objects.ArcaneSanctuaryPortal);
+      if (!portal || !Pather.usePortal(null, null, portal)) {
+        throw new Error("Failed to move back to arcane");
+      }
     }
 
     if (Config.Summoner.ClearSanctuary) {

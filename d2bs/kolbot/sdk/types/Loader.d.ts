@@ -1,31 +1,31 @@
-export {};
 declare global {
   type GlobalScript = () => boolean;
-  type ScriptContext = { [key: string]: any };
-  interface RunnableOptions {
-    setup?: (ctx: ScriptContext) => any;
-    preAction?: (ctx: ScriptContext) => any;
-    postAction?: (ctx: ScriptContext) => any;
-    cleanup?: (ctx: ScriptContext) => any;
+  type ScriptContext = { [key: string]: unknown };
+
+  interface RunnableOptions<TContext extends ScriptContext = ScriptContext> {
+    setup?: (ctx: TContext) => void;
+    preAction?: (ctx: TContext) => void;
+    postAction?: (ctx: TContext) => void;
+    cleanup?: (ctx: TContext) => void;
     forceTown?: boolean;
     bossid?: number;
     startArea?: number;
   }
 
   // @ts-ignore
-  class Runnable {
-    constructor(action: () => boolean, options: Partial<RunnableOptions>);
+  class Runnable<TContext extends ScriptContext = ScriptContext> {
+    constructor(action: (ctx: TContext) => boolean, options: Partial<RunnableOptions<TContext>>);
 
-    action: (ctx: ScriptContext) => boolean;
+    action: (ctx: TContext) => boolean;
     startArea: number | null;
-    setup: ((ctx: ScriptContext) => any) | null;
-    preAction: (ctx: ScriptContext) => any;
-    postAction: ((ctx: ScriptContext) => any) | null;
-    cleanup: ((ctx: ScriptContext) => any) | null;
+    setup: ((ctx: TContext) => void) | null;
+    preAction: (ctx: TContext) => void;
+    postAction: ((ctx: TContext) => void) | null;
+    cleanup: ((ctx: TContext) => void) | null;
     forceTown: boolean;
     bossid: number | null;
   }
-  
+
   namespace Loader {
     const fileList: string[];
     const scriptList: string[];
@@ -43,7 +43,7 @@ declare global {
     function clone(obj: any): void;
     function copy(from: any, to: any): void;
     function loadScripts(): void;
-    function runScript(name: string, configOverride: Partial<Config> | (() => any)): boolean;
+    function runScript(name: string, configOverride: Partial<IConfig> | (() => void)): boolean;
     function scriptName(offset?: number): string;
   }
 
@@ -53,3 +53,4 @@ declare global {
 
   const Scripts: Scripts;
 }
+export {};

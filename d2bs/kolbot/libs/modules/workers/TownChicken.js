@@ -208,6 +208,9 @@
             }
           }
         } catch (e) {
+          if (e instanceof ScriptError) {
+            throw e;
+          }
           let tpTool = me.getTpTool();
           if (!tpTool && Misc.getPlayerCount() <= 1) {
             Misc.errorReport(new Error("Town.goToTown: Failed to go to town and no tps available. Restart."));
@@ -238,7 +241,10 @@
       if (act !== me.act) {
         try {
           Pather.useWaypoint(sdk.areas.townOfAct(act), wpmenu);
-        } catch (WPError) {
+        } catch (e) {
+          if (e instanceof ScriptError) {
+            throw e;
+          }
           throw new Error("Town.goToTown: Failed use WP");
         }
       }
@@ -282,6 +288,9 @@
         while (!me.area) delay (3);
         if (!me.inTown) return false;
       } catch (e) {
+        if (e instanceof ScriptError) {
+          throw e;
+        }
         return false;
       }
 
@@ -302,6 +311,9 @@
         try {
           usePortal(null, me.name);
         } catch (e) {
+          if (e instanceof ScriptError) {
+            throw e;
+          }
           throw new Error("Town.visitTown: Failed to go back from town");
         }
       }
@@ -360,6 +372,9 @@
             
           visitTown();
         } catch (e) {
+          if (e instanceof ScriptError) {
+            throw e;
+          }
           Misc.errorReport(e, "TownChicken.js");
           scriptBroadcast("quit");
 

@@ -157,7 +157,11 @@ declare global {
     RepairPercent: number;
     Recipes: CubingRecipe[];
     MakeRunewords: boolean;
-    Runewords: any[][];
+    /**
+     * runeword, item name or id, ethereal (Roll.Eth, Roll.NonEth, Roll.Any or undefined), priority (number or undefined)
+     * @example [Runeword.Enigma, 'Archon Plate', Roll.NonEth, 100]
+     */
+    Runewords: [runeword, string | number, boolean | undefined, number | undefined][];
     KeepRunewords: any[];
     LadderOverride: boolean;
     Gamble: boolean;
@@ -346,6 +350,7 @@ declare global {
       SafeTPMessage: any[];
       BaalMessage: any[];
       NextGameMessage: any[];
+      HurtBaal: number;
     };
     BaalHelper: {
       Wait: number;
@@ -355,6 +360,7 @@ declare global {
       SoulQuit: boolean;
       KillBaal: boolean;
       SkipTP: boolean;
+      HurtBaal: number;
     };
     Corpsefire: {
       ClearDen: boolean;
@@ -386,6 +392,7 @@ declare global {
       ClearRadius: number;
       SealOrder: DiabloSeal[];
       RecheckSeals: boolean;
+      HurtDiablo: number;
     };
     AutoChaos: {
       Leader: string;

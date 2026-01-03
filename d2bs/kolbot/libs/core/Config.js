@@ -8,6 +8,7 @@
 /** @type {Record<KolbotScript, boolean | Object>} */
 const Scripts = {};
 
+/** @implements {IConfig} */
 let Config = {
   init: function (notify = true) {
     const className = sdk.player.class.nameOf(me.classid);
@@ -310,7 +311,8 @@ let Config = {
   Recipes: [],
   MakeRunewords: false,
   /**
-   * @type {[runeword, string | number, ?boolean][]}
+   * @type {[runeword, string | number, ?boolean, number | undefined][]}
+   * @example [Runeword.Enigma, 'Archon Plate', Roll.NonEth, 100]
    */
   Runewords: [],
   KeepRunewords: [],
@@ -535,7 +537,8 @@ let Config = {
     HotTPMessage: [],
     SafeTPMessage: [],
     BaalMessage: [],
-    NextGameMessage: []
+    NextGameMessage: [],
+    HurtBaal: 0,
   },
   BaalHelper: {
     Wait: 120,
@@ -544,7 +547,8 @@ let Config = {
     DollQuit: false,
     SoulQuit: false,
     KillBaal: false,
-    SkipTP: false
+    SkipTP: false,
+    HurtBaal: 0,
   },
   Corpsefire: {
     ClearDen: false
@@ -577,7 +581,8 @@ let Config = {
     ClearRadius: 30,
     /** @type {import("sdk/types/Config").DiabloSeal[]} */
     SealOrder: ["vizier", "seis", "infector"],
-    RecheckSeals: false
+    RecheckSeals: false,
+    HurtDiablo: 0,
   },
   /** @type {IConfig["AutoChaos"]} */
   AutoChaos: {
@@ -632,6 +637,7 @@ let Config = {
     MaxGameLength: 0,
   },
   ControlBot: {
+    WelcomePlayers: true,
     Bo: false,
     DropGold: false,
     Cows: {

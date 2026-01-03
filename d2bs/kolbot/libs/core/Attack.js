@@ -1779,6 +1779,9 @@ const Attack = {
     try {
       result = getCollision(me.area, x, y);
     } catch (e) {
+      if (e instanceof ScriptError) {
+        throw e;
+      }
       return false;
     }
 

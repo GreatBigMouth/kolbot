@@ -6,6 +6,14 @@
 */
 
 (function (module) {
+  /**
+   * @description D2BotChannel specific settings - for global settings see libs/starter/StarterConfig.js
+   * @type {Partial<StarterConfig>}
+   */
+  const StarterConfig = {
+    // JoinRetryDelay: 5, // Time in seconds to wait before next join attempt
+  };
+
   const ChannelConfig = {
     SkipMutedKey: true,
     MutedKeyTrigger: "Your account has had all chat privileges suspended.",
@@ -52,5 +60,6 @@
 
   module.exports = {
     ChannelConfig: ChannelConfig,
+    StarterConfig: StarterConfig,
   };
 })(module);

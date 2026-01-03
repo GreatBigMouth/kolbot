@@ -9,12 +9,12 @@ includeIfNotIncluded("core/Attack.js");
 
 Attack.init = function (notify = false) {
   if (Config.Wereform) {
-    include("core/Attacks/wereform.js");
+    ClassAttack.load(me.classid, require("../../core/Attacks/Wereform"));
   } else if (Config.CustomClassAttack && FileTools.exists("libs/core/Attacks/" + Config.CustomClassAttack + ".js")) {
     console.log("Loading custom attack file");
-    include("core/Attacks/" + Config.CustomClassAttack + ".js");
+    ClassAttack.load(me.classid, require("../../core/Attacks/" + Config.CustomClassAttack));
   } else {
-    include("core/Attacks/" + sdk.player.class.nameOf(me.classid) + ".js");
+    ClassAttack.load(me.classid);
   }
 
   if (Config.AttackSkill[1] < 0 || Config.AttackSkill[3] < 0) {

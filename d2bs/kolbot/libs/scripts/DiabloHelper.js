@@ -203,7 +203,9 @@ const DiabloHelper = new Runnable(
         }
       }
 
-      Attack.kill(sdk.monsters.Diablo);
+      Config.DiabloHelper.HurtDiablo > 0
+        ? Attack.hurt(sdk.monsters.Diablo, Config.DiabloHelper.HurtDiablo)
+        : Attack.kill(sdk.monsters.Diablo);
       Pickit.pickItems();
     } catch (e) {
       console.error(e);

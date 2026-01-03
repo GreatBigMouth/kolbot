@@ -4,6 +4,9 @@
 *  @desc        Entry script for following bots using channels
 *
 *  @typedef {import("./sdk/globals")}
+*  @typedef {import("./libs/systems/torch/TorchSystem")}
+*  @typedef {import("./libs/systems/crafting/CraftingSystem")}
+*  @typedef {import("./libs/systems/gambling/Gambling")}
 */
 
 include("critical.js"); // required
@@ -28,6 +31,8 @@ const watch = {
 };
 /** @type {Array<{ name: string, msg: string }>} */
 const messageQueue = [];
+/** @type {Array<{ name: string, game: string, time: number }>} */
+const friendsMessageQueue = [];
 /** @type {Map<string, string>} */
 const channelWatcher = new Map();
 const joinInfo = {
@@ -54,6 +59,17 @@ function ChannelChatHandler (name, msg) {
     return;
   }
   messageQueue.push({ name: name, msg: msg });
+}
+
+/**
+ * @param {string} name 
+ * @param {string} msg 
+ */
+function WhisperChatHandler (name, msg) {
+  if (me.ingame) return;
+  if (!msg.includes("Your friend")) return;
+  let game = msg.split("game called")[1].replace(".", "").trim();
+  friendsMessageQueue.push({ name: name, game: game, time: new Date().getTime() });
 }
 
 const locationAction = (function () {
@@ -100,6 +116,15 @@ const locationAction = (function () {
     return false;
   };
 
+  const systemsOOGCheck = function () {
+    return AutoMule.outOfGameCheck()
+      || TorchSystem.outOfGameCheck()
+      || Gambling.outOfGameCheck()
+      || CraftingSystem.outOfGameCheck();
+  };
+
+  const friendListQueryInterval = Time.seconds(ChannelConfig.FriendListQuery || 0);
+  
   let lastText;
   let channelTick = getTickCount();
   let fListTick = 0;
@@ -120,10 +145,7 @@ const locationAction = (function () {
       D2Bot.updateStatus("Lobby Chat");
 
       if (Starter.inGame) {
-        if (AutoMule.outOfGameCheck()
-          || TorchSystem.outOfGameCheck()
-          || Gambling.outOfGameCheck()
-          || CraftingSystem.outOfGameCheck()) {
+        if (systemsOOGCheck()) {
           return;
         }
 
@@ -230,8 +252,7 @@ const locationAction = (function () {
         retry = 0;
       }
 
-      if (ChannelConfig.FriendListQuery > 0
-        && getTickCount() - fListTick >= Time.seconds(ChannelConfig.FriendListQuery)) {
+      if (friendListQueryInterval && getTickCount() - fListTick >= friendListQueryInterval) {
         say("/f l");
         fListTick = getTickCount();
         pollQueue();
@@ -267,6 +288,28 @@ const locationAction = (function () {
             }
           }
         }
+      }
+
+      while (friendsMessageQueue.length > 0) {
+        let chat = friendsMessageQueue.shift();
+        // lets determine if this is a player message or internal message
+        if (!chat.name || chat.name.split("*")[0] === me.charname) continue;
+        // how long ago was this message?
+        if (new Date().getTime() - chat.time > Time.minutes(3)) continue;
+        // we have a game from a friend whisper
+        let gameName = chat.game;
+        // double check that this is a valid game name
+        if (gameName.length > 15 || badGames.has(gameName) || exclude(gameName)) continue;
+        let validGame = ChannelConfig.Games.find(function (gInfo) {
+          return gameName.toLowerCase().includes(gInfo.game.toLowerCase());
+        });
+        if (!validGame) continue;
+        console.debug("Joining friend's game: " + gameName);
+        joinInfo.gameName = gameName;
+        joinInfo.gamePass = validGame.password || "";
+        Controls.JoinGameWindow.click();
+        
+        return;
       }
 
       fullText = "";
@@ -494,6 +537,10 @@ function main () {
   addEventListener("copydata", Starter.receiveCopyData);
   addEventListener("scriptmsg", Starter.scriptMsgEvent);
   addEventListener("chatmsg", ChannelChatHandler);
+  
+  if (ChannelConfig.FriendListQuery > 0) {
+    addEventListener("whispermsg", WhisperChatHandler);
+  }
 
   while (!Starter.handle) {
     delay(100);

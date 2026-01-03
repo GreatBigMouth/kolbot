@@ -456,7 +456,7 @@
     try {
       let func = _loc.get(loc);
       if (typeof func === "function") {
-        console.debug("Handling location: " + loc);
+        // console.debug("Handling location: " + loc);
         Starter.lastLocation.push(loc);
         if (Starter.lastLocation.length > 5) {
           Starter.lastLocation.shift();

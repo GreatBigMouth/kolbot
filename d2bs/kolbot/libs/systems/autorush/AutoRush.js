@@ -1121,6 +1121,9 @@
       console.log("Attempting to find Diablo");
       inviteIn() && Common.Diablo.diabloPrep();
     } catch (error) {
+      if (error instanceof ScriptError) {
+        throw error;
+      }
       console.log("Diablo wasn't found. Checking seals.");
       Common.Diablo.runSeals(Config.Diablo.SealOrder);
       inviteIn() && Common.Diablo.diabloPrep();

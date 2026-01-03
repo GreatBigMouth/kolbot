@@ -65,6 +65,7 @@ $dirs = @(
     "$SYSTEMS_DIR\follow",
     "$SYSTEMS_DIR\gambling",
     "$SYSTEMS_DIR\gameaction",
+    "$SYSTEMS_DIR\lead",
     "$SYSTEMS_DIR\mulelogger",
     "$SYSTEMS_DIR\pubjoin",
     "$SYSTEMS_DIR\torch",
@@ -110,6 +111,7 @@ Copy-IfNotExists "$SETUP_DIR\crafting\TeamsConfig.js" "$SYSTEMS_DIR\crafting\Tea
 Copy-IfNotExists "$SETUP_DIR\follow\FollowConfig.js" "$SYSTEMS_DIR\follow\FollowConfig.js" "FollowConfig.js to follow directory"
 Copy-IfNotExists "$SETUP_DIR\gambling\TeamsConfig.js" "$SYSTEMS_DIR\gambling\TeamsConfig.js" "TeamsConfig.js to gambling directory"
 Copy-IfNotExists "$SETUP_DIR\gameaction\GameActionConfig.js" "$SYSTEMS_DIR\gameaction\GameActionConfig.js" "GameActionConfig.js to gameaction directory"
+Copy-IfNotExists "$SETUP_DIR\lead\LeadConfig.js" "$SYSTEMS_DIR\lead\LeadConfig.js" "LeadConfig.js to lead directory"
 Copy-IfNotExists "$SETUP_DIR\mulelogger\LoggerConfig.js" "$SYSTEMS_DIR\mulelogger\LoggerConfig.js" "LoggerConfig.js to mulelogger directory"
 Copy-IfNotExists "$SETUP_DIR\pubjoin\PubJoinConfig.js" "$SYSTEMS_DIR\pubjoin\PubJoinConfig.js" "PubJoinConfig.js to pubjoin directory"
 Copy-IfNotExists "$SETUP_DIR\torch\FarmerConfig.js" "$SYSTEMS_DIR\torch\FarmerConfig.js" "FarmerConfig.js to torch directory"

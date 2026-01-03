@@ -461,10 +461,12 @@ const BaalAssistant = new Runnable(
                 throw new Error("Couldn't find portal.");
               }
 
-              if (Helper) {
+              if (Helper || Config.BaalAssistant.HurtBaal > 0) {
                 delay(1000);
                 Pather.moveTo(15134, 5923);
-                Attack.kill(sdk.monsters.Baal);
+                Config.BaalAssistant.HurtBaal > 0
+                  ? Attack.hurt(sdk.monsters.Baal, Config.BaalAssistant.HurtBaal)
+                  : Attack.kill(sdk.monsters.Baal);
                 Pickit.pickItems();
               } else {
                 Pather.moveTo(15177, 5952);

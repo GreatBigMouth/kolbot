@@ -70,3 +70,5 @@ d2bs/kolbot/libs/systems/rushservice*
 d2bs/kolbot/libs/systems/rushservice*/**
 
 d2bs/kolbot/libs/core/BlizzardError
+d2bs/kolbot/libs/systems/charrefresher/RefresherConfig.js
+d2bs/kolbot/libs/systems/lead/LeadConfig.js

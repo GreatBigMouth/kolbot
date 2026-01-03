@@ -166,6 +166,7 @@
     Config.DiabloHelper.SafePrecast = true; // take random WP to safely precast
     Config.DiabloHelper.SealOrder = ["vizier", "seis", "infector"]; // the order in which to clear the seals. If seals are excluded, they won't be checked unless diablo fails to appear
     Config.DiabloHelper.RecheckSeals = false; // Teleport to each seal and double-check that it was opened and boss was killed if Diablo doesn't appear
+    Config.DiabloHelper.HurtDiablo = 0; // Hurt Diablo to X percent health. Set to 0 to disable
   Scripts.AutoBaal = false; // Baal leecher with auto leader assignment
     Config.AutoBaal.FindShrine = false; // false = disabled, 1 = search after hot tp message, 2 = search as soon as leader is found
     Config.AutoBaal.LeechSpot = [15115, 5050]; // X, Y coords of Throne Room leech spot
@@ -176,6 +177,7 @@
     Config.BaalHelper.FastChaos = false; // Kill Diablo before going to Throne
     Config.BaalHelper.SoulQuit = false; // End script if Souls are found
     Config.BaalHelper.DollQuit = false; // End script if Dolls (Undead Soul Killers) are found.
+    Config.BaalHelper.HurtBaal = 0; // Hurt Baal to X percent health. Set to 0 to disable
     Config.BaalHelper.KillBaal = true; // Kill Baal. If set to false, you must configure Config.QuitList or the bot will wait indefinitely.
     Config.BaalHelper.SkipTP = false; // Don't wait for a TP, go to WSK3 and wait for someone to go to throne. Anti PK measure.
   
@@ -191,6 +193,7 @@
     Config.BaalAssistant.WaitForSafeTP = false; // Set to true to wait for a safe TP message (defined in SafeTPMessage)
     Config.BaalAssistant.DollQuit = false; // Quit on dolls. (Hardcore players?)
     Config.BaalAssistant.SoulQuit = false; // Quit on Souls. (Hardcore players?)
+    Config.BaalAssistant.HurtBaal = 0; // Hurt Baal to X percent health. Set to 0 to disable
     Config.BaalAssistant.KillBaal = true; // Set to true to kill baal, if you set to false you MUST configure Config.QuitList or Config.BaalAssistant.NextGameMessage or the bot will wait indefinitely.
     Config.BaalAssistant.HotTPMessage = ["Hot"]; // Configure safe TP messages.
     Config.BaalAssistant.SafeTPMessage = ["Safe", "Clear"]; // Configure safe TP messages.

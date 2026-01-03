@@ -26,7 +26,10 @@
     },
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-    // D2BotCharRefresher specific settings - for global settings see libs/starter/StarterConfig.js
+    /**
+     * @description D2BotCharRefresher specific settings - for global settings see libs/starter/StarterConfig.js
+     * @type {Partial<StarterConfig>}
+     */
     StarterConfig: {
       // none needed right now
     }

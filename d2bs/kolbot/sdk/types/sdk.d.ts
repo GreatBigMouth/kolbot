@@ -4619,6 +4619,7 @@ declare global {
         InvalidPassword: 5207;
         AccountDoesNotExist: 5208;
         AccountIsCorrupted: 5209;
+        RejectedByServer: 5215,
         AccountMustBeAtLeast: 5217;
         AccountCantBeMoreThan: 5218;
         PasswordMustBeAtLeast: 5219;

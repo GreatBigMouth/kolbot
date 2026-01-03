@@ -33,7 +33,10 @@
     },
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-    // D2BotMuleLog specific settings - for global settings see libs/starter/StarterConfig.js
+    /**
+     * @description D2BotMuleLog specific settings - for global settings see libs/starter/StarterConfig.js
+     * @type {Partial<StarterConfig>}
+     */
     StarterConfig: {
       MinGameTime: rand(150, 180), // Minimum game length in seconds. If a game is ended too soon, the rest of the time is waited in the lobby
       CreateGameDelay: 5, // Seconds to wait before creating a new game

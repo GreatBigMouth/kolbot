@@ -10,6 +10,10 @@
 */
 
 include("critical.js"); // required
+
+// the only things we really need from these are their oog checks
+includeSystemLibs();
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 const {
   JoinSettings,
@@ -17,8 +21,6 @@ const {
 } = require("./libs/systems/follow/FollowConfig");
 Object.assign(Starter.Config, StarterConfig);
 
-// the only things we really need from these are their oog checks
-includeSystemLibs();
 
 const Overrides = require("./libs/modules/Override");
 

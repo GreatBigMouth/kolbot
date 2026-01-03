@@ -42,6 +42,9 @@
           return b.used - a.used;
         }).first() || { partyid: -1 }).partyid;
     } catch (e) {
+      if (e instanceof ScriptError) {
+        throw e;
+      }
       console.error(e);
 
       return -1;

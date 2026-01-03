@@ -14,13 +14,13 @@
     for (let i = 1; i < stack.length; i++) {
       // Find LazyLoader.js location
       if (/lazyloader\.js/i.test(stack[i])) {
-        let match = stack[i].match(/@([a-zA-Z]:[^\s:]+)\.js:/);
+        let match = stack[i].match(/@([a-zA-Z]:.+?)\.js:/);
         if (match) {
           loaderDir = match[1].replace(/\\/g, "/");
         }
       } else {
         // Find first non-LazyLoader caller
-        const match = stack[i].match(/@([a-zA-Z]:[^\s:]+)\.js:/);
+        const match = stack[i].match(/@([a-zA-Z]:.+?)\.js:/);
         if (match) {
           callerDir = match[1].replace(/\\/g, "/");
           break;

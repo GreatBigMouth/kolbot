@@ -298,7 +298,7 @@
       return true;
     };
 
-    this.killBaal = function () {
+    this.killBaal = function (hurtPercent = 0) {
       if (me.inArea(sdk.areas.ThroneofDestruction)) {
         Config.PublicMode && Loader.scriptName() === "Baal" && say(Config.Baal.BaalMessage);
         me.checkForMobs({ range: 30 }) && this.clearWaves(); // ensure waves are actually done
@@ -326,7 +326,9 @@
 
       if (me.inArea(sdk.areas.WorldstoneChamber)) {
         Pather.moveTo(15134, 5923);
-        Attack.kill(sdk.monsters.Baal);
+        hurtPercent > 0
+          ? Attack.hurt(sdk.monsters.Baal, hurtPercent)
+          : Attack.kill(sdk.monsters.Baal);
         Pickit.pickItems();
 
         return true;

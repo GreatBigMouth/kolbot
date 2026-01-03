@@ -5,13 +5,22 @@
 *
 */
 
+/**
+ * @typedef {ScriptContext & { chatEvent: (nick: string, msg: string) => void }} BaalHelperContext
+ */
 
 const BaalHelper = new Runnable(
-  function BaalHelper () {
-    Town.goToTown(5);
-    Config.RandomPrecast && Precast.needOutOfTownCast()
-      ? Precast.doRandomPrecast(true, sdk.areas.Harrogath)
-      : Precast.doPrecast(true);
+  /** @param {BaalHelperContext} ctx */
+  function BaalHelper (ctx) {
+    const chatEvent = function (nick, msg) {
+      if (nick === Config.Leader) {
+        if ((Config.BaalHelper.DollQuit && msg === "Dolls found! NG.")
+          || (Config.BaalHelper.SoulQuit && msg === "Souls found! NG.")) {
+          quitFlag = true;
+        }
+      }
+    };
+    ctx.chatEvent = chatEvent;
 
     if (Config.BaalHelper.SkipTP) {
       !me.inArea(sdk.areas.WorldstoneLvl2) && Pather.useWaypoint(sdk.areas.WorldstoneLvl2);
@@ -32,7 +41,7 @@ const BaalHelper = new Runnable(
 
         return false;
       }, Time.minutes(Config.BaalHelper.Wait), 1000)) {
-        throw new Error(
+        throw new ScriptError(
           "Player wait timed out (" + (Config.Leader ? "Leader not" : "No players") + " found in Throne)"
         );
       }
@@ -52,7 +61,7 @@ const BaalHelper = new Runnable(
       if (!Pather.moveToExit(sdk.areas.ThroneofDestruction, true)) {
         throw new Error("Failed to move to Throne of Destruction.");
       }
-      Pather.moveToEx(15113, 5040, { callback: () => {
+      Pather.moveToEx(15113, 5040, { callback: function () {
         if (Config.BaalHelper.DollQuit && Game.getMonster(sdk.monsters.SoulKiller)) {
           console.log("Undead Soul Killers found, ending script.");
           throw new ScriptError("Undead Soul Killers found, ending script.");
@@ -69,38 +78,21 @@ const BaalHelper = new Runnable(
 
       let quitFlag = false;
 
-      const chatEvent = function (nick, msg) {
-        if (nick === Config.Leader) {
-          if ((Config.BaalHelper.DollQuit && msg === "Dolls found! NG.")
-            || (Config.BaalHelper.SoulQuit && msg === "Souls found! NG.")) {
-            quitFlag = true;
-          }
-        }
-      };
-
       if (Config.BaalHelper.DollQuit || Config.BaalHelper.SoulQuit) {
         addEventListener("chatmsg", chatEvent);
       }
 
-      try {
-        if (!Misc.poll(() => {
-          if (Pather.getPortal(sdk.areas.ThroneofDestruction, Config.Leader || null)) {
-            if (quitFlag) throw new ScriptError("Burning Souls or Dolls found, ending script.");
-            if (Pather.usePortal(sdk.areas.ThroneofDestruction, Config.Leader || null)) {
-              return true;
-            }
+      if (!Misc.poll(() => {
+        if (Pather.getPortal(sdk.areas.ThroneofDestruction, Config.Leader || null)) {
+          if (quitFlag) throw new ScriptError("Burning Souls or Dolls found, ending script.");
+          if (Pather.usePortal(sdk.areas.ThroneofDestruction, Config.Leader || null)) {
+            return true;
           }
-
-          return false;
-        }, Time.minutes(Config.BaalHelper.Wait), 1000)) {
-          throw new Error("Player wait timed out (" + (Config.Leader ? "No leader" : "No player") + " portals found)");
         }
-      } catch (e) {
-        console.log(e.message);
 
-        return true;
-      } finally {
-        removeEventListener("chatmsg", chatEvent);
+        return false;
+      }, Time.minutes(Config.BaalHelper.Wait), 1000)) {
+        throw new ScriptError("Player wait timed out (" + (Config.Leader ? "No leader" : "No player") + " portals found)");
       }
     }
 
@@ -118,10 +110,11 @@ const BaalHelper = new Runnable(
       throw new Error("Couldn't clear baal waves");
     }
 
-    if (Config.BaalHelper.KillBaal) {
-      Common.Baal.killBaal();
+    if (Config.BaalHelper.KillBaal || Config.BaalHelper.HurtBaal) {
+      Common.Baal.killBaal(Config.BaalHelper.HurtBaal);
     } else {
       Town.goToTown();
+      // infinite loops are bad, TODO: add break condition, maybe a 5-10 minute timeout?
       while (true) {
         delay(500);
       }
@@ -137,6 +130,19 @@ const BaalHelper = new Runnable(
       if (getTickCount() - Town.lastChores > Time.minutes(1)) {
         Town.doChores();
       }
+
+      Config.RandomPrecast && Precast.needOutOfTownCast()
+        ? Precast.doRandomPrecast(true, (Config.BaalHelper.SkipTP ? sdk.areas.WorldstoneLvl2 : sdk.areas.Harrogath))
+        : Precast.doPrecast(true);
+      
+      if (!Config.BaalHelper.SkipTP) {
+        Town.goToTown(5);
+        Town.move("portalspot");
+      }
+    },
+    /** @param {BaalHelperContext} ctx */
+    cleanup: function (ctx) {
+      removeEventListener("chatmsg", ctx.chatEvent);
     }
   }
 );
