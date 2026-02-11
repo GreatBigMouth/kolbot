@@ -233,15 +233,19 @@ function main () {
       }
 
       break;
-    case "make":
-      {
-        let className = sdk.player.class.nameOf(me.classid);
-        if (!FileTools.exists("libs/manualplay/config/" + className + "." + me.name + ".js")) {
-          FileTools.copy("libs/manualplay/config/" + className + ".js", "libs/manualplay/config/" + className + "." + me.name + ".js");
-          D2Bot.printToConsole("libs/manualplay/config/" + className + "." + me.name + ".js has been created. Configure the bot and reload to apply changes");
-          log("libs/manualplay/config/" + className + "." + me.name + ".js has been created. Configure the bot and reload to apply changes");
-        }
+    case "make": {
+      let className = sdk.player.class.nameOf(me.classid);
+      if (!FileTools.exists("libs/manualplay/config/" + className + "." + me.name + ".js")) {
+        FileTools.copy("libs/manualplay/config/" + className + ".js", "libs/manualplay/config/" + className + "." + me.name + ".js");
+        D2Bot.printToConsole("libs/manualplay/config/" + className + "." + me.name + ".js has been created. Configure the bot and reload to apply changes");
+        log("libs/manualplay/config/" + className + "." + me.name + ".js has been created. Configure the bot and reload to apply changes");
       }
+      
+      break;
+    }
+    case "docubing":
+    case "makerunewords":
+      qolObj.action = cmd;
 
       break;
     default:

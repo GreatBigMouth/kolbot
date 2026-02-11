@@ -17,6 +17,7 @@
     diabloSpawned: false,
     diaWaitTime: Time.seconds(30),
     clearRadius: 30,
+    clearType: sdk.monsters.spectype.All,
     done: false,
     waitForGlow: false,
     sealOrder: [],
@@ -195,7 +196,7 @@
 
         let node = new PathNode(path[i][0], path[i][1]);
         Pather.moveTo(node.x, node.y, 3, node.distance > 50);
-        Attack.clear(this.clearRadius, 0, false, _Diablo.sort);
+        Attack.clear(this.clearRadius, this.clearType, false, _Diablo.sort);
 
         // Push cleared positions so they can be checked for strays
         this.cleared.push(path[i]);
@@ -218,9 +219,10 @@
           for (let i = 0; i < this.cleared.length; i += 1) {
             let node = new PathNode(this.cleared[i][0], this.cleared[i][1]);
             if (node.distanceTo(monster) < 30
-              && Attack.validSpot(monster.x, monster.y)) {
+              && Attack.validSpot(monster.x, monster.y)
+            ) {
               Pather.moveToUnit(monster);
-              Attack.clear(15, 0, false, _Diablo.sort);
+              Attack.clear(15, this.clearType, false, _Diablo.sort);
 
               break;
             }
@@ -262,11 +264,14 @@
     tkSeal: function (seal) {
       if (!Skill.useTK(seal)) return false;
 
+      const checkSeal = function () {
+        return seal.mode;
+      };
+
       for (let i = 0; i < 5; i++) {
         seal.distance > 20 && Attack.getIntoPosition(seal, 18, sdk.collision.WallOrRanged);
         
-        if (Packet.telekinesis(seal)
-          && Misc.poll(() => seal.mode, 1000, 100)) {
+        if (Packet.telekinesis(seal) && Misc.poll(checkSeal, 1000, 100)) {
           break;
         }
       }
@@ -639,7 +644,7 @@
       * @returns {boolean}
       */
     preattack: function (id) {
-      const coords = (() => {
+      const coords = (function () {
         switch (id) {
         case getLocaleString(sdk.locale.monsters.GrandVizierofChaos):
           return _Diablo.vizLayout === 1 ? [7676, 5295] : [7684, 5318];

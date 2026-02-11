@@ -45,7 +45,7 @@ const Attack = {
   },
 
   // Initialize attacks
-  init: function () {
+  init: function (notify = true) {
     // TODO: properly handle loading wereform and custom files so they work with LazyLoader and get the correct types
     if (Config.Wereform) {
       ClassAttack.load(me.classid, require("./Attacks/Wereform"));
@@ -56,7 +56,7 @@ const Attack = {
       ClassAttack.load(me.classid);
     }
 
-    if (Config.AttackSkill[1] < 0 || Config.AttackSkill[3] < 0) {
+    if (notify && (Config.AttackSkill[1] < 0 || Config.AttackSkill[3] < 0)) {
       showConsole();
       console.warn(
         "ÿc1Bad attack config. Don't expect your bot to attack." + "\n"
@@ -1992,6 +1992,89 @@ const Attack = {
 
     if (Config.SkipId.includes(unit.classid)) {
       return true;
+    }
+
+    if (Config.AdvancedSkipCheck.length) {
+      for (let check of Config.AdvancedSkipCheck) {
+        if (typeof check === "function") {
+          if (check(unit)) {
+            return true;
+          }
+        } else if (typeof check === "object") {
+          let shouldSkip = Object.keys(check).length > 0;
+
+          for (let key in check) {
+            switch (key) {
+            case "classid":
+              if (check[key] === (unit.classid)) {
+                shouldSkip = shouldSkip && true;
+              } else {
+                shouldSkip = false;
+              }
+              break;
+            case "name":
+              if (check[key].includes(unit.name.toLowerCase())) {
+                shouldSkip = shouldSkip && true;
+              } else {
+                shouldSkip = false;
+              }
+              break;
+            case "spectype":
+              if (check[key] === (unit.spectype)) {
+                shouldSkip = shouldSkip && true;
+              } else {
+                shouldSkip = false;
+              }
+              break;
+            case "enchant":
+              if (Array.isArray(check[key])) {
+                let skipEnchant = check[key].every(function (enchant) {
+                  return unit.getEnchant(enchant);
+                });
+                if (skipEnchant) {
+                  shouldSkip = shouldSkip && true;
+                } else {
+                  shouldSkip = false;
+                }
+              }
+              break;
+            case "aura":
+              if (Array.isArray(check[key])) {
+                let skipAura = check[key].every(function (aura) {
+                  return unit.getState(aura);
+                });
+                if (skipAura) {
+                  shouldSkip = shouldSkip && true;
+                } else {
+                  shouldSkip = false;
+                }
+              }
+              break;
+            case "immunity":
+              if (Array.isArray(check[key])) {
+                let skipImmune = check[key].every(function (immune) {
+                  return !Attack.checkResist(unit, immune);
+                });
+                if (skipImmune) {
+                  shouldSkip = shouldSkip && true;
+                } else {
+                  shouldSkip = false;
+                }
+              }
+              break;
+            }
+
+            if (!shouldSkip) {
+              break;
+            }
+          }
+
+          if (shouldSkip) {
+            console.log("ÿc1Skip Advanced Check: " + unit.name);
+            return true;
+          }
+        }
+      }
     }
 
     let tempArray = [];

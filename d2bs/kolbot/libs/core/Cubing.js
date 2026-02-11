@@ -588,8 +588,11 @@ const Cubing = {
       const recipeObj = Object.assign(baseRecipeObj, extendedOpts);
 
       switch (index) {
-      case Recipe.Gem:
       case Recipe.Token:
+      case Recipe.Gem:
+        if (index === Recipe.Token) {
+          recipeObj.KeyItem = sdk.items.TokenofAbsolution;
+        }
         recipeObj.AlwaysEnabled = true;
 
         break;

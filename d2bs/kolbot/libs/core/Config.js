@@ -8,7 +8,7 @@
 /** @type {Record<KolbotScript, boolean | Object>} */
 const Scripts = {};
 
-/** @implements {IConfig} */
+/** @type {IConfig} */
 let Config = {
   init: function (notify = true) {
     const className = sdk.player.class.nameOf(me.classid);
@@ -273,6 +273,10 @@ let Config = {
   SkipImmune: [],
   SkipAura: [],
   SkipException: [],
+  /**
+   * @type {({ classid?: number, name?: string, spectype?: number, enchant?: number[], aura?: number[], immunity?: DamageType[] }|((unit: Monster) => boolean))[]}
+   */
+  AdvancedSkipCheck: [],
   /** @type {DamageType[]} */
   ImmunityException: [],
   /** @type {number[]} */
@@ -308,6 +312,7 @@ let Config = {
   Cubing: false,
   CubeRepair: false,
   RepairPercent: 40,
+  /** @type {CubingRecipe[]} */
   Recipes: [],
   MakeRunewords: false,
   /**
@@ -568,6 +573,7 @@ let Config = {
     StarTP: "Star TP up",
     DiabloMsg: "Diablo",
     ClearRadius: 30,
+    ClearType: sdk.monsters.spectype.All,
     /** @type {import("sdk/types/Config").DiabloSeal[]} */
     SealOrder: ["vizier", "seis", "infector"]
   },
@@ -579,6 +585,7 @@ let Config = {
     OpenSeals: false,
     SafePrecast: true,
     ClearRadius: 30,
+    ClearType: sdk.monsters.spectype.All,
     /** @type {import("sdk/types/Config").DiabloSeal[]} */
     SealOrder: ["vizier", "seis", "infector"],
     RecheckSeals: false,

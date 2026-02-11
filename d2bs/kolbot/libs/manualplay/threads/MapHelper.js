@@ -4,7 +4,9 @@
 *  @credits     kolton
 *  @desc        MapHelper used in conjuction with main.js
 *
+*  @typedef {import("../../../sdk/globals")}
 */
+
 js_strict(true);
 include("critical.js"); // required
 
@@ -73,6 +75,10 @@ function main () {
   Attack.init(true);
   Pickit.init();
   Storage.Init();
+  Runewords.init();
+  Cubing.init();
+  LocalChat.init();
+  
   addEventListener("scriptmsg", function (msg) {
     action = msg;
   });
@@ -427,27 +433,33 @@ function main () {
             }
 
             break;
-          case "stack":
-            {
-              let quantity = obj.params.length > 0 && !isNaN(Number(obj.params[0]))
-                ? Number(obj.params[0])
-                : 10;
-              switch (obj.action) {
-              case "thawing":
-                Town.buyPots(quantity, "Thawing", true, true);
+          case "stack": {
+            let quantity = obj.params.length > 0 && !isNaN(Number(obj.params[0]))
+              ? Number(obj.params[0])
+              : 10;
+            switch (obj.action) {
+            case "thawing":
+              Town.buyPots(quantity, "Thawing", true, true);
 
-                break;
-              case "antidote":
-                Town.buyPots(quantity, "Antidote", true, true);
+              break;
+            case "antidote":
+              Town.buyPots(quantity, "Antidote", true, true);
 
-                break;
-              case "stamina":
-                Town.buyPots(quantity, "Stamina", true, true);
+              break;
+            case "stamina":
+              Town.buyPots(quantity, "Stamina", true, true);
 
-                break;
-              }
+              break;
             }
-
+            break;
+          }
+          case "makerunewords":
+            Runewords.makeRunewords();
+            
+            break;
+          case "docubing":
+            Cubing.doCubing();
+            
             break;
           }
         }

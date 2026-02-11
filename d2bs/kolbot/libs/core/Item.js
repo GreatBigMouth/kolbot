@@ -516,57 +516,65 @@ const Item = {
    * @param {string} keptLine 
    */
   logItem: function (action, unit, keptLine) {
-    if (!this.useItemLog) return false;
-    if (!Config.LogKeys && ["pk1", "pk2", "pk3"].includes(unit.code)) return false;
-    if (!Config.LogOrgans && ["dhn", "bey", "mbr"].includes(unit.code)) return false;
-    if (!Config.LogLowRunes && ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14"].includes(unit.code)) return false;
-    if (!Config.LogMiddleRunes && ["r15", "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23"].includes(unit.code)) return false;
-    if (!Config.LogHighRunes && ["r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31", "r32", "r33"].includes(unit.code)) return false;
-    if (!Config.LogLowGems && ["gcv", "gcy", "gcb", "gcg", "gcr", "gcw", "skc", "gfv", "gfy", "gfb", "gfg", "gfr", "gfw", "skf", "gsv", "gsy", "gsb", "gsg", "gsr", "gsw", "sku"].includes(unit.code)) return false;
-    if (!Config.LogHighGems && ["gzv", "gly", "glb", "glg", "glr", "glw", "skl", "gpv", "gpy", "gpb", "gpg", "gpr", "gpw", "skz"].includes(unit.code)) return false;
+    try {
+      if (!this.useItemLog) return false;
+      if (!Config.LogKeys && ["pk1", "pk2", "pk3"].includes(unit.code)) return false;
+      if (!Config.LogOrgans && ["dhn", "bey", "mbr"].includes(unit.code)) return false;
+      if (!Config.LogLowRunes && ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14"].includes(unit.code)) return false;
+      if (!Config.LogMiddleRunes && ["r15", "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23"].includes(unit.code)) return false;
+      if (!Config.LogHighRunes && ["r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31", "r32", "r33"].includes(unit.code)) return false;
+      if (!Config.LogLowGems && ["gcv", "gcy", "gcb", "gcg", "gcr", "gcw", "skc", "gfv", "gfy", "gfb", "gfg", "gfr", "gfw", "skf", "gsv", "gsy", "gsb", "gsg", "gsr", "gsw", "sku"].includes(unit.code)) return false;
+      if (!Config.LogHighGems && ["gzv", "gly", "glb", "glg", "glr", "glw", "skl", "gpv", "gpy", "gpb", "gpg", "gpr", "gpw", "skz"].includes(unit.code)) return false;
 
-    for (let skip of Config.SkipLogging) {
-      if (skip === unit.classid || skip === unit.code) return false;
+      for (let skip of Config.SkipLogging) {
+        if (skip === unit.classid || skip === unit.code) return false;
+      }
+
+      let lastArea;
+      const name = unit.fname.split("\n").reverse().join(" ").replace(/ÿc[0-9!"+<:;.*]|\/|\\/g, "").trim();
+      const color = (unit.getColor() || -1);
+      const code = this.getItemCode(unit);
+      const sock = unit.getItem();
+      let desc = this.getItemDesc(unit);
+
+      if (action.match("kept", "i")) {
+        lastArea = DataFile.getStats().lastArea;
+        lastArea && (desc += ("\n\\xffc0Area: " + lastArea));
+      }
+
+      if (sock) {
+        do {
+          if (sock.itemType === sdk.items.type.Jewel) {
+            desc += "\n\n";
+            desc += this.getItemDesc(sock);
+          }
+        } while (sock.getNext());
+      }
+
+      keptLine && (desc += ("\n\\xffc0Line: " + keptLine));
+      desc += "$" + (unit.ethereal ? ":eth" : "");
+      const formattedDate = new Date().dateStamp().replace(/\//g, "-");
+
+      const itemObj = {
+        title: formattedDate + " " + action + " " + name,
+        description: desc,
+        image: code,
+        textColor: unit.quality,
+        itemColor: color,
+        header: "",
+        sockets: this.getItemSockets(unit)
+      };
+
+      D2Bot.printToItemLog(itemObj);
+
+      return true;
+    } catch (e) {
+      if (e instanceof ScriptError) {
+        throw e;
+      }
+      console.error("Error logging item: ", e);
+      return false;
     }
-
-    let lastArea;
-    const name = unit.fname.split("\n").reverse().join(" ").replace(/ÿc[0-9!"+<:;.*]|\/|\\/g, "").trim();
-    const color = (unit.getColor() || -1);
-    const code = this.getItemCode(unit);
-    const sock = unit.getItem();
-    let desc = this.getItemDesc(unit);
-
-    if (action.match("kept", "i")) {
-      lastArea = DataFile.getStats().lastArea;
-      lastArea && (desc += ("\n\\xffc0Area: " + lastArea));
-    }
-
-    if (sock) {
-      do {
-        if (sock.itemType === sdk.items.type.Jewel) {
-          desc += "\n\n";
-          desc += this.getItemDesc(sock);
-        }
-      } while (sock.getNext());
-    }
-
-    keptLine && (desc += ("\n\\xffc0Line: " + keptLine));
-    desc += "$" + (unit.ethereal ? ":eth" : "");
-    const formattedDate = new Date().dateStamp().replace(/\//g, "-");
-
-    const itemObj = {
-      title: formattedDate + " " + action + " " + name,
-      description: desc,
-      image: code,
-      textColor: unit.quality,
-      itemColor: color,
-      header: "",
-      sockets: this.getItemSockets(unit)
-    };
-
-    D2Bot.printToItemLog(itemObj);
-
-    return true;
   },
 
   /**

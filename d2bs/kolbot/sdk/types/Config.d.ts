@@ -132,6 +132,17 @@ declare global {
     SkipImmune: string[];
     SkipAura: string[];
     SkipException: (number | string)[];
+    AdvancedSkipCheck: (
+      | {
+          classid?: number;
+          name?: string;
+          spectype?: number;
+          enchant?: number[];
+          aura?: number[];
+          immunity?: DamageType[];
+        }
+      | ((unit: Monster) => boolean)
+    )[];
     ImmunityException: DamageType[];
     ScanShrines: number[];
     AutoShriner: boolean;

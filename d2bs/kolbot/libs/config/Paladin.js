@@ -105,6 +105,7 @@ function LoadConfig () {
     Config.Hephasto.ClearRiver = false; // Clear river after killing Hephasto
     Config.Hephasto.ClearType = 0xF; // 0xF = skip normal, 0x7 = champions/bosses, 0 = all
   Scripts.Diablo = false;
+    Config.Diablo.ClearType = 0; // Monster spectype to kill while following path to seals. 0xF = skip normal, 0x7 = champions/bosses, 0 = all
     Config.Diablo.ClearRadius = 30; // Range cleared while following path to seals
     Config.Diablo.WalkClear = false; // Disable teleport while clearing to protect leechers
     Config.Diablo.Entrance = true; // Start from entrance
@@ -196,6 +197,7 @@ function LoadConfig () {
 
   Scripts.DiabloHelper = false; // Chaos helper, kills monsters and doesn't open seals on its own.
     Config.DiabloHelper.Wait = 5; // minutes to wait for a runner to be in Chaos. If Config.Leader is set, it will wait only for the leader.
+    Config.DiabloHelper.ClearType = 0; // Monster spectype to kill while following path to seals. 0xF = skip normal, 0x7 = champions/bosses, 0 = all
     Config.DiabloHelper.ClearRadius = 30; // Range cleared while following path to seals
     Config.DiabloHelper.Entrance = true; // Start from entrance. Set to false to start from star.
     Config.DiabloHelper.SkipTP = false; // Don't wait for town portal and directly head to chaos. It will clear monsters around chaos entrance and wait for the runner.
@@ -536,8 +538,23 @@ function LoadConfig () {
   Config.SkipEnchant = [];
   // Skip monsters with auras. Possible options: "fanaticism", "might", "holy fire", "blessed aim", "holy freeze", "holy shock". Conviction is bugged, don't use it.
   Config.SkipAura = [];
+  // Skip specific monsters by classid. For a list of monster names and ids, see -> \kolbot\libs\modules\sdk.js or usee sdk.monsters.MonsterID enums.
+  // Example: Config.SkipId = [sdk.monsters.FireTower, 310];
+  Config.SkipId = [];
   // Uncomment the following line to always attempt to kill these bosses despite immunities and mods
   //Config.SkipException = [getLocaleString(sdk.locale.monsters.GrandVizierofChaos), getLocaleString(sdk.locale.monsters.LordDeSeis), getLocaleString(sdk.locale.monsters.InfectorofSouls)]; // vizier, de seis, infector
+
+  /**
+   * Advanced Skip config. Allows for more granular control over which monsters to skip.
+   * @type {({ classid?: number, name?: string, spectype?: number, enchant?: number[], aura?: number[], immunity?: DamageType[] }|((unit: Monster) => boolean))[]}
+   * Multiple entries are separated by commas
+   */
+  Config.AdvancedSkipCheck = [
+    // {
+    //   name: getLocaleString(sdk.locale.monsters.Pindleskin),
+    //   immunity: ["lightning"]
+    // }
+  ];
 
   // ########################### //
   /* ##### ATTACK SETTINGS ##### */

@@ -110,8 +110,23 @@ function LoadConfig() {
   Config.SkipEnchant = [];
   // Skip monsters with auras. Possible options: "fanaticism", "might", "holy fire", "blessed aim", "holy freeze", "holy shock". Conviction is bugged, don't use it.
   Config.SkipAura = [];
+  // Skip specific monsters by classid. For a list of monster names and ids, see -> \kolbot\libs\modules\sdk.js or usee sdk.monsters.MonsterID enums.
+  // Example: Config.SkipId = [sdk.monsters.FireTower, 310];
+  Config.SkipId = [];
   // Uncomment the following line to always attempt to kill these bosses despite immunities and mods
   //Config.SkipException = [getLocaleString(sdk.locale.monsters.GrandVizierofChaos), getLocaleString(sdk.locale.monsters.LordDeSeis), getLocaleString(sdk.locale.monsters.InfectorofSouls)]; // vizier, de seis, infector
+
+  /**
+   * Advanced Skip config. Allows for more granular control over which monsters to skip.
+   * @type {({ classid?: number, name?: string, spectype?: number, enchant?: number[], aura?: number[], immunity?: DamageType[] }|((unit: Monster) => boolean))[]}
+   * Multiple entries are separated by commas
+   */
+  Config.AdvancedSkipCheck = [
+    // {
+    //   name: getLocaleString(sdk.locale.monsters.Pindleskin),
+    //   immunity: ["lightning"]
+    // }
+  ];
 
   /* Attack config
    * To disable an attack, set it to -1

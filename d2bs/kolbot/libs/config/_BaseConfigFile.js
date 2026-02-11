@@ -99,6 +99,7 @@
   Scripts.Izual = false;
   Scripts.Hephasto = false;
   Scripts.Diablo = false;
+    Config.Diablo.ClearType = 0; // Monster spectype to kill while following path to seals. 0xF = skip normal, 0x7 = champions/bosses, 0 = all
     Config.Diablo.ClearRadius = 30; // Range cleared while following path to seals
     Config.Diablo.WalkClear = false; // Disable teleport while clearing to protect leechers
     Config.Diablo.Entrance = true; // Start from entrance
@@ -158,6 +159,7 @@
   Scripts.SealLeecher = false; // Enter safe portals to Chaos. Leader should run SealLeader.
   Scripts.DiabloHelper = false; // Chaos helper, kills monsters and doesn't open seals on its own.
     Config.DiabloHelper.Wait = 5; // minutes to wait for a runner to be in Chaos. If Config.Leader is set, it will wait only for the leader.
+    Config.DiabloHelper.ClearType = 0; // Monster spectype to kill while following path to seals. 0xF = skip normal, 0x7 = champions/bosses, 0 = all
     Config.DiabloHelper.ClearRadius = 30; // Range cleared while following path to seals
     Config.DiabloHelper.Entrance = true; // Start from entrance. Set to false to start from star.
     Config.DiabloHelper.SkipTP = false; // Don't wait for town portal and directly head to chaos. It will clear monsters around chaos entrance and wait for the runner.
